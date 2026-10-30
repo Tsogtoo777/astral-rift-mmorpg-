@@ -47,7 +47,6 @@ function cylinder(r1,r2,h,color,x,y,z){const m=new THREE.Mesh(new THREE.Cylinder
 cylinder(2.3,2.5,.45,0x807f80,2,.3,4);cylinder(1.95,1.95,.12,0x69b5cb,2,.56,4);cylinder(.48,.7,2,0xaaa69b,2,1.55,4);cylinder(.8,.65,.18,0xd6c6a7,2,2.55,4);
 for(const [x,z] of [[-5,6],[10,5],[-5,-4],[10,-4]]){cylinder(.1,.13,4,0x483a2e,x,2,z);const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.8),new THREE.MeshStandardMaterial({color:0x355b89,side:THREE.DoubleSide}));flag.position.set(x+.55,2.7,z);scene.add(flag);const l=new THREE.PointLight(0xffb45e,1,6);l.position.set(x,2.8,z);scene.add(l)}
 for(const [x,z] of [[-8,4],[10,12],[-10,-8],[9,-10]]){box(1.2,.9,1.1,0x755638,x,.45,z);box(.1,.93,1.2,0xa58b5a,x,.45,z)}
-
 // Alpha 0.5 — Anime Dark Fantasy visual improvements.
 const ink=new THREE.MeshStandardMaterial({color:0x172333,roughness:.8});
 const hairMat=new THREE.MeshStandardMaterial({color:0x222536,roughness:.9});
