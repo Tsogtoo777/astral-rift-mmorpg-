@@ -50,6 +50,32 @@ for(const [x,z] of [[-8,4],[10,12],[-10,-8],[9,-10]]){box(1.2,.9,1.1,0x755638,x,
 for(const [x,z,h] of [[-19,40,11],[-12,42,16],[-4,42,13],[5,42,18]]){box(5,h,5,0x8a8e93,x,h/2,z);const cone=new THREE.Mesh(new THREE.ConeGeometry(3.6,5,4),new THREE.MeshStandardMaterial({color:0x4a5979}));cone.position.set(x,h+2.5,z);cone.rotation.y=Math.PI/4;scene.add(cone)}
 const plaza=new THREE.Mesh(new THREE.CylinderGeometry(7,7,.08,32),new THREE.MeshStandardMaterial({color:0x9c9488}));plaza.position.set(2,.018,7);scene.add(plaza);
 const npc=new THREE.Group();npc.position.set(1,0,7);const npcBody=new THREE.Mesh(new THREE.CapsuleGeometry(.42,.75,5,10),new THREE.MeshStandardMaterial({color:0x9a75b5}));npcBody.position.y=1.1;npc.add(npcBody);const npcHead=new THREE.Mesh(new THREE.SphereGeometry(.29,12,8),new THREE.MeshStandardMaterial({color:0xe7c4a4}));npcHead.position.y=1.92;npc.add(npcHead);scene.add(npc);
+// Alpha 1.0: replace capsule-only Saruul with an articulated fantasy NPC.
+npcBody.visible=false;
+npcHead.scale.set(1.06,1.08,.92);
+const saruulSkin10=new THREE.MeshStandardMaterial({color:0xf0c7a7,roughness:.85});
+const saruulHair10=new THREE.MeshStandardMaterial({color:0x273453,roughness:.8});
+const saruulCloth10=new THREE.MeshStandardMaterial({color:0x7bd0e4,roughness:.8});
+const saruulWhite10=new THREE.MeshStandardMaterial({color:0xe6edf6,roughness:.85});
+function saruulPart10(geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;npc.add(m);return m;}
+saruulPart10(new THREE.CylinderGeometry(.29,.42,1.05,10),saruulCloth10,0,1.19,0);
+saruulPart10(new THREE.ConeGeometry(.55,.8,12),saruulWhite10,0,.72,0).rotation.y=Math.PI/12;
+for(const side of [-1,1]){
+  const arm=saruulPart10(new THREE.CapsuleGeometry(.115,.54,4,8),saruulWhite10,side*.43,1.3,0);
+  arm.rotation.z=side*.16;
+  saruulPart10(new THREE.SphereGeometry(.12,8,6),saruulSkin10,side*.49,.91,.03);
+  saruulPart10(new THREE.CapsuleGeometry(.13,.53,4,8),saruulCloth10,side*.2,.35,0);
+  saruulPart10(new THREE.BoxGeometry(.3,.17,.43),saruulHair10,side*.2,.11,.11);
+  saruulPart10(new THREE.SphereGeometry(.052,8,6),saruulHair10,side*.115,1.96,.27);
+}
+const saruulCap10=saruulPart10(new THREE.SphereGeometry(.32,12,10),saruulHair10,0,2.13,-.07);
+saruulCap10.scale.set(1.05,.7,1.1);
+for(const side of [-1,1]){
+  const hair=saruulPart10(new THREE.CapsuleGeometry(.16,.86,5,8),saruulHair10,side*.27,1.64,-.18);
+  hair.rotation.z=side*.09;
+}
+saruulPart10(new THREE.BoxGeometry(.42,.09,.13),saruulWhite10,0,1.47,.3);
+
 // Alpha 0.5 — stylized anime fantasy art pass, built from lightweight meshes.
 // All gameplay, saves, controls, quest and combat code below remains from 0.4.
 const ink=new THREE.MeshStandardMaterial({color:0x202a40,roughness:.85});
@@ -248,9 +274,22 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 0.9';
-versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · GRAPHICS & INTERIORS';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.0 FIXED';
+versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · CHARACTERS & CAMERA';
 
+
+// Alpha 1.0: refine the player silhouette and helmet.
+body.scale.set(.88,1,.84);
+head.scale.set(.94,1.03,.92);
+const armorHighlight10=new THREE.MeshStandardMaterial({color:0x99b7c7,metalness:.8,roughness:.27});
+for(const side of [-1,1]){
+  const plate=new THREE.Mesh(new THREE.BoxGeometry(.21,.56,.13),armorHighlight10);
+  plate.position.set(side*.31,1.57,.43);plate.rotation.z=side*.18;player.add(plate);
+  const greave=new THREE.Mesh(new THREE.BoxGeometry(.23,.42,.36),steel);
+  greave.position.set(side*.24,.45,.13);player.add(greave);
+}
+const beltGem10=new THREE.Mesh(new THREE.OctahedronGeometry(.14),cyanGlow);
+beltGem10.position.set(0,1.03,.34);player.add(beltGem10);
 
 // Alpha 0.9 FIX: solid building collisions and enterable interiors.
 const houses09=[
@@ -276,7 +315,8 @@ furniture09(9,.2,9,interiorFloor09,0,-.08,0);
 furniture09(.3,4,9,interiorWall09,-4.5,2,0);
 furniture09(.3,4,9,interiorWall09,4.5,2,0);
 furniture09(9,4,.3,interiorWall09,0,2,-4.5);
-furniture09(9,.25,9,interiorWood09,0,4.1,0);
+const ceiling09=furniture09(9,.25,9,interiorWood09,0,4.1,0);
+ceiling09.visible=false; // top-down third-person camera must see the room
 furniture09(3,1,1.15,interiorWood09,0,.5,-2.8);
 furniture09(1.6,.14,1.6,interiorWood09,-2,.9,0);
 furniture09(.25,.85,.25,interiorWood09,-2,.45,0);
@@ -363,7 +403,34 @@ let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
-blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0){state.hp=Math.max(0,state.hp-(e.boss?20:9));e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
-const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));const cameraDistance09=inside09>=0?4.1:7.2;const offset=new THREE.Vector3(Math.sin(state.angle)*(-cameraDistance09),2.8+state.pitch*4.5,Math.cos(state.angle)*(-cameraDistance09));camera.position.lerp(camTarget.clone().add(offset),Math.min(1,dt*9));camera.lookAt(camTarget);
+blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){state.hp=Math.max(0,state.hp-(e.boss?20:9));e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
+const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
+const cameraDistance10=inside09>=0?3.4:6.8;
+const cameraHeight10=inside09>=0?1.05:2.4;
+const desiredCamera10=camTarget.clone().add(new THREE.Vector3(
+  -Math.sin(state.angle)*cameraDistance10,
+  cameraHeight10+state.pitch*(inside09>=0?1.2:4),
+  -Math.cos(state.angle)*cameraDistance10
+));
+if(inside09>=0){
+  // Keep the camera INSIDE the room, not inside its side or rear walls.
+  desiredCamera10.x=THREE.MathUtils.clamp(desiredCamera10.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
+  desiredCamera10.z=THREE.MathUtils.clamp(desiredCamera10.z,interiorOrigin09.z-3.85,interiorOrigin09.z+3.85);
+  desiredCamera10.y=THREE.MathUtils.clamp(desiredCamera10.y,1.55,3.65);
+}else if(!inDungeon07){
+  // Move camera forward when a house occludes the view.
+  const direction10=desiredCamera10.clone().sub(camTarget);
+  const distance10=direction10.length();
+  const ray10=new THREE.Raycaster(camTarget,direction10.normalize(),.12,distance10);
+  const hits10=ray10.intersectObjects(town.children,true);
+  if(hits10.length){desiredCamera10.copy(camTarget).addScaledVector(direction10,Math.max(.65,hits10[0].distance-.35));}
+}
+camera.position.lerp(desiredCamera10,Math.min(1,dt*13));
+if(inside09>=0){
+  camera.position.x=THREE.MathUtils.clamp(camera.position.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
+  camera.position.z=THREE.MathUtils.clamp(camera.position.z,interiorOrigin09.z-3.85,interiorOrigin09.z+3.85);
+  camera.position.y=THREE.MathUtils.clamp(camera.position.y,1.55,3.65);
+}
+camera.lookAt(camTarget);
 bossHud07.style.display=(inDungeon07&&boss07.alive)?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(killCount,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · ${state.weapon?'Нум':'Илд'} · Дайсан ${enemies.filter(e=>e.alive).length}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
