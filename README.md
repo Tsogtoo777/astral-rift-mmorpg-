@@ -1,15 +1,7 @@
-# Astral Rift Alpha 1.3 — Combat Effects
+# Astral Rift Alpha 1.4 — Character Overhaul
 
-Based on Alpha 1.2. Keeps both local GLB models, quest, save, interior, boss and dungeon systems.
+Two **new locally generated** GLB models replace Alpha 1.1–1.3 meshes: `public/models/hero.glb` and `public/models/saruul.glb`. More defined faces, hair, outfits, and armor. Existing Alpha 1.3 gameplay, combat FX, interiors, dungeon, inventory, and saves are retained. Existing procedural pivot animation is reused; these are **not skeletal-rigged** models.
 
-## Visible improvements
-- Sword swing: cyan arc
-- Dodge / skill: gold arc
-- Enemy hit: seven lightweight sparks and floating damage number
-- Effects expire and clean up automatically; no additional downloads
+Upload `src/main.js`, `package.json`, and BOTH new `public/models/*.glb` to GitHub. `src/style.css` and `index.html` are unchanged.
 
-## Deploy
-Upload src/main.js, src/style.css, package.json and README.md to the existing repository. Keep public/models/hero.glb and public/models/saruul.glb unchanged.
-
-## Limitations
-Procedural effects are not full skeletal animation. Test on the target phone before replacing the working version.
+Run `npm install && npm run build`. Backup Alpha 1.3 first.
