@@ -1,10 +1,5 @@
-# Astral Rift Alpha 1.0 — Character & Camera Fix
+# Astral Rift Alpha 1.0 FIXED
 
-Based on the working Alpha 0.9 FIXED source.
+Actual code changes compared to Alpha 0.9 FIXED: articulated Saruul NPC, refined player armor, indoor ceiling hidden, camera constrained to room, exterior camera raycast against town, town safe zone.
 
-- Saruul now has a human-shaped mesh, hair, eyes, arms, legs and clothing.
-- Player armor silhouette refined.
-- Indoor camera constrained to room bounds, ceiling hidden to avoid occlusion.
-- Preserves quests, saves, bosses and house interaction.
-
-Build: `npm install && npm run build`. Test on mobile before replacing production.
+Backup the prior version before deployment. Mobile visual testing is still required.
