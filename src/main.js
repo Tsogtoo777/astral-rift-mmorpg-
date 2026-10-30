@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 0.4</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x87b9e0);scene.fog=new THREE.Fog(0x9bc3d5,45,130);
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 0.5</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;app.prepend(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-36;sun.shadow.camera.right=36;sun.shadow.camera.top=36;sun.shadow.camera.bottom=-36;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 function trunk(x,z){const t=new THREE.Mesh(new THREE.CylinderGeometry(.27,.4,3,7),new THREE.MeshStandardMaterial({color:0x60452f}));t.position.set(x,1.5,z);t.castShadow=true;scene.add(t);const c=new THREE.Mesh(new THREE.ConeGeometry(1.7,4.5,8),new THREE.MeshStandardMaterial({color:0x254f3c}));c.position.set(x,4.6,z);c.castShadow=true;scene.add(c)}
@@ -50,6 +50,54 @@ for(const [x,z] of [[-8,4],[10,12],[-10,-8],[9,-10]]){box(1.2,.9,1.1,0x755638,x,
 for(const [x,z,h] of [[-19,40,11],[-12,42,16],[-4,42,13],[5,42,18]]){box(5,h,5,0x8a8e93,x,h/2,z);const cone=new THREE.Mesh(new THREE.ConeGeometry(3.6,5,4),new THREE.MeshStandardMaterial({color:0x4a5979}));cone.position.set(x,h+2.5,z);cone.rotation.y=Math.PI/4;scene.add(cone)}
 const plaza=new THREE.Mesh(new THREE.CylinderGeometry(7,7,.08,32),new THREE.MeshStandardMaterial({color:0x9c9488}));plaza.position.set(2,.018,7);scene.add(plaza);
 const npc=new THREE.Group();npc.position.set(1,0,7);const npcBody=new THREE.Mesh(new THREE.CapsuleGeometry(.42,.75,5,10),new THREE.MeshStandardMaterial({color:0x9a75b5}));npcBody.position.y=1.1;npc.add(npcBody);const npcHead=new THREE.Mesh(new THREE.SphereGeometry(.29,12,8),new THREE.MeshStandardMaterial({color:0xe7c4a4}));npcHead.position.y=1.92;npc.add(npcHead);scene.add(npc);
+// Alpha 0.5 — stylized anime fantasy art pass, built from lightweight meshes.
+// All gameplay, saves, controls, quest and combat code below remains from 0.4.
+const ink=new THREE.MeshStandardMaterial({color:0x202a40,roughness:.85});
+const hairMat=new THREE.MeshStandardMaterial({color:0x26364c,roughness:.85});
+const skinMat=new THREE.MeshStandardMaterial({color:0xffd7b3,roughness:.9});
+const cyanGlow=new THREE.MeshStandardMaterial({color:0x65e9ff,emissive:0x1e8cb5,emissiveIntensity:1.3,roughness:.3});
+function artMesh(parent,geometry,mat,x,y,z,rotY=0){const o=new THREE.Mesh(geometry,mat);o.position.set(x,y,z);o.rotation.y=rotY;o.castShadow=true;parent.add(o);return o}
+// Character: hair, eyes, armor details, boots and glowing crystal.
+const hairCap=artMesh(player,new THREE.SphereGeometry(.325,12,9),hairMat,0,2.26,-.025);hairCap.scale.set(1.05,.67,1.04);
+for(const [x,ang] of [[-.22,-.25],[-.07,0],[.12,.22],[.27,.35]]){const tuft=artMesh(player,new THREE.ConeGeometry(.13,.39,5),hairMat,x,2.34,.19);tuft.rotation.z=ang;tuft.rotation.x=.48}
+for(const x of [-.115,.115]){const eye=artMesh(player,new THREE.SphereGeometry(.044,8,6),ink,x,2.17,.293);eye.scale.set(.85,1.3,.45);artMesh(player,new THREE.BoxGeometry(.22,.08,.08),trim,x*2.25,1.63,.47);}
+artMesh(player,new THREE.OctahedronGeometry(.16),cyanGlow,0,1.63,.49);
+for(const x of [-.24,.24]){artMesh(player,new THREE.BoxGeometry(.33,.22,.4),ink,x,.18,.075);artMesh(player,new THREE.BoxGeometry(.31,.12,.42),steel,x,.31,.09)}
+for(const x of [-.56,.56]){artMesh(player,new THREE.BoxGeometry(.24,.23,.31),trim,x,1.04,.01)}
+const hairBack=artMesh(player,new THREE.ConeGeometry(.26,.66,6),hairMat,0,1.98,-.23);hairBack.rotation.x=-.2;
+// Building detail: timber frames, glowing windows, flower boxes, tiled roofs.
+const timber=new THREE.MeshStandardMaterial({color:0x624431,roughness:.95});
+const plaster=new THREE.MeshStandardMaterial({color:0xd6c3a1,roughness:1});
+const windowMat=new THREE.MeshStandardMaterial({color:0x80c7e5,emissive:0x275f85,emissiveIntensity:.55});
+const roofMat=new THREE.MeshStandardMaterial({color:0x486078,roughness:.85});
+const bloomMats=[0xef91ac,0xf9df86,0xb9a0ee,0xfffbf2].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
+function detailsAt(x,z,i){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+  for(const a of [-2.1,2.1]){artMesh(g,new THREE.BoxGeometry(.19,3.45,.23),timber,a,1.73,2.33);artMesh(g,new THREE.BoxGeometry(.19,3.45,.23),timber,a,1.73,-2.33)}
+  for(const y of [.45,3.12])artMesh(g,new THREE.BoxGeometry(4.8,.16,.22),timber,0,y,2.36);
+  for(const a of [-1.25,1.25]){artMesh(g,new THREE.BoxGeometry(.85,1.04,.1),windowMat,a,2.08,2.39);artMesh(g,new THREE.BoxGeometry(.11,1.09,.13),timber,a,2.08,2.47);artMesh(g,new THREE.BoxGeometry(.9,.1,.13),timber,a,2.08,2.48);artMesh(g,new THREE.BoxGeometry(1.03,.23,.36),timber,a,1.49,2.49)}
+  for(let k=0;k<3;k++)artMesh(g,new THREE.BoxGeometry(4.7,.08,.12),roofMat,0,3.72+k*.33,2.55-k*.35);
+  artMesh(g,new THREE.BoxGeometry(.65,.12,.12),trim,0,2.16,2.49);
+  if(i%2===0){const awn=artMesh(g,new THREE.BoxGeometry(2.7,.08,1.5),new THREE.MeshStandardMaterial({color:0x446b8c,roughness:1}),0,2.45,3.1);awn.rotation.x=-.18;}
+}
+[[-9,10],[-3,14],[5,14],[12,9],[-11,1],[14,0],[-7,-12],[8,-14]].forEach(([x,z],i)=>detailsAt(x,z,i));
+// Distant rolling hills, clouds, scattered shrubs and flowers.
+const hillMat=new THREE.MeshStandardMaterial({color:0x64877e,roughness:1});
+for(let i=0;i<18;i++){const a=i*Math.PI*2/18;const r=66;const h=8+(i%5)*3;const hill=artMesh(scene,new THREE.ConeGeometry(14+(i%3)*3,h,7),hillMat,Math.cos(a)*r,h/2-1,Math.sin(a)*r);hill.rotation.y=i*.47}
+const cloudMat=new THREE.MeshBasicMaterial({color:0xf6fcff,transparent:true,opacity:.74,depthWrite:false});
+for(let i=0;i<12;i++){const a=i*2.4,r=36+(i%4)*9;const g=new THREE.Group();g.position.set(Math.cos(a)*r,23+(i%4)*3,Math.sin(a)*r);scene.add(g);for(let j=0;j<3;j++){const c=artMesh(g,new THREE.SphereGeometry(2.2,8,6),cloudMat,(j-1)*2,Math.sin(j)*.35,0);c.scale.y=.45}}
+const leafMat=new THREE.MeshStandardMaterial({color:0x39785c,roughness:1});
+const leafLight=new THREE.MeshStandardMaterial({color:0x6fa76b,roughness:1});
+for(let i=0;i<110;i++){const a=i*2.39996,r=18+(i%23)*2.1;const x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x-2)<8&&z>-29&&z<17)continue;
+  const shrub=artMesh(scene,new THREE.IcosahedronGeometry(.48+(i%4)*.12,0),i%3?leafMat:leafLight,x,.36,z);shrub.scale.y=.65;
+  if(i%3===0){const f=artMesh(scene,new THREE.IcosahedronGeometry(.13,0),bloomMats[i%4],x+.22,.67,z+.1);f.castShadow=false;}}
+// Plaza paving ring and floating quest indicator.
+const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshStandardMaterial({color:0xd7c7a4,metalness:.12}));ring.rotation.x=Math.PI/2;ring.position.set(2,.14,7);scene.add(ring);
+const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
+const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
+// Improved enemy silhouette while keeping their original hitboxes.
+const hornMat=new THREE.MeshStandardMaterial({color:0xe9d2b0,roughness:.8});
+for(const e of enemies){for(const side of [-1,1]){const horn=artMesh(e.g,new THREE.ConeGeometry(.18,.52,5),hornMat,side*.43,1.65,.02);horn.rotation.z=-side*.42;artMesh(e.g,new THREE.SphereGeometry(.095,7,6),cyanGlow,side*.24,1.05,.68)}artMesh(e.g,new THREE.BoxGeometry(.7,.14,.2),ink,0,.48,.48)}
+const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · Anime Dark Fantasy';document.querySelector('#app').appendChild(versionLabel);
 const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
 let level=Math.max(1,Number(saved.level)||1),xp=Math.max(0,Number(saved.xp)||0),totalKills=Number(saved.totalKills)||0;
@@ -85,7 +133,7 @@ for(const [id,fn] of Object.entries({attack,dodge,switch:swap,lock,skill1:()=>sk
 let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);player.position.addScaledVector(dir,dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
-cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
+questGem.rotation.y+=dt*.8;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
 blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<1.9&&e.cool<=0&&state.dodge<=0){state.hp=Math.max(0,state.hp-9);e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(0,0,0)}}}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));const offset=new THREE.Vector3(Math.sin(state.angle)*(-6),2.4+state.pitch*5,Math.cos(state.angle)*(-6));camera.position.lerp(camTarget.clone().add(offset),Math.min(1,dt*9));camera.lookAt(camTarget);
