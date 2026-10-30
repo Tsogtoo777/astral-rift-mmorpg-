@@ -275,8 +275,8 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.1';
-versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ANIME 3D MODELS';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.2';
+versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ANIMATED CHARACTERS';
 
 
 // Alpha 1.0: refine the player silhouette and helmet.
@@ -311,12 +311,78 @@ function loadCharacter11(url,root,isHero){
       saruulModel11=model;
     }
     root.add(model);
+    setupJoints12(model,isHero);
   },undefined,error=>{
     console.warn('Character model unavailable; original character retained:',url,error);
   });
 }
 loadCharacter11('/models/hero.glb',player,true);
 loadCharacter11('/models/saruul.glb',npc,false);
+
+// Alpha 1.2 — lightweight procedural joints for existing local GLB assets.
+// GLB meshes are authored with baked vertex positions, so group pivots are
+// created at anatomical joints without adding bones or extra draw calls.
+const joints12={hero:null,saruul:null};
+function makePivot12(model,label,pivot,parts){
+  const group=new THREE.Group();group.name='joint12_'+label;
+  group.position.set(...pivot);model.add(group);
+  for(const name of parts){
+    const mesh=model.getObjectByName(name);
+    if(!mesh)continue;
+    // The authored GLBs use identity mesh transforms and baked geometry.
+    group.attach(mesh);
+  }
+  return group;
+}
+function setupJoints12(model,isHero){
+  if(isHero){
+    joints12.hero={
+      leftLeg:makePivot12(model,'leftLeg',[-.25,.96,0],['leg0','boot0']),
+      rightLeg:makePivot12(model,'rightLeg',[.25,.96,0],['leg1','boot1']),
+      leftArm:makePivot12(model,'leftArm',[-.56,1.65,0],['arm0','gauntlet0','shoulder0']),
+      rightArm:makePivot12(model,'rightArm',[.56,1.65,0],['arm1','gauntlet1','shoulder1']),
+      head:makePivot12(model,'head',[0,1.94,0],['face','neck','hair','fringe','fringe2','eye0','eye1']),
+      cape:makePivot12(model,'cape',[0,1.82,-.27],['cape'])
+    };
+  }else{
+    joints12.saruul={
+      leftArm:makePivot12(model,'leftArm',[-.44,1.61,0],['sleeve0','hand0']),
+      rightArm:makePivot12(model,'rightArm',[.44,1.61,0],['sleeve1','hand1']),
+      head:makePivot12(model,'head',[0,1.92,0],['face','neck','hair_cap','hair_back','hair_tail','bang_left','bang_right','eye0','eye1']),
+      leftFoot:makePivot12(model,'leftFoot',[-.18,.22,0],['shoe0']),
+      rightFoot:makePivot12(model,'rightFoot',[.18,.22,0],['shoe1'])
+    };
+  }
+}
+function animateCharacters12(now,dt,walking){
+  const t=now*.001;
+  const h=joints12.hero;
+  if(h&&heroModel11){
+    const speed=state.dodge>0?2.0:1;
+    const stride=walking?Math.sin(t*10*speed):0;
+    const swing=state.attacking>0?Math.sin((.24-state.attacking)/.24*Math.PI):0;
+    const blend=Math.min(1,dt*16);
+    const ease=(joint,axis,value)=>{joint.rotation[axis]+=(value-joint.rotation[axis])*blend;};
+    ease(h.leftLeg,'x',stride*.58);
+    ease(h.rightLeg,'x',-stride*.58);
+    ease(h.leftArm,'x',-stride*.32);
+    ease(h.rightArm,'x',stride*.32-swing*1.45);
+    ease(h.rightArm,'z',-swing*.35);
+    ease(h.head,'y',Math.sin(t*1.3)*.045);
+    ease(h.cape,'x',-.08-(walking?.16:0)+Math.sin(t*3)*.045);
+    heroModel11.position.y=walking?Math.abs(Math.sin(t*10*speed))*.045:Math.sin(t*2)*.015;
+  }
+  const n=joints12.saruul;
+  if(n&&saruulModel11){
+    n.leftArm.rotation.z=-.08+Math.sin(t*1.4)*.075;
+    n.rightArm.rotation.z=.08-Math.sin(t*1.4)*.075;
+    n.head.rotation.y=Math.sin(t*.85)*.11;
+    n.head.rotation.z=Math.sin(t*.7)*.025;
+    n.leftFoot.rotation.x=Math.sin(t*.8)*.02;
+    n.rightFoot.rotation.x=-Math.sin(t*.8)*.02;
+    saruulModel11.position.y=Math.sin(t*1.7)*.013;
+  }
+}
 
 // Alpha 0.9 FIX: solid building collisions and enterable interiors.
 const houses09=[
@@ -426,10 +492,10 @@ renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookPointe
 const pad=document.querySelector('#pad'),stick=document.querySelector('#stick');let padId=null;function padMove(e){const r=pad.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const len=Math.hypot(dx,dy);if(len>48){dx*=48/len;dy*=48/len}move={x:dx/48,y:-dy/48};stick.style.transform=`translate(${dx}px,${dy}px)`}pad.addEventListener('pointerdown',e=>{padId=e.pointerId;pad.setPointerCapture(e.pointerId);padMove(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===padId)padMove(e)});function stopPad(){padId=null;move={x:0,y:0};stick.style.transform='translate(0,0)'}pad.addEventListener('pointerup',stopPad);pad.addEventListener('pointercancel',stopPad);
 for(const [id,fn] of Object.entries({attack,dodge,switch:swap,lock,skill1:()=>skill(0),skill2:()=>skill(1),skill3:()=>skill(2)}))document.querySelector('#'+id).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn()});
 let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;
-if(heroModel11)heroModel11.position.y=Math.sin(now*.007)*.025;
-if(saruulModel11){saruulModel11.rotation.y=Math.sin(now*.0007)*.12;saruulModel11.position.y=Math.sin(now*.0016)*.015;}state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
+state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
+animateCharacters12(now,dt,walking);
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
 blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){state.hp=Math.max(0,state.hp-(e.boss?20:9));e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
