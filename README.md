@@ -1,8 +1,17 @@
-# Astral Rift — Alpha 0.2
-Mobile and desktop Three.js single-player prototype. Town, NPC, quest, inventory, improved combat and AI.
+# Astral Rift Alpha 0.3 — Solo Adventure
 
-Run: `npm install` then `npm run dev`. Build: `npm run build`.
+Three.js / Vite single-player prototype. Works in mobile and desktop browsers.
 
-Mobile: joystick, action buttons, Town / Bag buttons. Desktop: WASD, mouse drag, click attack, X switch, Space dodge, Tab lock, 1–3 skills, E interact, I inventory.
+## Added
+- Articulated arms and legs with simple walk / sword animation
+- Enemies respawn 12 seconds after defeat
+- Level and EXP (35 XP per kill, 80 × level for next level)
+- Repeatable quest from Saruul NPC
+- Local browser save for gold, inventory, level and quest state
+- Keeps camera-relative joystick directions and simultaneous touch controls
 
-Not yet a real networked MMORPG. Requires a multiplayer backend later.
+## Deploy
+Replace index.html, package.json, README.md, src/main.js, src/style.css in the existing repository. Keep src files in src/. Vercel preset Vite, build npm run build, output dist.
+
+## Note
+This is an experimental single-player prototype, not a multiplayer MMO. Browser storage can be cleared; save is device/browser-local. Test controls and combat on a phone after deploying.
