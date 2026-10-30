@@ -25,3 +25,6 @@
 #exploreHint06{display:none}
 #zoneLabel{opacity:.8}
 @media(max-width:650px){#questbox{top:118px;max-width:43vw}#interiorTitle09{font-size:11px;top:18%}}
+
+/* Alpha 1.3 — readable damage numbers on mobile */
+.damage-number13{position:absolute;z-index:30;pointer-events:none;transform:translate(-50%,-50%);font:bold 25px system-ui,sans-serif;color:#ffe3a0;text-shadow:0 2px 3px #4c1724,0 0 10px #e04e3c;white-space:nowrap;}

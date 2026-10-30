@@ -275,8 +275,8 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.2';
-versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ANIMATED CHARACTERS';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.3';
+versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · COMBAT EFFECTS';
 
 
 // Alpha 1.0: refine the player silhouette and helmet.
@@ -319,7 +319,7 @@ function loadCharacter11(url,root,isHero){
 loadCharacter11('/models/hero.glb',player,true);
 loadCharacter11('/models/saruul.glb',npc,false);
 
-// Alpha 1.2 — lightweight procedural joints for existing local GLB assets.
+// Alpha 1.3 — lightweight procedural joints for existing local GLB assets.
 // GLB meshes are authored with baked vertex positions, so group pivots are
 // created at anatomical joints without adding bones or extra draw calls.
 const joints12={hero:null,saruul:null};
@@ -476,22 +476,64 @@ function moveSafely09(dx,dz){
   }
 }
 
+// Alpha 1.3 — clearly visible, pooled lightweight combat feedback.
+const fx13=[];
+const fxArcMat13=new THREE.MeshBasicMaterial({color:0x92f3ff,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});
+const fxGoldMat13=new THREE.MeshBasicMaterial({color:0xffd487,transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});
+const arcGeo13=new THREE.RingGeometry(1.25,1.48,32,1,-Math.PI*.25,Math.PI*1.05);
+function slashFx13(power=0){
+  if(inside09>=0)return;
+  const mesh=new THREE.Mesh(arcGeo13,power?fxGoldMat13.clone():fxArcMat13.clone());
+  mesh.position.copy(player.position).add(new THREE.Vector3(Math.sin(player.rotation.y)*1.05,1.35,Math.cos(player.rotation.y)*1.05));
+  mesh.rotation.set(-.25,player.rotation.y,Math.PI*.2);
+  mesh.scale.setScalar(power?1.35:1);
+  scene.add(mesh);fx13.push({mesh,age:0,life:.27,kind:'slash'});
+}
+const sparkGeo13=new THREE.OctahedronGeometry(.095,0);
+function impactFx13(position,damage){
+  for(let i=0;i<7;i++){
+    const mesh=new THREE.Mesh(sparkGeo13,i%2?fxGoldMat13.clone():fxArcMat13.clone());
+    mesh.position.copy(position).add(new THREE.Vector3(0,1.4,0));
+    scene.add(mesh);
+    const a=i*Math.PI*2/7;
+    fx13.push({mesh,age:0,life:.4,kind:'spark',velocity:new THREE.Vector3(Math.cos(a)*2.8,1.5+(i%3),Math.sin(a)*2.8)});
+  }
+  const label=document.createElement('div');
+  label.className='damage-number13';label.textContent='−'+damage;
+  document.querySelector('#app').appendChild(label);
+  fx13.push({label,world:position.clone().add(new THREE.Vector3(0,2.4,0)),age:0,life:.75,kind:'number'});
+}
+function updateFx13(dt){
+  for(let i=fx13.length-1;i>=0;i--){
+    const f=fx13[i];f.age+=dt;
+    if(f.age>=f.life){if(f.mesh){scene.remove(f.mesh);f.mesh.material.dispose()}if(f.label)f.label.remove();fx13.splice(i,1);continue;}
+    const k=1-f.age/f.life;
+    if(f.mesh){f.mesh.material.opacity=k*.92;
+      if(f.kind==='slash'){f.mesh.rotation.z+=dt*5;f.mesh.scale.multiplyScalar(1+dt*.9)}
+      else {f.mesh.position.addScaledVector(f.velocity,dt);f.velocity.y-=dt*8;f.mesh.scale.setScalar(Math.max(.1,k));}
+    }
+    if(f.label){const projected=f.world.clone().add(new THREE.Vector3(0,f.age*1.1,0)).project(camera);
+      f.label.style.left=`${(projected.x*.5+.5)*100}%`;
+      f.label.style.top=`${(-projected.y*.5+.5)*100}%`;
+      f.label.style.opacity=projected.z<1?String(k):'0';}
+  }
+}
 const state={hp:100+Math.max(0,level-1)*10,max:100+Math.max(0,level-1)*10,weapon:0,angle:0,pitch:.3,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
 function swap(){state.weapon=1-state.weapon;blade.visible=!state.weapon;bow.visible=!!state.weapon;msg(state.weapon?'Нум':'Хоёр гарын илд')}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{killCount++;totalKills++;gold+=10;gainXp(35);}if(!e.boss&&questAccepted&&!questComplete&&killCount>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
-function attack(){if(state.cool>0)return;const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
-function dodge(){if(state.dodge>0)return;state.dodge=.42;msg('Бултлаа')}
-function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];const dmg=[35,48,70][i];const range=state.weapon?17:4;hit(dmg,range)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{killCount++;totalKills++;gold+=10;gainXp(35);}if(!e.boss&&questAccepted&&!questComplete&&killCount>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function attack(){if(state.cool>0)return;slashFx13(0);const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
+function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
+function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i];const range=state.weapon?17:4;hit(dmg,range)}
 window.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyX')swap();if(e.code==='Space')dodge();if(e.code==='Tab')lock();if(e.code==='Digit1')skill(0);if(e.code==='Digit2')skill(1);if(e.code==='Digit3')skill(2)});window.addEventListener('keyup',e=>keys.delete(e.code));
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)attack();lookPointer=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer||!lastLook)return;state.angle-=(e.clientX-lastLook.x)*.006;state.pitch=THREE.MathUtils.clamp(state.pitch+(e.clientY-lastLook.y)*.004,-.2,.85);lastLook={x:e.clientX,y:e.clientY}});
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer){lookPointer=null;lastLook=null}});
 const pad=document.querySelector('#pad'),stick=document.querySelector('#stick');let padId=null;function padMove(e){const r=pad.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const len=Math.hypot(dx,dy);if(len>48){dx*=48/len;dy*=48/len}move={x:dx/48,y:-dy/48};stick.style.transform=`translate(${dx}px,${dy}px)`}pad.addEventListener('pointerdown',e=>{padId=e.pointerId;pad.setPointerCapture(e.pointerId);padMove(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===padId)padMove(e)});function stopPad(){padId=null;move={x:0,y:0};stick.style.transform='translate(0,0)'}pad.addEventListener('pointerup',stopPad);pad.addEventListener('pointercancel',stopPad);
 for(const [id,fn] of Object.entries({attack,dodge,switch:swap,lock,skill1:()=>skill(0),skill2:()=>skill(1),skill3:()=>skill(2)}))document.querySelector('#'+id).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn()});
-let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;
+let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
