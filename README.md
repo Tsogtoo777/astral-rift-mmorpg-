@@ -1,17 +1,12 @@
-# Astral Rift — Alpha 0.5: Anime Dark Fantasy
+# Astral Rift Alpha 0.6 — Solo Exploration
 
-This update is based directly on Alpha 0.4. No extra packages or remote models are required.
+Based on the corrected Alpha 0.5 source. Added a ruined portal near (0,-32), a healing shrine near (-12,-20), three loot caches, and an Explore button / F key. All 0.5 quest, EXP, enemy, joystick, and weapon systems are retained. No new dependencies.
 
-## Changes
-- Anime-inspired face, hair, armor accents, glowing crystal, improved boots
-- Timber-frame buildings, window frames, awnings, roof trim
-- Distant hills, clouds, bushes, flowers, town paving detail
-- Quest marker, glowing monster eyes and horns
-- Cinematic tone mapping, soft fog and refreshed mobile HUD
-- Existing mobile joystick, attacks, bow, skills, enemy respawn, NPC quest, EXP, inventory and browser save preserved
+## Install
+Replace root index.html, package.json, README.md and src/main.js, src/style.css. Deploy with Vite build.
 
-## Deploy
-Upload index.html, package.json, README.md to the repository root and main.js/style.css inside src/. Vercel build command: npm run build.
+## Controls
+Use joystick/WASD to move; ✦ Судлах / F near shrine, chest or gate. Shrine heals HP. Each chest gives 35 gold and 25 EXP once per page load.
 
 ## Notes
-This is a stylized procedural art pass, not a commercial anime game asset pack. For detailed animated humanoids, later updates should import licensed glTF models and animation clips.
+This is a procedural 3D prototype, not a downloaded high-detail anime model. Browser testing is still recommended before replacing a stable deployment.
