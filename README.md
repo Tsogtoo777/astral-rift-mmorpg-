@@ -1,10 +1,15 @@
-# Astral Rift Alpha 1.2 — Animated Characters
+# Astral Rift Alpha 1.3 — Combat Effects
 
-Alpha 1.1 дээр суурилсан шинэчлэл. GLB hero/saruul моделийн гар, хөл, толгой, нөмрөгийг тусдаа pivot group-ээр хөдөлгөнө. Гүйх, зогсох, цохилт хийх, NPC idle хөдөлгөөн нэмэгдсэн.
+Based on Alpha 1.2. Keeps both local GLB models, quest, save, interior, boss and dungeon systems.
 
-- `public/models/hero.glb` ба `saruul.glb` хэвээр.
-- Одоогийн Level, EXP, Quest, Boss, Dungeon, House, Save системүүд хэвээр.
-- Procedural pivot animation: **жинхэнэ skinning rig биш**. Дараа нь bone rig болон Blender animation хийх боломжтой.
-- GitHub-д ZIP доторх файлуудыг root, src, public/models бүтэцтэй нь байршуулна.
+## Visible improvements
+- Sword swing: cyan arc
+- Dodge / skill: gold arc
+- Enemy hit: seven lightweight sparks and floating damage number
+- Effects expire and clean up automatically; no additional downloads
 
-Build: `npm install && npm run build`.
+## Deploy
+Upload src/main.js, src/style.css, package.json and README.md to the existing repository. Keep public/models/hero.glb and public/models/saruul.glb unchanged.
+
+## Limitations
+Procedural effects are not full skeletal animation. Test on the target phone before replacing the working version.
