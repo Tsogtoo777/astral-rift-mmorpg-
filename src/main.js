@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 0.6</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 0.7</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -94,11 +94,11 @@ for(let i=0;i<110;i++){const a=i*2.39996,r=18+(i%23)*2.1;const x=Math.cos(a)*r,z
 const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshStandardMaterial({color:0xd7c7a4,metalness:.12}));ring.rotation.x=Math.PI/2;ring.position.set(2,.14,7);scene.add(ring);
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
 const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
-const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · Forest Ruins';document.querySelector('#app').appendChild(versionLabel);
+const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · Dungeon & Boss';document.querySelector('#app').appendChild(versionLabel);
 const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
 let level=Math.max(1,Number(saved.level)||1),xp=Math.max(0,Number(saved.xp)||0),totalKills=Number(saved.totalKills)||0;
-function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills}))}catch{}}
+function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills,bossWins07}))}catch{}}
 function gainXp(amount){xp+=amount;while(xp>=level*80){xp-=level*80;level++;state.max+=10;state.hp=state.max;msg('LEVEL UP! '+level)}saveGame()}
 
 const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button>';document.querySelector('#app').appendChild(panel);
@@ -145,7 +145,7 @@ let collected06=0;
 const interact06=document.createElement('button');interact06.id='interact06';interact06.textContent='✦ Судлах';
 document.querySelector('#panel').appendChild(interact06);
 const exploreHint06=document.createElement('div');exploreHint06.id='exploreHint06';
-exploreHint06.textContent='✦ Ойн хаалга · 3 эрдэнэс · Эдгээх талст';
+exploreHint06.textContent='✦ Ойн хаалга → Dungeon · 3 эрдэнэс · Талст';
 document.querySelector('#app').appendChild(exploreHint06);
 function interactWorld06(){
   const pos=player.position;
@@ -161,12 +161,47 @@ function interactWorld06(){
 }
 interact06.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();interactWorld06()});
 window.addEventListener('keydown',e=>{if(e.code==='KeyF'&&!e.repeat)interactWorld06()});
+// Alpha 0.7 — a separate dungeon arena and boss. All geometry is generated locally.
+const dungeon07=new THREE.Group();scene.add(dungeon07);
+const stone07=new THREE.MeshStandardMaterial({color:0x333d55,roughness:.9});
+const edge07=new THREE.MeshStandardMaterial({color:0x7466aa,metalness:.35,roughness:.55});
+const lava07=new THREE.MeshStandardMaterial({color:0x492c55,emissive:0x3b174d,emissiveIntensity:.4});
+function part07(geo,mat,x,y,z,parent=dungeon07){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+part07(new THREE.CylinderGeometry(16,16,1,32),stone07,48,-.5,-48);
+part07(new THREE.TorusGeometry(14.8,.45,8,48),edge07,48,.1,-48).rotation.x=Math.PI/2;
+for(let i=0;i<8;i++){
+ const a=i*Math.PI/4,x=48+Math.sin(a)*12,z=-48+Math.cos(a)*12;
+ part07(new THREE.CylinderGeometry(.85,1.15,6,8),stone07,x,3,z);
+ part07(new THREE.OctahedronGeometry(.65),rune06,x,6.5,z);
+}
+part07(new THREE.CylinderGeometry(3.1,3.5,.32,16),lava07,48,.18,-48);
+const dungeonExit07=part07(new THREE.TorusGeometry(1.2,.17,8,24),rune06,48,2,-36);
+dungeonExit07.scale.y=1.35;
+const boss07group=new THREE.Group();boss07group.position.set(48,0,-51);scene.add(boss07group);
+const boss07body=part07(new THREE.DodecahedronGeometry(1.6,1),new THREE.MeshStandardMaterial({color:0x682c79,metalness:.35,roughness:.45,emissive:0x220d33,emissiveIntensity:.4}),0,2,0,boss07group);
+for(const side of [-1,1]){
+ const horn=part07(new THREE.ConeGeometry(.43,1.6,6),edge07,side*1.1,3.55,0,boss07group);horn.rotation.z=-side*.35;
+ part07(new THREE.SphereGeometry(.18,8,6),cyanGlow,side*.56,2.3,1.3,boss07group);
+}
+const boss07={g:boss07group,m:boss07body,hp:650,max:650,alive:true,cool:0,respawn:0,home:new THREE.Vector3(48,0,-51),boss:true};
+enemies.push(boss07);
+let inDungeon07=false,bossWins07=Number(saved.bossWins07)||0;
+const bossHud07=document.createElement('div');bossHud07.id='bossHud07';bossHud07.innerHTML='<b>☠ Сүүдрийн хамгаалагч</b><div class="bossTrack07"><div id="bossFill07"></div></div><small id="bossText07">650 / 650 HP</small>';
+document.querySelector('#app').appendChild(bossHud07);
+function enterDungeon07(){inDungeon07=true;player.position.set(48,0,-38);state.target=null;msg('☠ Сүүдрийн хамгаалагчийн агуйд орлоо')}
+function leaveDungeon07(){inDungeon07=false;player.position.set(0,0,-28);state.target=null;msg('✦ Ойн хаалганд буцлаа')}
+const interactWorld06Original=interactWorld06;
+interactWorld06=function(){
+ if(inDungeon07){if(Math.hypot(player.position.x-48,player.position.z+36)<4){leaveDungeon07();return}msg('Буцах хаалганд ойртоорой');return}
+ if(Math.hypot(player.position.x,player.position.z+32)<4){enterDungeon07();return}
+ interactWorld06Original();
+};
 const state={hp:100+Math.max(0,level-1)*10,max:100+Math.max(0,level-1)*10,weapon:0,angle:0,pitch:.3,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
-function closest(){let best=null,dist=Infinity;for(const e of enemies){if(!e.alive)continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
+function closest(){let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
 function swap(){state.weapon=1-state.weapon;blade.visible=!state.weapon;bow.visible=!!state.weapon;msg(state.weapon?'Нум':'Хоёр гарын илд')}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=12;state.target=null;killCount++;totalKills++;gold+=10;gainXp(35);if(questAccepted&&!questComplete&&killCount>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else {saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{killCount++;totalKills++;gold+=10;gainXp(35);}if(!e.boss&&questAccepted&&!questComplete&&killCount>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){if(state.cool>0)return;const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
 function dodge(){if(state.dodge>0)return;state.dodge=.42;msg('Бултлаа')}
 function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];const dmg=[35,48,70][i];const range=state.weapon?17:4;hit(dmg,range)}
@@ -181,7 +216,7 @@ let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
-blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<1.9&&e.cool<=0&&state.dodge<=0){state.hp=Math.max(0,state.hp-9);e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(0,0,0)}}}
+blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(e.boss&&!inDungeon07)continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0){state.hp=Math.max(0,state.hp-(e.boss?20:9));e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));const offset=new THREE.Vector3(Math.sin(state.angle)*(-6),2.4+state.pitch*5,Math.cos(state.angle)*(-6));camera.position.lerp(camTarget.clone().add(offset),Math.min(1,dt*9));camera.lookAt(camTarget);
-document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(killCount,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · ${state.weapon?'Нум':'Илд'} · Дайсан ${enemies.filter(e=>e.alive).length}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
+bossHud07.style.display=inDungeon07?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(killCount,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · ${state.weapon?'Нум':'Илд'} · Дайсан ${enemies.filter(e=>e.alive).length}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
