@@ -1,10 +1,11 @@
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
 app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 0.7</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-36;sun.shadow.camera.right=36;sun.shadow.camera.top=36;sun.shadow.camera.bottom=-36;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
@@ -274,8 +275,8 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.0 FIXED';
-versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · CHARACTERS & CAMERA';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.1';
+versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ANIME 3D MODELS';
 
 
 // Alpha 1.0: refine the player silhouette and helmet.
@@ -290,6 +291,32 @@ for(const side of [-1,1]){
 }
 const beltGem10=new THREE.Mesh(new THREE.OctahedronGeometry(.14),cyanGlow);
 beltGem10.position.set(0,1.03,.34);player.add(beltGem10);
+
+// Alpha 1.1 — actual optimized GLB character meshes, local assets, no external CDN.
+// Preserve original models until GLB loads; keep gameplay, equipment, and save state.
+const modelLoader11=new GLTFLoader();
+let heroModel11=null,saruulModel11=null;
+function loadCharacter11(url,root,isHero){
+  modelLoader11.load(url,gltf=>{
+    const model=gltf.scene;
+    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
+    // Model coordinates match the existing game character height (~2.5 units).
+    if(isHero){
+      for(const child of [...root.children]){
+        if(child!==blade&&child!==bow)child.visible=false;
+      }
+      heroModel11=model;
+    }else{
+      for(const child of [...root.children])child.visible=false;
+      saruulModel11=model;
+    }
+    root.add(model);
+  },undefined,error=>{
+    console.warn('Character model unavailable; original character retained:',url,error);
+  });
+}
+loadCharacter11('/models/hero.glb',player,true);
+loadCharacter11('/models/saruul.glb',npc,false);
 
 // Alpha 0.9 FIX: solid building collisions and enterable interiors.
 const houses09=[
@@ -398,7 +425,9 @@ renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookPoin
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer){lookPointer=null;lastLook=null}});
 const pad=document.querySelector('#pad'),stick=document.querySelector('#stick');let padId=null;function padMove(e){const r=pad.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const len=Math.hypot(dx,dy);if(len>48){dx*=48/len;dy*=48/len}move={x:dx/48,y:-dy/48};stick.style.transform=`translate(${dx}px,${dy}px)`}pad.addEventListener('pointerdown',e=>{padId=e.pointerId;pad.setPointerCapture(e.pointerId);padMove(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===padId)padMove(e)});function stopPad(){padId=null;move={x:0,y:0};stick.style.transform='translate(0,0)'}pad.addEventListener('pointerup',stopPad);pad.addEventListener('pointercancel',stopPad);
 for(const [id,fn] of Object.entries({attack,dodge,switch:swap,lock,skill1:()=>skill(0),skill2:()=>skill(1),skill3:()=>skill(2)}))document.querySelector('#'+id).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn()});
-let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
+let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;
+if(heroModel11)heroModel11.position.y=Math.sin(now*.007)*.025;
+if(saruulModel11){saruulModel11.rotation.y=Math.sin(now*.0007)*.12;saruulModel11.position.y=Math.sin(now*.0016)*.015;}state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
