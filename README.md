@@ -1,19 +1,8 @@
-# Astral Rift — Alpha 0.1
+# Astral Rift — Alpha 0.2
+Mobile and desktop Three.js single-player prototype. Town, NPC, quest, inventory, improved combat and AI.
 
-Шинээр эхэлсэн, өргөтгөх боломжтой 3D браузер тоглоомын эхний прототип.
+Run: `npm install` then `npm run dev`. Build: `npm run build`.
 
-## Ажиллуулах
-1. Node.js 20+ суулгана.
-2. Энэ хавтсанд terminal нээгээд `npm install`.
-3. `npm run dev`.
-4. Гарсан local URL-ийг браузерт нээнэ.
+Mobile: joystick, action buttons, Town / Bag buttons. Desktop: WASD, mouse drag, click attack, X switch, Space dodge, Tab lock, 1–3 skills, E interact, I inventory.
 
-## Удирдлага
-Windows: WASD, mouse drag camera, left-click attack, X weapon switch, Space dodge, Tab target, 1–3 skills.
-Android: зүүн joystick, баруун талын камер чирэлт, Attack / Dodge / Switch / Target / Skill товч.
-
-## Хязгаарлалт
-Энэ бол single-player prototype. Multiplayer, server, login, inventory, persistent progress, professional character animation одоогоор байхгүй. Загвар дүрс, хөдөлгөөн түр орлуулагч.
-
-## Дараагийн үе шат
-Game state-г client/server болгон салгах, authoritative combat, character animation, inventory, account, zone streaming.
+Not yet a real networked MMORPG. Requires a multiplayer backend later.
