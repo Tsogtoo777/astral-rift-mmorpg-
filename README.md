@@ -1,3 +1,10 @@
-# Astral Rift Alpha 0.9
+# Astral Rift Alpha 1.0 — Character & Camera Fix
 
-Adds enterable interiors for 8 houses (3 room types), solid building collision, wall sliding, town safe zone, and camera improvements. Approach a house front door and press Судлах; press again to exit. Existing Alpha 0.8 progress is retained.
+Based on the working Alpha 0.9 FIXED source.
+
+- Saruul now has a human-shaped mesh, hair, eyes, arms, legs and clothing.
+- Player armor silhouette refined.
+- Indoor camera constrained to room bounds, ceiling hidden to avoid occlusion.
+- Preserves quests, saves, bosses and house interaction.
+
+Build: `npm install && npm run build`. Test on mobile before replacing production.
