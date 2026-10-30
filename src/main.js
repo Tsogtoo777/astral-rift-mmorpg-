@@ -251,9 +251,101 @@ for(let i=0;i<3;i++){
 const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 0.9';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · GRAPHICS & INTERIORS';
 
+
+// Alpha 0.9 FIX: solid building collisions and enterable interiors.
+const houses09=[
+  [-9,10],[-3,14],[5,14],[12,9],[-11,1],[14,0],[-7,-12],[8,-14]
+];
+const houseNames09=['Зэвсгийн дэлгүүр','Дэн буудал','Эд зүйлсийн дэлгүүр'];
+let inside09=-1;
+const interior09=new THREE.Group();
+scene.add(interior09);
+const interiorOrigin09=new THREE.Vector3(-48,0,47);
+const interiorFloor09=new THREE.MeshStandardMaterial({color:0x9a7651,roughness:.92});
+const interiorWall09=new THREE.MeshStandardMaterial({color:0xcbb79b,roughness:1});
+const interiorWood09=new THREE.MeshStandardMaterial({color:0x59412f,roughness:.9});
+function furniture09(w,h,d,mat,x,y,z){
+  const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  mesh.position.set(x,y,z);
+  mesh.castShadow=true;mesh.receiveShadow=true;
+  interior09.add(mesh);return mesh;
+}
+// The interior is a separate, compact room in the same 3D scene.
+interior09.position.copy(interiorOrigin09);
+furniture09(9,.2,9,interiorFloor09,0,-.08,0);
+furniture09(.3,4,9,interiorWall09,-4.5,2,0);
+furniture09(.3,4,9,interiorWall09,4.5,2,0);
+furniture09(9,4,.3,interiorWall09,0,2,-4.5);
+furniture09(9,.25,9,interiorWood09,0,4.1,0);
+furniture09(3,1,1.15,interiorWood09,0,.5,-2.8);
+furniture09(1.6,.14,1.6,interiorWood09,-2,.9,0);
+furniture09(.25,.85,.25,interiorWood09,-2,.45,0);
+furniture09(1.7,.6,2.5,interiorWood09,2.6,.3,-1.7);
+furniture09(1.6,.12,2.3,blue08,2.6,.68,-1.7);
+const roomLamp09=new THREE.PointLight(0xffd59a,2.2,12);
+roomLamp09.position.set(0,3.4,0);
+interior09.add(roomLamp09);
+interior09.visible=false;
+const roomTitle09=document.createElement('div');
+roomTitle09.style.cssText='position:absolute;left:50%;top:12%;transform:translateX(-50%);z-index:6;color:#ffe1a4;background:#172333cc;padding:8px 12px;border-radius:9px;pointer-events:none;display:none;font-size:13px';
+document.querySelector('#app').appendChild(roomTitle09);
+function nearDoor09(){
+  const px=player.position.x,pz=player.position.z;
+  return houses09.findIndex(([x,z])=>Math.abs(px-x)<1.25&&Math.abs(pz-(z+3.2))<2);
+}
+function enterHouse09(index){
+  inside09=index;
+  interior09.visible=true;
+  player.position.set(interiorOrigin09.x,0,interiorOrigin09.z+2.6);
+  state.target=null;
+  roomTitle09.style.display='block';
+  roomTitle09.textContent='⌂ '+houseNames09[index%3]+' · Гарах: ✦ Судлах';
+  msg('Байшинд орлоо');
+}
+function exitHouse09(){
+  const [x,z]=houses09[inside09];
+  inside09=-1;
+  interior09.visible=false;
+  roomTitle09.style.display='none';
+  player.position.set(x,0,z+4.7);
+  state.target=null;
+  msg('Хотоос гарлаа');
+}
+const previousInteract09=interactWorld06;
+interactWorld06=function(){
+  if(inside09>=0){exitHouse09();return;}
+  if(!inDungeon07){
+    const door=nearDoor09();
+    if(door>=0){enterHouse09(door);return;}
+  }
+  previousInteract09();
+};
+function blocked09(x,z){
+  const radius=.42;
+  if(inside09>=0){
+    const lx=x-interiorOrigin09.x,lz=z-interiorOrigin09.z;
+    return Math.abs(lx)>4.05-radius||Math.abs(lz)>4.05-radius;
+  }
+  if(inDungeon07){return Math.hypot(x-48,z+48)>14-radius;}
+  for(const [hx,hz] of houses09){
+    // Buildings are solid; entering uses the actual door interaction.
+    if(Math.abs(x-hx)<2.4+radius&&Math.abs(z-hz)<2.25+radius)return true;
+  }
+  return false;
+}
+function moveSafely09(dx,dz){
+  const p=player.position;
+  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.18));
+  dx/=steps;dz/=steps;
+  for(let i=0;i<steps;i++){
+    if(!blocked09(p.x+dx,p.z))p.x+=dx;
+    if(!blocked09(p.x,p.z+dz))p.z+=dz;
+  }
+}
+
 const state={hp:100+Math.max(0,level-1)*10,max:100+Math.max(0,level-1)*10,weapon:0,angle:0,pitch:.3,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
-function closest(){let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
+function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
 function swap(){state.weapon=1-state.weapon;blade.visible=!state.weapon;bow.visible=!!state.weapon;msg(state.weapon?'Нум':'Хоёр гарын илд')}
 function hit(damage=25,range=2.8){if(state.hp<=0)return;state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{killCount++;totalKills++;gold+=10;gainXp(35);}if(!e.boss&&questAccepted&&!questComplete&&killCount>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
