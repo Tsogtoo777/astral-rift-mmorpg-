@@ -1,10 +1,11 @@
+import { createRodinMotion52 } from './rodinMotion52.js';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.1.2 · RODIN ONLY</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.2 · ANIMATED RODIN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -333,7 +334,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.1 · RODIN PLAYER';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.2 · ANIMATED RODIN';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -358,6 +359,7 @@ for(const legacyMesh of [...player.children]) player.remove(legacyMesh);
 const modelLoader11=new GLTFLoader();
 let saruulModel11=null;
 let rodinPreview43=null;
+let rodinRig52=null;
 const rodinRoot52=new THREE.Group();
 rodinRoot52.name='ActiveRodinAvatar52';
 player.add(rodinRoot52);
@@ -402,24 +404,27 @@ modelLoader11.load('/models/rodin-warrior.glb',gltf=>{
     -bounds.min.y*scale,
     -(bounds.min.z+bounds.max.z)*.5*scale
   );
-  // Keep normalization offset intact; animate the parent group only.
+  // Preserve original detailed Rodin mesh; generate approximate humanoid
+  // skin weights and real THREE.Bones because its GLB has no animation/skin.
   rodinRoot52.add(model);
-  rodinPreview43=model;
-  avatarStatus52.remove();
+  try {
+    rodinRig52=createRodinMotion52(THREE,model);
+    rodinPreview43=model;
+    avatarStatus52.remove();
+  }catch(error){
+    console.error('Rodin procedural rig creation failed:',error);
+    avatarStatus52.textContent='Rodin animation-ий rig үүсгэхэд алдаа гарлаа';
+  }
 },undefined,error=>{
   console.error('Rodin warrior failed to load:',error);
   avatarStatus52.textContent='Rodin дүр ачаалагдсангүй — /models/rodin-warrior.glb шалгана уу';
 });
 
 function updateRodin51(now,dt,walking){
-  if(!rodinPreview43)return;
-  const t=now*.001;
-  const swing=state.attacking>0?Math.sin((.24-state.attacking)/.24*Math.PI):0;
-  const blend=Math.min(1,dt*10);
-  const wantedY=walking?Math.abs(Math.sin(t*10))*.055:Math.sin(t*2)*.012;
-  rodinRoot52.position.y=THREE.MathUtils.lerp(rodinRoot52.position.y,wantedY,blend);
-  rodinRoot52.rotation.z=THREE.MathUtils.lerp(rodinRoot52.rotation.z,-.13*swing,Math.min(1,dt*15));
-  rodinRoot52.rotation.x=THREE.MathUtils.lerp(rodinRoot52.rotation.x,walking?.03:0,Math.min(1,dt*8));
+  if(!rodinRig52)return;
+  const sprint52=walking&&(keys.has('ShiftLeft')||keys.has('ShiftRight'));
+  rodinRig52.update({dt,moving:walking,sprinting:sprint52,
+    blocking:blocking25,dodging:state.dodge>0,weapon:state.weapon});
 }
 
 // Alpha 1.3 — lightweight procedural joints for existing local GLB assets.
@@ -674,7 +679,7 @@ const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){to
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
 function swap(){state.weapon=1-state.weapon;blade.visible=false;bow.visible=false;msg(state.weapon?'Нум':'Хоёр гарын илд')}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;rodinRig52?.triggerAttack();damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){if(state.cool>0)return;slashFx13(0);const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
 function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
 function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range)}
@@ -889,7 +894,7 @@ for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry
 const cameraRay24=new THREE.Raycaster();
 let previousCameraZone401=null;
 function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const visibleObstacles=cameraObstacles24.filter(o=>o.visible&&o.parent?.visible!==false);const hits=cameraRay24.intersectObjects(visibleObstacles,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.1 · RODIN PLAYER' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.2 · ANIMATED RODIN' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -1011,7 +1016,7 @@ window.addEventListener('keydown',e=>{if(e.code==='KeyR'&&!e.repeat&&stamina25>=
 const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
 let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
-let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
+let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:(keys.has('ShiftLeft')||keys.has('ShiftRight')?7.3:5)),dir.z*dt*(state.dodge>0?13:(keys.has('ShiftLeft')||keys.has('ShiftRight')?7.3:5)));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 animateCharacters12(now,dt,walking);updateRodin51(now,dt,walking);advancedFX50.update(dt,walking,state.attacking);
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
