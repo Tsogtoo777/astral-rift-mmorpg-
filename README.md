@@ -1,16 +1,18 @@
-# Astral Rift Alpha 2.4 — Kingdom Reborn
+# Astral Rift Alpha 2.5 — Living Kingdom + Combat
 
-Mobile landscape Three.js / Vite RPG. Based on Alpha 2.3; hero GLB, rig and animation loop are unchanged.
+Based on Alpha 2.4, preserving hero GLB files and character animation code.
 
-## Visible changes
-- Rebuilt the eight existing town houses with different roofs, doors, windows, canopies and entrance paths. Original door coordinates and enter/exit interactions are preserved.
-- New plaza lanterns, castle approach, four guard towers and two interactive castle guards.
-- Citizens follow day/night station schedules; earlier dialogues and services remain.
-- New city/castle solid collision volumes and camera raycast against new city geometry.
-- Persistent visible `ALPHA 2.4 · KINGDOM REBORN` marker for deploy verification.
+## New in 2.5
+- Open castle entrance and explorable throne room (approach the castle gate and tap ✦ Судлах; tap again near exit).
+- Visible town quest board at (-4, -19): accept, defeat 5 enemies, return to claim rewards.
+- Visible blue portal at (9, -21) with destinations: forest, ruins, town.
+- Stamina gauge and hold-to-block control (keyboard R). Dodge consumes stamina.
+- Quest-board progress stored separately in localStorage; previous save key untouched.
+- Version text unified to Alpha 2.5.
+- Original shops, inn, blacksmith, NPC patrols, minimap, skill, day/night and equipment preserved.
 
-## GitHub/Vercel
-Unzip and upload `src/`, `public/`, `index.html`, `package.json` and `README.md` into the repo root. Vercel: framework Vite; build `npm run build`; output `dist`. Deployments should show Ready before testing. Test in a private browser window if cache is stale.
+## Deploy
+Unzip into GitHub repository root, preserve public/models. Vercel framework Vite, build `npm run build`, output `dist`.
 
-## QA caveat
-JavaScript syntax and ZIP integrity checked. Full Vite build and phone browser runtime not verified in this environment. Keep a backup of the prior deployed version. Existing save key and hero animations were not changed.
+## Notes
+This is an incremental feature pack. Full combat overhaul, NPC pathfinding and unique 3D interiors for every building are not claimed. Test on device before replacing production.
