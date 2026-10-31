@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.1 · RODIN PLAYER</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.1.2 · RODIN ONLY</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -350,83 +350,76 @@ for(const side of [-1,1]){
 const beltGem10=new THREE.Mesh(new THREE.OctahedronGeometry(.14),cyanGlow);
 beltGem10.position.set(0,1.03,.34);player.add(beltGem10);
 
-// Alpha 1.1 — actual optimized GLB character meshes, local assets, no external CDN.
-// Preserve original models until GLB loads; keep gameplay, equipment, and save state.
+// Alpha 5.1.2 — one player avatar. Legacy procedural parts are removed from
+// the live scene, not merely hidden. Their variables remain as harmless
+// animation-state references for backwards compatibility with combat code.
+// No asynchronous hero.glb loader can reinsert the LEGO player.
+for(const legacyMesh of [...player.children]) player.remove(legacyMesh);
 const modelLoader11=new GLTFLoader();
-let heroModel11=null,saruulModel11=null;
-function loadCharacter11(url,root,isHero){
-  modelLoader11.load(url,gltf=>{
-    const model=gltf.scene;
-    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;
-      // Subtle armor finish only; do not change the GLB geometry, rig or animation.
-      if(isHero && o.material){
-        const refine=(mat)=>{const copy=mat.clone();if(copy.metalness!==undefined)copy.metalness=Math.min(0.75,copy.metalness+0.08);if(copy.roughness!==undefined)copy.roughness=Math.max(0.28,copy.roughness-0.04);return copy;};
-        o.material=Array.isArray(o.material)?o.material.map(refine):refine(o.material);
-      }
-    }});
-    // Model coordinates match the existing game character height (~2.5 units).
-    if(isHero){
-      for(const child of [...root.children]){
-        if(child!==blade&&child!==bow)child.visible=false;
-      }
-      heroModel11=model;
-      model.visible=!rodinPreviewEnabled43;
-    }else{
-      for(const child of [...root.children])child.visible=false;
-      saruulModel11=model;
-    }
-    root.add(model);
-    setupJoints12(model,isHero);
-  },undefined,error=>{
-    console.warn('Character model unavailable; original character retained:',url,error);
-  });
-}
-loadCharacter11('/models/hero.glb',player,true);
-loadCharacter11('/models/saruul.glb',npc,false);
-
-// Alpha 5.1: Rodin is the default player avatar, not a floating preview.
-// This asset has no verified humanoid rig: use safe root-motion posing until a rigged GLB is supplied.
+let saruulModel11=null;
 let rodinPreview43=null;
-let rodinPreviewEnabled43=false;
-const rodinButton43=document.createElement('button');
-rodinButton43.type='button';
-rodinButton43.textContent='Дүр ачаалж байна';
-rodinButton43.title='Rodin / өмнөх дүр солих';
-Object.assign(rodinButton43.style,{position:'fixed',left:'12px',top:'min(44vh,300px)',zIndex:'1000',background:'rgba(12,27,42,.86)',color:'#fff',border:'1px solid #80a7c7',borderRadius:'12px',padding:'8px 10px',fontSize:'12px',touchAction:'manipulation'});
-document.body.appendChild(rodinButton43);
-const legacyParts51=[...player.children].filter(o=>o!==blade&&o!==bow);
-function setRodin51(enabled){
-  rodinPreviewEnabled43=enabled&&!!rodinPreview43;
-  if(rodinPreview43)rodinPreview43.visible=rodinPreviewEnabled43;
-  for(const part of legacyParts51)part.visible=!rodinPreviewEnabled43 && part===heroModel11;
-  // Retain the original sword/bow gameplay but hide blocky accessories in Rodin mode.
-  blade.visible=!rodinPreviewEnabled43 && !state.weapon;
-  bow.visible=!rodinPreviewEnabled43 && !!state.weapon;
-  rodinButton43.textContent=rodinPreviewEnabled43?'Өмнөх дүр':'Rodin дүр';
-}
+const rodinRoot52=new THREE.Group();
+rodinRoot52.name='ActiveRodinAvatar52';
+player.add(rodinRoot52);
+
+// Saruul is a separate NPC and does not change the player's avatar.
+modelLoader11.load('/models/saruul.glb',gltf=>{
+  const model=gltf.scene;
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
+  for(const child of [...npc.children]) child.visible=false;
+  saruulModel11=model;
+  npc.add(model);
+  setupJoints12(model,false);
+},undefined,error=>console.warn('Saruul NPC asset unavailable:',error));
+
+const avatarStatus52=document.createElement('div');
+avatarStatus52.id='avatar-status-52';
+avatarStatus52.setAttribute('role','status');
+avatarStatus52.textContent='Rodin 3D дүр ачаалж байна…';
+Object.assign(avatarStatus52.style,{
+  position:'fixed',left:'50%',bottom:'12%',transform:'translateX(-50%)',
+  zIndex:'1000',padding:'8px 14px',border:'1px solid #80a7c7',
+  borderRadius:'12px',background:'rgba(12,27,42,.9)',color:'#fff',
+  fontSize:'13px',maxWidth:'80vw',textAlign:'center',pointerEvents:'none'
+});
+document.body.appendChild(avatarStatus52);
+
 modelLoader11.load('/models/rodin-warrior.glb',gltf=>{
   const model=gltf.scene;
-  model.name='RodinPlayer51';
-  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=true;}});
-  // Center the mesh at the player origin and normalize to a 2.35-unit humanoid.
+  model.name='RodinMesh52';
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
   model.updateMatrixWorld(true);
   const bounds=new THREE.Box3().setFromObject(model);
   const size=bounds.getSize(new THREE.Vector3());
-  if(size.y>0.001){const scale=2.35/size.y;model.scale.setScalar(scale);
-    model.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);}
-  player.add(model);rodinPreview43=model;
-  setRodin51(true);
-},undefined,e=>{console.warn('Rodin unavailable, retaining original avatar',e);rodinButton43.textContent='3D дүр олдсонгүй';rodinButton43.disabled=true;});
-rodinButton43.addEventListener('click',()=>setRodin51(!rodinPreviewEnabled43));
+  if(!Number.isFinite(size.y)||size.y<=.001){
+    avatarStatus52.textContent='Rodin модель хоосон эсвэл хэмжээ буруу байна';
+    console.error('Rodin mesh bounds invalid:',size);return;
+  }
+  const scale=2.35/size.y;
+  model.scale.setScalar(scale);
+  model.position.set(
+    -(bounds.min.x+bounds.max.x)*.5*scale,
+    -bounds.min.y*scale,
+    -(bounds.min.z+bounds.max.z)*.5*scale
+  );
+  // Keep normalization offset intact; animate the parent group only.
+  rodinRoot52.add(model);
+  rodinPreview43=model;
+  avatarStatus52.remove();
+},undefined,error=>{
+  console.error('Rodin warrior failed to load:',error);
+  avatarStatus52.textContent='Rodin дүр ачаалагдсангүй — /models/rodin-warrior.glb шалгана уу';
+});
+
 function updateRodin51(now,dt,walking){
- if(!rodinPreviewEnabled43||!rodinPreview43)return;
- const moving=walking?1:0;
- const t=now*.001;
- const swing=state.attacking>0?Math.sin((.24-state.attacking)/.24*Math.PI):0;
- // Gentle locomotion and attack anticipation: not skeletal limb animation.
- rodinPreview43.position.y+=(Math.sin(t*10)*.045*moving-rodinPreview43.position.y)*Math.min(1,dt*10);
- rodinPreview43.rotation.z=THREE.MathUtils.lerp(rodinPreview43.rotation.z,-.16*swing,Math.min(1,dt*15));
- rodinPreview43.rotation.x=THREE.MathUtils.lerp(rodinPreview43.rotation.x,walking?.035:0,Math.min(1,dt*8));
+  if(!rodinPreview43)return;
+  const t=now*.001;
+  const swing=state.attacking>0?Math.sin((.24-state.attacking)/.24*Math.PI):0;
+  const blend=Math.min(1,dt*10);
+  const wantedY=walking?Math.abs(Math.sin(t*10))*.055:Math.sin(t*2)*.012;
+  rodinRoot52.position.y=THREE.MathUtils.lerp(rodinRoot52.position.y,wantedY,blend);
+  rodinRoot52.rotation.z=THREE.MathUtils.lerp(rodinRoot52.rotation.z,-.13*swing,Math.min(1,dt*15));
+  rodinRoot52.rotation.x=THREE.MathUtils.lerp(rodinRoot52.rotation.x,walking?.03:0,Math.min(1,dt*8));
 }
 
 // Alpha 1.3 — lightweight procedural joints for existing local GLB assets.
@@ -471,22 +464,6 @@ function setupJoints12(model,isHero){
 }
 function animateCharacters12(now,dt,walking){
   const t=now*.001;
-  const h=joints12.hero;
-  if(h&&heroModel11){
-    const speed=state.dodge>0?2.0:1;
-    const stride=walking?Math.sin(t*10*speed):0;
-    const swing=state.attacking>0?Math.sin((.24-state.attacking)/.24*Math.PI):0;
-    const blend=Math.min(1,dt*16);
-    const ease=(joint,axis,value)=>{joint.rotation[axis]+=(value-joint.rotation[axis])*blend;};
-    ease(h.leftLeg,'x',stride*.58);
-    ease(h.rightLeg,'x',-stride*.58);
-    ease(h.leftArm,'x',-stride*.32);
-    ease(h.rightArm,'x',stride*.32-swing*1.45);
-    ease(h.rightArm,'z',-swing*.35);
-    ease(h.head,'y',Math.sin(t*1.3)*.045);
-    ease(h.cape,'x',-.08-(walking?.16:0)+Math.sin(t*3)*.045);
-    heroModel11.position.y=walking?Math.abs(Math.sin(t*10*speed))*.045:Math.sin(t*2)*.015;
-  }
   const n=joints12.saruul;
   if(n&&saruulModel11){
     n.leftArm.rotation.z=-.08+Math.sin(t*1.4)*.075;
@@ -696,7 +673,7 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyG')show
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
-function swap(){state.weapon=1-state.weapon;blade.visible=!state.weapon;bow.visible=!!state.weapon;msg(state.weapon?'Нум':'Хоёр гарын илд')}
+function swap(){state.weapon=1-state.weapon;blade.visible=false;bow.visible=false;msg(state.weapon?'Нум':'Хоёр гарын илд')}
 function hit(damage=25,range=2.8){if(state.hp<=0)return;damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){if(state.cool>0)return;slashFx13(0);const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
 function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
@@ -1036,7 +1013,7 @@ let prev=performance.now();function loop(now){requestAnimationFrame(loop);const 
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
-animateCharacters12(now,dt,walking);updateRodin51(now,dt,walking);if(rodinPreviewEnabled43){blade.visible=false;bow.visible=false;}advancedFX50.update(dt,walking,state.attacking);
+animateCharacters12(now,dt,walking);updateRodin51(now,dt,walking);advancedFX50.update(dt,walking,state.attacking);
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
 blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4){const step=diff.normalize().multiplyScalar(dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));const nx=e.g.position.x+step.x,nz=e.g.position.z+step.z;if(!blocked09(nx,nz))e.g.position.set(nx,e.g.position.y,nz)};e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){if(blocking25&&parryWindow40>0){parryWindow40=0;stamina25=Math.max(0,stamina25-9);e.cool=1.8;msg('✦ PARRY · Цохилтыг буцаалаа')}else{state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1))}e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
