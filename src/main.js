@@ -2,7 +2,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 0.7</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 1.8</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -121,23 +121,67 @@ for(let i=0;i<110;i++){const a=i*2.39996,r=18+(i%23)*2.1;const x=Math.cos(a)*r,z
 const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshStandardMaterial({color:0xd7c7a4,metalness:.12}));ring.rotation.x=Math.PI/2;ring.position.set(2,.14,7);scene.add(ring);
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
 const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
-const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · Dungeon & Boss';document.querySelector('#app').appendChild(versionLabel);
+const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ALPHA 1.9';document.querySelector('#app').appendChild(versionLabel);
 const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
+let potions16=Math.max(0,Number(saved.potions16??2)||0),questKills16=Math.max(0,Number(saved.questKills16)||0);
 let level=Math.max(1,Number(saved.level)||1),xp=Math.max(0,Number(saved.xp)||0),totalKills=Number(saved.totalKills)||0;
-function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills,bossWins07}))}catch{}}
-function gainXp(amount){xp+=amount;while(xp>=level*80){xp-=level*80;level++;state.max+=10;state.hp=state.max;msg('LEVEL UP! '+level)}saveGame()}
+let achievements17=Array.isArray(saved.achievements17)?saved.achievements17:[];
+// Alpha 1.8: persistent RPG equipment, crafting materials and repeatable bounty.
+let ore18=Math.max(0,Number(saved.ore18)||0),crystal18=Math.max(0,Number(saved.crystal18)||0);
+let swordRank18=Math.min(10,Math.max(0,Number(saved.swordRank18)||0));
+let bowRank18=Math.min(10,Math.max(0,Number(saved.bowRank18)||0));
+let armorRank18=Math.min(10,Math.max(0,Number(saved.armorRank18)||0));
+let bounty18=Math.max(0,Number(saved.bounty18)||0),bountyClaims18=Math.max(0,Number(saved.bountyClaims18)||0);
+// Alpha 1.9: persistent skill progression and monster variants.
+const talentNames19=['⚔️ Илдний мастер','🏹 Мэргэн харваач','❤️ Тэсвэр','✨ Ур чадвар'];
+let talents19=Array.isArray(saved.talents19)?[0,1,2,3].map(i=>Math.min(5,Math.max(0,Number(saved.talents19[i])||0))):[0,0,0,0];
+let talentPoints19=Math.max(0,Number(saved.talentPoints19)||0);
+let battleLog18=[];
+function logBattle18(t){battleLog18.unshift(t);battleLog18=battleLog18.slice(0,8)}
 
-const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button>';document.querySelector('#app').appendChild(panel);
+function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills,bossWins07,potions16,questKills16,achievements17,ore18,crystal18,swordRank18,bowRank18,armorRank18,bounty18,bountyClaims18,talents19,talentPoints19}))}catch{}}
+function gainXp(amount){xp+=amount;while(xp>=level*80){xp-=level*80;level++;talentPoints19++;state.max+=10;state.hp=state.max;msg('LEVEL UP! '+level+' · +1 Skill Point')}saveGame()}
+
+const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button><button id="shopBtn16">🛒 Shop</button>';document.querySelector('#app').appendChild(panel);
 const win=document.createElement('div');win.id='window';document.querySelector('#app').appendChild(win);
 function closeWindow(){win.style.display='none'}
 function openWindow(title,content){win.innerHTML='<h2>'+title+'</h2>'+content+'<p><button id="closeWindow">Хаах</button></p>';win.style.display='block';document.querySelector('#closeWindow').onclick=closeWindow}
-function showBag(){openWindow('🎒 Inventory','<p>'+inventory.join('<br>')+'</p><p>🪙 Алт: '+gold+'</p><p>Зэвсэг солих: ⇄ эсвэл X</p>')}
-function talk(){if(player.position.distanceTo(npc.position)>6){msg('NPC-д ойртоорой (хот: x=1, z=7)');return}if(!questAccepted){openWindow('Саруул — Аялагч','<p>Ойн мангасуудаас 3-ыг ялж, хотыг хамгаалаарай.</p><button id="acceptQuest">Даалгавар авах</button>');document.querySelector('#acceptQuest').onclick=()=>{questAccepted=true;killCount=0;saveGame();closeWindow();msg('Даалгавар эхэллээ!')}}else if(questComplete){openWindow('Саруул','<p>Сайн ажиллалаа! Дараагийн 3 мангасыг ялж дахин шагнал аваарай.</p><button id="repeatQuest">Шинэ даалгавар</button>');document.querySelector('#repeatQuest').onclick=()=>{questComplete=false;killCount=0;saveGame();closeWindow();msg('Шинэ даалгавар эхэллээ')}}else{openWindow('Саруул','<p>Ялсан дайсан: '+killCount+'/3</p>')}}
-let killCount=0;
-document.querySelector('#townBtn').onclick=talk;document.querySelector('#bagBtn').onclick=showBag;
-window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyE')talk();if(e.code==='KeyI')showBag();if(e.code==='Escape')closeWindow()});
-const enemies=[];function spawn(x,z){const g=new THREE.Group();g.position.set(x,0,z);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),new THREE.MeshStandardMaterial({color:0x963d42,flatShading:true}));m.position.y=.95;m.castShadow=true;g.add(m);scene.add(g);enemies.push({g,m,hp:100,max:100,alive:true,cool:0,respawn:0,home:new THREE.Vector3(x,0,z)})}
+function showBag(){
+  openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button>`);
+  document.querySelector('#forgeFromBag18').onclick=showForge18;
+  document.querySelector('#usePotion16').onclick=()=>{usePotion16();showBag()};
+  document.querySelector('#swapWeapon16').onclick=()=>{swap();showBag()};
+}
+function usePotion16(){
+  if(!potions16){msg('Эм дууссан — Shop-оос аваарай');return}
+  if(state.hp>=state.max){msg('HP бүрэн байна');return}
+  potions16--;state.hp=Math.min(state.max,state.hp+50);saveGame();msg('❤️ HP +50');
+}
+function showShop16(){
+  if(player.position.distanceTo(npc.position)>6){msg('Саруулд ойртоод дэлгүүр нээнэ');return}
+  openWindow('🛒 Саруулын дэлгүүр',`<p>🪙 Чиний алт: ${gold}</p><p>❤️ Эдгээх эм — 30 алт (+50 HP)</p><button id="buyPotion16">30 алт · Эм авах</button>`);
+  document.querySelector('#buyPotion16').onclick=()=>{
+    if(gold<30){msg('Алт хүрэлцэхгүй');return}
+    gold-=30;potions16++;saveGame();msg('Эм авлаа');showShop16();
+  };
+}
+function talk(){
+  if(player.position.distanceTo(npc.position)>6){msg('NPC-д ойртоорой (хот: x=1, z=7)');return}
+  if(!questAccepted){
+    openWindow('Саруул — Аялагч','<p>Ойн мангасуудаас 3-ыг ялж, хотыг хамгаалаарай.</p><button id="acceptQuest">Даалгавар авах</button>');
+    document.querySelector('#acceptQuest').onclick=()=>{questAccepted=true;questKills16=0;saveGame();closeWindow();msg('Даалгавар эхэллээ!')};
+  }else if(questComplete){
+    openWindow('Саруул','<p>Сайн ажиллалаа! Дараагийн 3 мангасыг ялж дахин шагнал аваарай.</p><button id="repeatQuest">Шинэ даалгавар</button>');
+    document.querySelector('#repeatQuest').onclick=()=>{questComplete=false;questKills16=0;saveGame();closeWindow();msg('Шинэ даалгавар эхэллээ')};
+  }else openWindow('Саруул',`<p>Ялсан дайсан: ${questKills16}/3</p>`);
+}
+document.querySelector('#townBtn').onclick=talk;document.querySelector('#bagBtn').onclick=showBag;document.querySelector('#shopBtn16').onclick=showShop16;
+window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyE')talk();if(e.code==='KeyI')showBag();if(e.code==='KeyH')usePotion16();if(e.code==='Escape')closeWindow()});
+const enemies=[];let enemySerial19=0;function spawn(x,z){const g=new THREE.Group();g.position.set(x,0,z);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),new THREE.MeshStandardMaterial({color:0x963d42,flatShading:true}));m.position.y=.95;m.castShadow=true;g.add(m);scene.add(g);{const variant=enemySerial19++%5;const elite=variant===4,fast=variant===2;const max=elite?220:fast?75:100;
+ m.material.color.setHex(elite?0xd6a344:fast?0x4e9ba9:0x963d42);
+ g.scale.setScalar(elite?1.35:fast?.85:1);
+ enemies.push({g,m,hp:max,max,alive:true,cool:0,respawn:0,home:new THREE.Vector3(x,0,z),elite,fast,baseColor:elite?0xd6a344:fast?0x4e9ba9:0x963d42})}}
 spawn(4,-7);spawn(-5,-10);spawn(10,1);spawn(-11,5);spawn(6,11);
 // Improved enemy silhouette while keeping their original hitboxes.
 const hornMat=new THREE.MeshStandardMaterial({color:0xe9d2b0,roughness:.8});
@@ -275,8 +319,8 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.4';
-versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · COMBAT EFFECTS';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.6';
+versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · SYSTEMS 1.6';
 
 
 // Alpha 1.0: refine the player silhouette and helmet.
@@ -331,6 +375,11 @@ function makePivot12(model,label,pivot,parts){
     if(!mesh)continue;
     // The authored GLBs use identity mesh transforms and baked geometry.
     group.attach(mesh);
+  }
+  if(label==='head'){
+    const extras=[];
+    model.traverse(obj=>{if(obj.isMesh && obj.name.startsWith('anime_')) extras.push(obj);});
+    for(const mesh of extras)group.attach(mesh);
   }
   return group;
 }
@@ -518,29 +567,88 @@ function updateFx13(dt){
       f.label.style.opacity=projected.z<1?String(k):'0';}
   }
 }
-const state={hp:100+Math.max(0,level-1)*10,max:100+Math.max(0,level-1)*10,weapon:0,angle:0,pitch:.3,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
+const state={hp:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,max:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,weapon:0,angle:0,pitch:.3,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
+// Alpha 1.7 — mobile quality-of-life: quick heal, quest journal, achievements, town return.
+const quick17=document.createElement('button');quick17.id='quickPotion17';quick17.textContent='❤️ Эм';
+document.querySelector('#app').appendChild(quick17);
+quick17.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();usePotion16()});
+const journal17=document.createElement('button');journal17.id='journal17';journal17.textContent='📜 Quest';
+document.querySelector('#panel').appendChild(journal17);
+const return17=document.createElement('button');return17.id='return17';return17.textContent='⌂ Хот';
+document.querySelector('#panel').appendChild(return17);
+function showJournal17(){
+ const progress=questComplete?'Биелсэн':questAccepted?`${Math.min(questKills16,3)}/3 мангас`:'Аваагүй';
+ const rows=[['Анхны анчин',totalKills>=1],['10 мангас ялсан',totalKills>=10],['Boss ялсан',bossWins07>=1],['5-р түвшинд хүрсэн',level>=5]];
+ openWindow('📜 Даалгавар ба амжилт',`<p><b>Саруулын даалгавар:</b> ${progress}</p><p><b>Нийт ялалт:</b> ${totalKills} · <b>Boss:</b> ${bossWins07} · <b>Level:</b> ${level}</p><h3>🏆 Амжилтууд</h3>${rows.map(([name,done])=>`<p>${done?'✅':'🔒'} ${name}</p>`).join('')}<small>Амжилт бүрийг анх биелүүлэхэд 40 алт өгнө.</small>`);
+}
+function returnTown17(){
+ if(inside09>=0){msg('Эхлээд байшингаас гараарай');return}
+ if(inDungeon07){msg('Dungeon-оос гарах хаалгаар буцна');return}
+ if(player.position.distanceTo(npc.position)<9){msg('Аль хэдийн хотод байна');return}
+ player.position.set(2,0,4);state.target=null;msg('⌂ Эхлэл хотод ирлээ');
+}
+function checkAchievements17(){
+ const rules=[['hunter',totalKills>=1],['slayer',totalKills>=10],['boss',bossWins07>=1],['level5',level>=5]];
+ for(const [id,met] of rules){if(met&&!achievements17.includes(id)){achievements17.push(id);gold+=40;saveGame();msg('🏆 Амжилт нээгдлээ! +40 алт')}}
+}
+journal17.addEventListener('click',showJournal17);
+return17.addEventListener('click',returnTown17);
+window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyJ')showJournal17();if(e.code==='KeyT')returnTown17()});
+// Alpha 1.9 Skill Tree — upgrades persist in the same existing save slot.
+const skillTreeBtn19=document.createElement('button');skillTreeBtn19.id='skillTree19';skillTreeBtn19.textContent='🌟 Skills';panel.appendChild(skillTreeBtn19);
+function showSkillTree19(){
+ openWindow('🌟 Skill Tree',`<p>Чөлөөт оноо: <b>${talentPoints19}</b> · Түвшин ${level}</p><small>Түвшин ахих бүрд 1 оноо авна. Нэг чадвар дээд тал нь 5 түвшинтэй.</small>${talentNames19.map((name,i)=>`<p><b>${name}</b> ${talents19[i]}/5<br><small>${['Илдний damage +4','Нумны damage +4','Max HP +12','Skill damage +6'][i]} / түвшин</small> <button data-talent19="${i}" ${talentPoints19<1||talents19[i]>=5?'disabled':''}>+1</button></p>`).join('')}`);
+ win.querySelectorAll('[data-talent19]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.talent19);if(talentPoints19<1||talents19[i]>=5)return;talentPoints19--;talents19[i]++;if(i===2){state.max+=12;state.hp+=12}saveGame();msg('🌟 Ур чадвар нэмэгдлээ');showSkillTree19()});
+}
+skillTreeBtn19.addEventListener('click',showSkillTree19);
+window.addEventListener('keydown',e=>{if(e.code==='KeyK'&&!e.repeat)showSkillTree19()});
+// Equipment forge: rank upgrades cost both gold and enemy loot; no external services.
+const forge18=document.createElement('button');forge18.id='forge18';forge18.textContent='⚒️ Forge';panel.appendChild(forge18);
+const bountyBtn18=document.createElement('button');bountyBtn18.id='bounty18';bountyBtn18.textContent='🎯 Bounty';panel.appendChild(bountyBtn18);
+const logBtn18=document.createElement('button');logBtn18.id='log18';logBtn18.textContent='📋 Log';panel.appendChild(logBtn18);
+function showForge18(){
+ const ranks=[swordRank18,bowRank18,armorRank18],names=['⚔️ Илд','🏹 Нум','🛡️ Хуяг'];
+ openWindow('⚒️ Дархны газар',`<p>🪙 ${gold} алт · ⛏️ ${ore18} хүдэр · 💎 ${crystal18} кристалл</p><small>Сайжруулалт 10 хүртэл. Илд/нумын гэмтэл +5, хуягны HP +8.</small>${names.map((n,i)=>{const r=ranks[i],price=50+(r*35),metal=2+r,gem=r>=3?1+Math.floor((r-3)/3):0;return `<p>${n} +${r} ${r>=10?'(MAX)':`<button data-upgrade18="${i}">+1 · ${price} алт, ${metal} хүдэр${gem?', '+gem+' кристалл':''}</button>`}</p>`}).join('')}`);
+ win.querySelectorAll('[data-upgrade18]').forEach(btn=>btn.onclick=()=>upgrade18(Number(btn.dataset.upgrade18)));
+}
+function upgrade18(i){
+ const rank=[swordRank18,bowRank18,armorRank18][i];if(rank>=10){msg('Хамгийн дээд түвшин');return}
+ const price=50+rank*35,metal=2+rank,gem=rank>=3?1+Math.floor((rank-3)/3):0;
+ if(gold<price||ore18<metal||crystal18<gem){msg('Алт эсвэл материал хүрэлцэхгүй');return}
+ gold-=price;ore18-=metal;crystal18-=gem;
+ if(i===0)swordRank18++;else if(i===1)bowRank18++;else{armorRank18++;state.max+=8;state.hp+=8}
+ saveGame();logBattle18('⚒️ Тоноглол сайжруулав');msg('⚒️ Сайжруулалт амжилттай');showForge18();
+}
+function showBounty18(){
+ const target=5,ready=bounty18>=target;
+ openWindow('🎯 Анчдын гэрээ',`<p>Энгийн дайснаас ${target} ялалт байгуул.</p><p>Явц: <b>${Math.min(target,bounty18)}/${target}</b></p><p>Шагнал: 🪙 150 алт · ⛏️ 4 хүдэр · 💎 1 кристалл · 90 EXP</p><p>Гүйцэтгэсэн гэрээ: ${bountyClaims18}</p><button id="claimBounty18" ${ready?'':'disabled'}>🎁 Шагнал авах</button>`);
+ document.querySelector('#claimBounty18').onclick=()=>{if(bounty18<5)return;bounty18-=5;bountyClaims18++;gold+=150;ore18+=4;crystal18++;gainXp(90);saveGame();msg('🎯 Гэрээний шагнал авлаа');showBounty18()};
+}
+function showLog18(){openWindow('📋 Тулааны тэмдэглэл',battleLog18.length?battleLog18.map(t=>`<p>• ${t}</p>`).join(''):'<p>Одоохондоо тулаан хийгээгүй.</p>')}
+forge18.addEventListener('click',showForge18);bountyBtn18.addEventListener('click',showBounty18);logBtn18.addEventListener('click',showLog18);
+window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyG')showForge18();if(e.code==='KeyB')showBounty18()});
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
 function swap(){state.weapon=1-state.weapon;blade.visible=!state.weapon;bow.visible=!!state.weapon;msg(state.weapon?'Нум':'Хоёр гарын илд')}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{killCount++;totalKills++;gold+=10;gainXp(35);}if(!e.boss&&questAccepted&&!questComplete&&killCount>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){if(state.cool>0)return;slashFx13(0);const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
 function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
-function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i];const range=state.weapon?17:4;hit(dmg,range)}
+function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range)}
 window.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyX')swap();if(e.code==='Space')dodge();if(e.code==='Tab')lock();if(e.code==='Digit1')skill(0);if(e.code==='Digit2')skill(1);if(e.code==='Digit3')skill(2)});window.addEventListener('keyup',e=>keys.delete(e.code));
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)attack();lookPointer=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer||!lastLook)return;state.angle-=(e.clientX-lastLook.x)*.006;state.pitch=THREE.MathUtils.clamp(state.pitch+(e.clientY-lastLook.y)*.004,-.2,.85);lastLook={x:e.clientX,y:e.clientY}});
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer){lookPointer=null;lastLook=null}});
 const pad=document.querySelector('#pad'),stick=document.querySelector('#stick');let padId=null;function padMove(e){const r=pad.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const len=Math.hypot(dx,dy);if(len>48){dx*=48/len;dy*=48/len}move={x:dx/48,y:-dy/48};stick.style.transform=`translate(${dx}px,${dy}px)`}pad.addEventListener('pointerdown',e=>{padId=e.pointerId;pad.setPointerCapture(e.pointerId);padMove(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===padId)padMove(e)});function stopPad(){padId=null;move={x:0,y:0};stick.style.transform='translate(0,0)'}pad.addEventListener('pointerup',stopPad);pad.addEventListener('pointercancel',stopPad);
 for(const [id,fn] of Object.entries({attack,dodge,switch:swap,lock,skill1:()=>skill(0),skill2:()=>skill(1),skill3:()=>skill(2)}))document.querySelector('#'+id).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn()});
-let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);
+let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 animateCharacters12(now,dt,walking);
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
-blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*1.2);e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){state.hp=Math.max(0,state.hp-(e.boss?20:9));e.cool=1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
+blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2));e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
 const cameraDistance10=inside09>=0?3.4:6.8;
 const cameraHeight10=inside09>=0?1.05:2.4;
@@ -569,5 +677,5 @@ if(inside09>=0){
   camera.position.y=THREE.MathUtils.clamp(camera.position.y,1.55,3.65);
 }
 camera.lookAt(camTarget);
-bossHud07.style.display=(inDungeon07&&boss07.alive)?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(killCount,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · ${state.weapon?'Нум':'Илд'} · Дайсан ${enemies.filter(e=>e.alive).length}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
+bossHud07.style.display=(inDungeon07&&boss07.alive)?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP · ${boss07.hp<boss07.max*.5?'II үе: Уур хилэн':'I үе'}`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(questKills16,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · 🪙 ${gold} · ❤️ ${potions16} · ⛏️ ${ore18} · ${state.weapon?'Нум':'Илд'} +${state.weapon?bowRank18:swordRank18}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});

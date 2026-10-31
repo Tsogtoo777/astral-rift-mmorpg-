@@ -28,3 +28,17 @@
 
 /* Alpha 1.3 — readable damage numbers on mobile */
 .damage-number13{position:absolute;z-index:30;pointer-events:none;transform:translate(-50%,-50%);font:bold 25px system-ui,sans-serif;color:#ffe3a0;text-shadow:0 2px 3px #4c1724,0 0 10px #e04e3c;white-space:nowrap;}
+
+/* Alpha 1.6 mobile shop controls */
+#window button{touch-action:manipulation;min-height:42px}#panel{flex-wrap:wrap;max-width:43vw;justify-content:flex-end}#panel button{touch-action:manipulation}
+
+/* Alpha 1.7 touch UI: separate multi-touch healing from joystick and attacks */
+#quickPotion17{position:absolute;left:calc(3% + 145px);bottom:7%;z-index:6;padding:10px 13px;border:1px solid #f3c98e;border-radius:14px;background:#183447ed;color:#fff4df;font-weight:700;touch-action:manipulation;box-shadow:0 3px 12px #0008}
+#journal17,#return17{touch-action:manipulation}
+@media(max-height:560px){#quickPotion17{left:calc(3% + 123px);bottom:4%;padding:7px 10px;font-size:12px}}
+@media(max-width:650px){#quickPotion17{left:calc(3% + 140px);padding:8px 9px;font-size:11px}#panel{gap:3px}#panel button{padding:5px}}
+
+/* Alpha 1.8 forge / bounty panels, mobile-friendly scroll and touch */
+#panel{max-height:calc(100dvh - 155px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:auto}
+#window{max-height:75dvh;overscroll-behavior:contain}#window button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:650px){#panel{top:98px;right:6px;max-height:calc(100dvh - 115px)}#panel button{font-size:10px;padding:5px 7px}#window{top:10%;max-height:82dvh;padding:13px}}
