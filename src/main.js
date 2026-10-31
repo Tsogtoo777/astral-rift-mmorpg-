@@ -1,11 +1,11 @@
-import { createRodinMotion52 } from './rodinMotion52.js';
+import { createSamurai53 } from './samurai53.js';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.2 · ANIMATED RODIN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.3 · SAMURAI</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -16,26 +16,10 @@ function trunk(x,z){const t=new THREE.Mesh(new THREE.CylinderGeometry(.27,.4,3,7
 for(let i=0;i<65;i++){const a=i*2.399,r=24+(i%9)*4;trunk(Math.cos(a)*r,Math.sin(a)*r)}
 for(let i=0;i<9;i++)box(1.8,1.5,1.8,0x727c83,-16+i*4,.75,-17);
 const player=new THREE.Group();scene.add(player);
-const body=new THREE.Mesh(new THREE.CapsuleGeometry(.43,.95,5,10),new THREE.MeshStandardMaterial({color:0x353d49,metalness:.55,roughness:.55}));body.position.y=1.25;body.castShadow=true;player.add(body);
-// Alpha 0.3: articulated legs and arms, attached to the player body.
-const armorMat=new THREE.MeshStandardMaterial({color:0x303a4b,metalness:.55,roughness:.4});
-function limb(w,h,d,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),armorMat);m.position.set(x,y,z);m.castShadow=true;player.add(m);return m}
-const leftLeg=limb(.27,.75,.3,-.24,.46,0),rightLeg=limb(.27,.75,.3,.24,.46,0);
-const leftArm=limb(.25,.85,.28,-.57,1.45,0),rightArm=limb(.25,.85,.28,.57,1.45,0);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.31,12,10),new THREE.MeshStandardMaterial({color:0xe2bd94}));head.position.y=2.13;player.add(head);
-// Alpha 0.4 layered adventurer armor, cape and pauldrons.
+// Alpha 5.3: There is exactly one player visual, a genuine rigged Samurai GLB.
+// Preserve world material palette; do not allocate old LEGO body, sword, or bow.
 const steel=new THREE.MeshStandardMaterial({color:0x8e9dab,metalness:.8,roughness:.26});
 const trim=new THREE.MeshStandardMaterial({color:0x99784b,metalness:.65,roughness:.35});
-const capeMat=new THREE.MeshStandardMaterial({color:0x752f39,side:THREE.DoubleSide,roughness:1});
-function equipMesh(geometry,material,x,y,z,rx=0,ry=0,rz=0){const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;player.add(m);return m}
-equipMesh(new THREE.BoxGeometry(.72,.55,.22),steel,0,1.63,.34);
-equipMesh(new THREE.BoxGeometry(.8,.11,.26),trim,0,1.38,.36);
-for(const x of [-.56,.56]){equipMesh(new THREE.SphereGeometry(.28,10,8),steel,x,1.79,0);equipMesh(new THREE.BoxGeometry(.27,.24,.37),steel,x,.35,.05)}
-equipMesh(new THREE.ConeGeometry(.35,.42,7),new THREE.MeshStandardMaterial({color:0x282b30}),0,2.42,0);
-const cape=equipMesh(new THREE.PlaneGeometry(1.25,1.7),capeMat,0,1.24,-.42,-.12);
-const scarf=equipMesh(new THREE.TorusGeometry(.37,.1,6,16),capeMat,0,1.92,0,Math.PI/2);
-const blade=new THREE.Mesh(new THREE.BoxGeometry(.12,1.25,.18),new THREE.MeshStandardMaterial({color:0xcde6ef,metalness:.85,roughness:.2}));blade.position.set(.62,1.25,.1);blade.rotation.z=-.3;player.add(blade);
-const bow=new THREE.Mesh(new THREE.TorusGeometry(.55,.055,6,20,Math.PI),new THREE.MeshStandardMaterial({color:0x7a4427}));bow.position.set(.65,1.35,.05);bow.rotation.y=Math.PI/2;bow.visible=false;player.add(bow);
 // Alpha 0.2: small safe town, shopkeeper and quest giver.
 const town=new THREE.Group();scene.add(town);
 function townBox(g,w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.85}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m}
@@ -95,18 +79,9 @@ saruulPart10(new THREE.BoxGeometry(.42,.09,.13),saruulWhite10,0,1.47,.3);
 // Alpha 0.5 — stylized anime fantasy art pass, built from lightweight meshes.
 // All gameplay, saves, controls, quest and combat code below remains from 0.4.
 const ink=new THREE.MeshStandardMaterial({color:0x202a40,roughness:.85});
-const hairMat=new THREE.MeshStandardMaterial({color:0x26364c,roughness:.85});
-const skinMat=new THREE.MeshStandardMaterial({color:0xffd7b3,roughness:.9});
 const cyanGlow=new THREE.MeshStandardMaterial({color:0x65e9ff,emissive:0x1e8cb5,emissiveIntensity:1.3,roughness:.3});
 function artMesh(parent,geometry,mat,x,y,z,rotY=0){const o=new THREE.Mesh(geometry,mat);o.position.set(x,y,z);o.rotation.y=rotY;o.castShadow=true;parent.add(o);return o}
-// Character: hair, eyes, armor details, boots and glowing crystal.
-const hairCap=artMesh(player,new THREE.SphereGeometry(.325,12,9),hairMat,0,2.26,-.025);hairCap.scale.set(1.05,.67,1.04);
-for(const [x,ang] of [[-.22,-.25],[-.07,0],[.12,.22],[.27,.35]]){const tuft=artMesh(player,new THREE.ConeGeometry(.13,.39,5),hairMat,x,2.34,.19);tuft.rotation.z=ang;tuft.rotation.x=.48}
-for(const x of [-.115,.115]){const eye=artMesh(player,new THREE.SphereGeometry(.044,8,6),ink,x,2.17,.293);eye.scale.set(.85,1.3,.45);artMesh(player,new THREE.BoxGeometry(.22,.08,.08),trim,x*2.25,1.63,.47);}
-artMesh(player,new THREE.OctahedronGeometry(.16),cyanGlow,0,1.63,.49);
-for(const x of [-.24,.24]){artMesh(player,new THREE.BoxGeometry(.33,.22,.4),ink,x,.18,.075);artMesh(player,new THREE.BoxGeometry(.31,.12,.42),steel,x,.31,.09)}
-for(const x of [-.56,.56]){artMesh(player,new THREE.BoxGeometry(.24,.23,.31),trim,x,1.04,.01)}
-const hairBack=artMesh(player,new THREE.ConeGeometry(.26,.66,6),hairMat,0,1.98,-.23);hairBack.rotation.x=-.2;
+// Player appearance is entirely provided by the Samurai GLB.
 // Building detail: timber frames, glowing windows, flower boxes, tiled roofs.
 const timber=new THREE.MeshStandardMaterial({color:0x624431,roughness:.95});
 const plaster=new THREE.MeshStandardMaterial({color:0xd6c3a1,roughness:1});
@@ -316,14 +291,7 @@ for(let i=0;i<8;i++){
  visual08(new THREE.SphereGeometry(.19,8,6),gold08,2+Math.sin(a)*2.1,.72,4+Math.cos(a)*2.1);
 }
 visual08(new THREE.OctahedronGeometry(.55),glow08,2,3.08,4);
-// Stylized adventurer silhouette: waist straps, arm guards, hood edge and sword hilt.
-for(const side of [-1,1]){
- visual08(new THREE.BoxGeometry(.3,.26,.35),gold08,side*.57,1.32,.05,player);
- visual08(new THREE.BoxGeometry(.29,.18,.37),dark08,side*.24,.64,.05,player);
-}
-visual08(new THREE.BoxGeometry(.8,.1,.45),gold08,0,1.03,.04,player);
-visual08(new THREE.TorusGeometry(.33,.055,6,12),gold08,0,2.37,0,player).rotation.x=Math.PI/2;
-visual08(new THREE.BoxGeometry(.42,.1,.14),gold08,.62,.85,.12,player);
+// Character decorations are authored into the Samurai model rather than duplicated.
 // Dungeon arches and glowing floor sigils, deliberately lightweight.
 for(let i=0;i<8;i++){
  const a=i*Math.PI/4,x=48+Math.sin(a)*12,z=-48+Math.cos(a)*12;
@@ -334,138 +302,71 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.2 · ANIMATED RODIN';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.3 · SAMURAI';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
-// Alpha 1.0: refine the player silhouette and helmet.
-body.scale.set(.88,1,.84);
-head.scale.set(.94,1.03,.92);
-const armorHighlight10=new THREE.MeshStandardMaterial({color:0x99b7c7,metalness:.8,roughness:.27});
-for(const side of [-1,1]){
-  const plate=new THREE.Mesh(new THREE.BoxGeometry(.21,.56,.13),armorHighlight10);
-  plate.position.set(side*.31,1.57,.43);plate.rotation.z=side*.18;player.add(plate);
-  const greave=new THREE.Mesh(new THREE.BoxGeometry(.23,.42,.36),steel);
-  greave.position.set(side*.24,.45,.13);player.add(greave);
-}
-const beltGem10=new THREE.Mesh(new THREE.OctahedronGeometry(.14),cyanGlow);
-beltGem10.position.set(0,1.03,.34);player.add(beltGem10);
-
-// Alpha 5.1.2 — one player avatar. Legacy procedural parts are removed from
-// the live scene, not merely hidden. Their variables remain as harmless
-// animation-state references for backwards compatibility with combat code.
-// No asynchronous hero.glb loader can reinsert the LEGO player.
-for(const legacyMesh of [...player.children]) player.remove(legacyMesh);
+// Alpha 5.3 — Single permanent Samurai avatar, real GLTF skin/animation.
 const modelLoader11=new GLTFLoader();
 let saruulModel11=null;
-let rodinPreview43=null;
-let rodinRig52=null;
-const rodinRoot52=new THREE.Group();
-rodinRoot52.name='ActiveRodinAvatar52';
-player.add(rodinRoot52);
-
-// Saruul is a separate NPC and does not change the player's avatar.
+let samurai53=null;
+const samuraiRoot53=new THREE.Group();
+samuraiRoot53.name='SamuraiPlayer53';
+player.add(samuraiRoot53);
 modelLoader11.load('/models/saruul.glb',gltf=>{
   const model=gltf.scene;
   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
   for(const child of [...npc.children]) child.visible=false;
   saruulModel11=model;
   npc.add(model);
-  setupJoints12(model,false);
+  setupJoints12(model);
 },undefined,error=>console.warn('Saruul NPC asset unavailable:',error));
 
-const avatarStatus52=document.createElement('div');
-avatarStatus52.id='avatar-status-52';
-avatarStatus52.setAttribute('role','status');
-avatarStatus52.textContent='Rodin 3D дүр ачаалж байна…';
-Object.assign(avatarStatus52.style,{
-  position:'fixed',left:'50%',bottom:'12%',transform:'translateX(-50%)',
-  zIndex:'1000',padding:'8px 14px',border:'1px solid #80a7c7',
-  borderRadius:'12px',background:'rgba(12,27,42,.9)',color:'#fff',
-  fontSize:'13px',maxWidth:'80vw',textAlign:'center',pointerEvents:'none'
-});
-document.body.appendChild(avatarStatus52);
+const avatarStatus53=document.createElement('div');
+avatarStatus53.id='avatar-status-53';
+avatarStatus53.setAttribute('role','status');
+avatarStatus53.textContent='Samurai дүр ачаалж байна…';
+Object.assign(avatarStatus53.style,{position:'fixed',left:'50%',bottom:'12%',transform:'translateX(-50%)',zIndex:'1000',padding:'8px 14px',border:'1px solid #80a7c7',borderRadius:'12px',background:'rgba(12,27,42,.9)',color:'#fff',fontSize:'13px',maxWidth:'80vw',textAlign:'center',pointerEvents:'none'});
+document.body.appendChild(avatarStatus53);
 
-modelLoader11.load('/models/rodin-warrior.glb',gltf=>{
-  const model=gltf.scene;
-  model.name='RodinMesh52';
-  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
-  model.updateMatrixWorld(true);
-  const bounds=new THREE.Box3().setFromObject(model);
-  const size=bounds.getSize(new THREE.Vector3());
-  if(!Number.isFinite(size.y)||size.y<=.001){
-    avatarStatus52.textContent='Rodin модель хоосон эсвэл хэмжээ буруу байна';
-    console.error('Rodin mesh bounds invalid:',size);return;
-  }
-  const scale=2.35/size.y;
-  model.scale.setScalar(scale);
-  model.position.set(
-    -(bounds.min.x+bounds.max.x)*.5*scale,
-    -bounds.min.y*scale,
-    -(bounds.min.z+bounds.max.z)*.5*scale
-  );
-  // Preserve original detailed Rodin mesh; generate approximate humanoid
-  // skin weights and real THREE.Bones because its GLB has no animation/skin.
-  rodinRoot52.add(model);
-  try {
-    rodinRig52=createRodinMotion52(THREE,model);
-    rodinPreview43=model;
-    avatarStatus52.remove();
+modelLoader11.load('/models/samurai-player.glb',gltf=>{
+  try{
+    samurai53=createSamurai53(THREE,gltf,samuraiRoot53);
+    samurai53.setWeapon(state.weapon);
+    avatarStatus53.remove();
   }catch(error){
-    console.error('Rodin procedural rig creation failed:',error);
-    avatarStatus52.textContent='Rodin animation-ий rig үүсгэхэд алдаа гарлаа';
+    console.error('Samurai avatar initialization failed',error);
+    avatarStatus53.textContent='Samurai animation холбох үед алдаа гарлаа';
   }
 },undefined,error=>{
-  console.error('Rodin warrior failed to load:',error);
-  avatarStatus52.textContent='Rodin дүр ачаалагдсангүй — /models/rodin-warrior.glb шалгана уу';
+  console.error('Samurai GLB failed to load',error);
+  avatarStatus53.textContent='Samurai GLB ачаалсангүй — /models/samurai-player.glb шалгана уу';
 });
 
-function updateRodin51(now,dt,walking){
-  if(!rodinRig52)return;
-  const sprint52=walking&&(keys.has('ShiftLeft')||keys.has('ShiftRight'));
-  rodinRig52.update({dt,moving:walking,sprinting:sprint52,
-    blocking:blocking25,dodging:state.dodge>0,weapon:state.weapon});
+function updateSamurai53(now,dt,walking){
+  if(!samurai53)return;
+  const sprint=walking&&(keys.has('ShiftLeft')||keys.has('ShiftRight'));
+  samurai53.update({dt,moving:walking,sprinting:sprint,blocking:blocking25,dodging:state.dodge>0,weapon:state.weapon});
 }
 
 // Alpha 1.3 — lightweight procedural joints for existing local GLB assets.
 // GLB meshes are authored with baked vertex positions, so group pivots are
 // created at anatomical joints without adding bones or extra draw calls.
-const joints12={hero:null,saruul:null};
+const joints12={saruul:null};
 function makePivot12(model,label,pivot,parts){
   const group=new THREE.Group();group.name='joint12_'+label;
   group.position.set(...pivot);model.add(group);
-  for(const name of parts){
-    const mesh=model.getObjectByName(name);
-    if(!mesh)continue;
-    // The authored GLBs use identity mesh transforms and baked geometry.
-    group.attach(mesh);
-  }
-  if(label==='head'){
-    const extras=[];
-    model.traverse(obj=>{if(obj.isMesh && obj.name.startsWith('anime_')) extras.push(obj);});
-    for(const mesh of extras)group.attach(mesh);
-  }
+  for(const name of parts){const mesh=model.getObjectByName(name);if(mesh)group.attach(mesh);}
   return group;
 }
-function setupJoints12(model,isHero){
-  if(isHero){
-    joints12.hero={
-      leftLeg:makePivot12(model,'leftLeg',[-.25,.96,0],['leg0','boot0']),
-      rightLeg:makePivot12(model,'rightLeg',[.25,.96,0],['leg1','boot1']),
-      leftArm:makePivot12(model,'leftArm',[-.56,1.65,0],['arm0','gauntlet0','shoulder0']),
-      rightArm:makePivot12(model,'rightArm',[.56,1.65,0],['arm1','gauntlet1','shoulder1']),
-      head:makePivot12(model,'head',[0,1.94,0],['face','neck','hair','fringe','fringe2','eye0','eye1']),
-      cape:makePivot12(model,'cape',[0,1.82,-.27],['cape'])
-    };
-  }else{
-    joints12.saruul={
-      leftArm:makePivot12(model,'leftArm',[-.44,1.61,0],['sleeve0','hand0']),
-      rightArm:makePivot12(model,'rightArm',[.44,1.61,0],['sleeve1','hand1']),
-      head:makePivot12(model,'head',[0,1.92,0],['face','neck','hair_cap','hair_back','hair_tail','bang_left','bang_right','eye0','eye1']),
-      leftFoot:makePivot12(model,'leftFoot',[-.18,.22,0],['shoe0']),
-      rightFoot:makePivot12(model,'rightFoot',[.18,.22,0],['shoe1'])
-    };
-  }
+function setupJoints12(model){
+  joints12.saruul={
+    leftArm:makePivot12(model,'leftArm',[-.44,1.61,0],['sleeve0','hand0']),
+    rightArm:makePivot12(model,'rightArm',[.44,1.61,0],['sleeve1','hand1']),
+    head:makePivot12(model,'head',[0,1.92,0],['face','neck','hair_cap','hair_back','hair_tail','bang_left','bang_right','eye0','eye1']),
+    leftFoot:makePivot12(model,'leftFoot',[-.18,.22,0],['shoe0']),
+    rightFoot:makePivot12(model,'rightFoot',[.18,.22,0],['shoe1'])
+  };
 }
 function animateCharacters12(now,dt,walking){
   const t=now*.001;
@@ -615,7 +516,7 @@ function updateFx13(dt){
       f.label.style.opacity=projected.z<1?String(k):'0';}
   }
 }
-const state={hp:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,max:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,weapon:0,angle:0,pitch:.3,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
+const state={hp:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,max:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,weapon:0,angle:0,pitch:.1,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
 // Alpha 1.7 — mobile quality-of-life: quick heal, quest journal, achievements, town return.
 const quick17=document.createElement('button');quick17.id='quickPotion17';quick17.textContent='❤️ Эм';
 document.querySelector('#app').appendChild(quick17);
@@ -678,8 +579,8 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyG')show
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
-function swap(){state.weapon=1-state.weapon;blade.visible=false;bow.visible=false;msg(state.weapon?'Нум':'Хоёр гарын илд')}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;rodinRig52?.triggerAttack();damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function swap(){state.weapon=1-state.weapon;samurai53?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Самурайн илд')}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;samurai53?.triggerAttack();damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){if(state.cool>0)return;slashFx13(0);const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
 function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
 function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range)}
@@ -894,7 +795,7 @@ for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry
 const cameraRay24=new THREE.Raycaster();
 let previousCameraZone401=null;
 function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const visibleObstacles=cameraObstacles24.filter(o=>o.visible&&o.parent?.visible!==false);const hits=cameraRay24.intersectObjects(visibleObstacles,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.2 · ANIMATED RODIN' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.3 · SAMURAI' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -1017,17 +918,15 @@ const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
 let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:(keys.has('ShiftLeft')||keys.has('ShiftRight')?7.3:5)),dir.z*dt*(state.dodge>0?13:(keys.has('ShiftLeft')||keys.has('ShiftRight')?7.3:5)));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
-const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
-animateCharacters12(now,dt,walking);updateRodin51(now,dt,walking);advancedFX50.update(dt,walking,state.attacking);
-shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
-leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
-blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4){const step=diff.normalize().multiplyScalar(dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));const nx=e.g.position.x+step.x,nz=e.g.position.z+step.z;if(!blocked09(nx,nz))e.g.position.set(nx,e.g.position.y,nz)};e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){if(blocking25&&parryWindow40>0){parryWindow40=0;stamina25=Math.max(0,stamina25-9);e.cool=1.8;msg('✦ PARRY · Цохилтыг буцаалаа')}else{state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1))}e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
+const walking=len>.1;
+animateCharacters12(now,dt,walking);updateSamurai53(now,dt,walking);advancedFX50.update(dt,walking,state.attacking);
+shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4){const step=diff.normalize().multiplyScalar(dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));const nx=e.g.position.x+step.x,nz=e.g.position.z+step.z;if(!blocked09(nx,nz))e.g.position.set(nx,e.g.position.y,nz)};e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){if(blocking25&&parryWindow40>0){parryWindow40=0;stamina25=Math.max(0,stamina25-9);e.cool=1.8;msg('✦ PARRY · Цохилтыг буцаалаа')}else{state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1))}e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
-const cameraDistance10=(inside09>=0||inCastle25)?3.4:6.8;
-const cameraHeight10=(inside09>=0||inCastle25)?1.05:2.4;
+const cameraDistance10=(inside09>=0||inCastle25)?3.3:4.8;
+const cameraHeight10=(inside09>=0||inCastle25)?1.05:1.25;
 const desiredCamera10=camTarget.clone().add(new THREE.Vector3(
   -Math.sin(state.angle)*cameraDistance10,
-  cameraHeight10+state.pitch*(inside09>=0?1.2:4),
+  cameraHeight10+state.pitch*(inside09>=0?1.2:2.0),
   -Math.cos(state.angle)*cameraDistance10
 ));
 if(inside09>=0){
