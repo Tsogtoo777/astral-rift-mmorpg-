@@ -42,3 +42,50 @@
 #panel{max-height:calc(100dvh - 155px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:auto}
 #window{max-height:75dvh;overscroll-behavior:contain}#window button:disabled{opacity:.35;cursor:not-allowed}
 @media(max-width:650px){#panel{top:98px;right:6px;max-height:calc(100dvh - 115px)}#panel button{font-size:10px;padding:5px 7px}#window{top:10%;max-height:82dvh;padding:13px}}
+
+/* Alpha 2.0 — mobile landscape mode */
+#rotatePrompt20{display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#101d34,#1b4050);color:#f8e5bd;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:28px;font-family:system-ui,sans-serif;gap:12px}
+#rotatePrompt20.show{display:flex}
+#rotatePrompt20 h2{margin:0;font-family:Georgia,serif;letter-spacing:3px}
+#rotatePrompt20 p{margin:0;font-weight:600}
+#rotatePrompt20 small{font-size:12px;max-width:320px;line-height:1.5;color:#c3d2da}
+.rotateIcon20{font-size:62px;line-height:1.1;transform:rotate(-90deg)}
+#fullscreen20{border:1px solid #ebd3a2;border-radius:12px;background:#29445c;color:#fff1d1;padding:13px 20px;font-size:15px;font-weight:700;touch-action:manipulation}
+#landscapeFullscreen20{position:fixed;z-index:7;top:calc(7px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#152a3dbb;color:#fff;border:1px solid #d6c59c;border-radius:8px;padding:5px 10px;font-size:18px;touch-action:manipulation}
+@media (orientation:landscape) and (pointer:coarse){
+ #hud{top:calc(5px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:min(36vw,320px)}
+ #hud strong{font-size:clamp(13px,2.5vh,19px)}
+ #hud small{font-size:9px}
+ #stats{font-size:10px;margin-top:3px;padding:3px 6px}
+ .bar{height:10px;margin-top:3px}.expbar{height:7px;margin-top:3px}
+ #questbox{top:105px;left:calc(8px + env(safe-area-inset-left));max-width:29vw;width:220px;padding:6px 8px;font-size:11px}
+ #questtext{font-size:10px;margin-top:3px}
+ #minimap{width:66px;height:66px;top:6px;right:calc(7px + env(safe-area-inset-right))}
+ #panel{top:86px;right:calc(6px + env(safe-area-inset-right));display:flex;flex-direction:column;gap:3px;max-height:calc(100dvh - 160px);overflow-y:auto;overscroll-behavior:contain}
+ #panel button{font-size:10px;padding:4px 7px}
+ #pad{width:min(26vh,120px);height:min(26vh,120px);bottom:calc(6px + env(safe-area-inset-bottom));left:calc(12px + env(safe-area-inset-left))}
+ #stick{width:45%;height:45%;left:27.5%;top:27.5%}
+ #actions{grid-template-columns:repeat(3,min(12vh,54px));gap:5px;bottom:calc(7px + env(safe-area-inset-bottom));right:calc(12px + env(safe-area-inset-right))}
+ #actions button{height:min(12vh,54px);font-size:17px}#actions #attack{font-size:23px}
+ #zoneLabel{top:auto;bottom:3px;font-size:9px}
+ #bossHud07{top:8%;width:min(45vw,400px)}
+ #window{top:8%;max-height:82dvh;width:min(500px,74vw);padding:12px}
+ #landscapeFullscreen20{top:4px;font-size:13px;padding:3px 8px}
+}
+
+/* Alpha 2.1 — clear fantasy skill icons and cooldown feedback */
+#actions button.skill21{position:relative;overflow:hidden;font-family:Georgia,serif;border-width:2px;box-shadow:0 0 0 2px #142337a8,0 0 12px #6ad3ee66,inset 0 2px 8px #ffffff35;background:radial-gradient(circle at 35% 22%,#6e95b5,#172e54 78%);touch-action:manipulation}
+#actions button.skill-rush21{background:radial-gradient(circle at 35% 20%,#72c7bb,#1d5365 75%);border-color:#7be9d7}
+#actions button.skill-burst21{background:radial-gradient(circle at 35% 20%,#f6b36a,#754050 75%);border-color:#ffcb81}
+.skillGlyph21{font-size:clamp(21px,4vh,34px);font-weight:bold;line-height:1}.skillIndex21{position:absolute;bottom:2px;right:5px;font:700 10px system-ui;color:#fff6db;text-shadow:0 1px 2px #000}.skillCooldown21{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:bold 15px system-ui;color:#fff;z-index:2;text-shadow:0 1px 4px #000}
+#actions button.skill21.cooling21:before{content:'';position:absolute;inset:0;background:linear-gradient(to top,#071321d9 var(--cool21),transparent var(--cool21));z-index:1;pointer-events:none}#actions button.skill21.cooling21 .skillGlyph21{opacity:.48}
+@media (orientation:landscape) and (pointer:coarse){#actions button.skill21{min-width:42px}.skillGlyph21{font-size:clamp(20px,5vh,29px)}}
+
+/* Alpha 2.2 Living World / MP / touch-friendly panels */
+#mpHud22{position:relative;margin-top:5px;height:13px;border-radius:10px;background:#13253f;border:1px solid #83d8f0;overflow:hidden}
+#mpFill22{height:100%;width:100%;background:linear-gradient(90deg,#2468ae,#5bdbed)}
+#mpText22{position:absolute;inset:0;text-align:center;font-size:9px;font-weight:700;line-height:11px;color:#fff;text-shadow:0 1px 2px #000}
+#worldHint22{position:absolute;left:50%;bottom:20%;transform:translateX(-50%);z-index:4;color:#ffe5ad;font:600 12px system-ui;text-shadow:0 2px 5px #000;pointer-events:none;white-space:nowrap}
+#panel{max-height:70vh;overflow-y:auto;scrollbar-width:thin}
+#panel button{min-height:34px}
+@media(max-width:700px){#mpHud22{height:11px}#worldHint22{font-size:10px;bottom:16%}#panel{max-height:66vh}#panel button{min-height:30px}}

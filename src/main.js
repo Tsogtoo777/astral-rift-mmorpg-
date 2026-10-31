@@ -2,7 +2,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 1.8</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 2.2</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -38,6 +38,18 @@ const town=new THREE.Group();scene.add(town);
 function townBox(g,w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.85}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m}
 function building(x,z,color){const g=new THREE.Group();g.position.set(x,0,z);townBox(g,4.8,3.4,4.5,color,0,1.7,0);townBox(g,5.1,.28,4.9,0x5e4a3c,0,3.32,0);const roof=new THREE.Mesh(new THREE.ConeGeometry(3.85,2.5,4),new THREE.MeshStandardMaterial({color:0x79423a,roughness:.9}));roof.rotation.y=Math.PI/4;roof.position.y=4.5;roof.castShadow=true;g.add(roof);for(const side of [-1,1]){townBox(g,.2,3.4,.24,0x4c3427,side*2.3,1.7,2.3);townBox(g,.9,1,.12,0x5c8eaa,side*1.3,2.1,2.29)}townBox(g,1.05,1.8,.15,0x483324,0,.9,2.3);townBox(g,1.35,.14,.2,0xd7b46e,0,1.9,2.43);const lamp=new THREE.PointLight(0xffae56,1.3,6);lamp.position.set(1.9,2.2,2.5);g.add(lamp);town.add(g)}
 for(const [x,z,c] of [[-9,10,0xb7a48b],[-3,14,0xaba69b],[5,14,0xc6aa85],[12,9,0xb5a28d],[-11,1,0xa8a4a0],[14,0,0xc1aa8b],[-7,-12,0xb2a18b],[8,-14,0xb4a69b]])building(x,z,c);
+// Alpha 2.1 — richer low-poly town landmarks. Static meshes, no extra shadow-casting lights.
+const town21=new THREE.Group();scene.add(town21);
+const mats21={wood:new THREE.MeshStandardMaterial({color:0x765039,roughness:.9}),gold:new THREE.MeshStandardMaterial({color:0xe0b76a,metalness:.25,roughness:.45}),cloth:new THREE.MeshStandardMaterial({color:0x386d8a,side:THREE.DoubleSide}),red:new THREE.MeshStandardMaterial({color:0x9c5148,side:THREE.DoubleSide}),stone:new THREE.MeshStandardMaterial({color:0x8d928e}),leaf:new THREE.MeshStandardMaterial({color:0x4f9566}),water:new THREE.MeshStandardMaterial({color:0x4ba9b8,transparent:true,opacity:.78})};
+function townPart21(geometry,material,x,y,z,parent=town21){const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function sign21(label,x,z){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#172f3e';ctx.fillRect(0,0,512,128);ctx.strokeStyle='#e8c47c';ctx.lineWidth=9;ctx.strokeRect(6,6,500,116);ctx.font='bold 44px sans-serif';ctx.fillStyle='#fff1c6';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,256,65);const texture=new THREE.CanvasTexture(canvas);const board=townPart21(new THREE.PlaneGeometry(2.8,.7),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}),x,3.55,z);return board}
+sign21('⚒ ДАРХАН',-9,12.38);sign21('☕ ДЭН БУУДАЛ',-3,16.38);sign21('✦ ДЭЛГҮҮР',5,16.38);
+function market21(x,z,shade){const g=new THREE.Group();g.position.set(x,0,z);town21.add(g);for(const a of [-1,1])for(const b of [-1,1])townPart21(new THREE.CylinderGeometry(.07,.09,2.5,6),mats21.wood,a*1.4,1.25,b*.85,g);const canopy=townPart21(new THREE.ConeGeometry(2.2,1.15,4),shade,0,2.65,0,g);canopy.rotation.y=Math.PI/4;townPart21(new THREE.BoxGeometry(2.6,.22,1.3),mats21.wood,0,1.05,.4,g);for(let i=0;i<5;i++)townPart21(new THREE.IcosahedronGeometry(.15,0),i%2?mats21.gold:mats21.leaf,-.9+i*.45,1.26,.4,g)}
+market21(-4,-5,mats21.cloth);market21(10,-5,mats21.red);
+function bench21(x,z){townPart21(new THREE.BoxGeometry(2,.17,.55),mats21.wood,x,.7,z);townPart21(new THREE.BoxGeometry(2,.72,.13),mats21.wood,x,1.1,z-.3);for(const d of [-.75,.75])townPart21(new THREE.BoxGeometry(.16,.65,.42),mats21.stone,x+d,.35,z)}
+bench21(-3,5);bench21(8,5);
+for(const [x,z] of [[-12,-4],[-8,7],[11,7],[12,-11]]){townPart21(new THREE.CylinderGeometry(.07,.1,3.3,7),mats21.wood,x,1.65,z);townPart21(new THREE.BoxGeometry(.6,.55,.6),mats21.gold,x,3.25,z);townPart21(new THREE.ConeGeometry(.46,.5,4),mats21.stone,x,3.75,z)}
+for(const [x,z] of [[-13,6],[12,13],[-9,-8],[13,-9]]){townPart21(new THREE.CylinderGeometry(.85,.9,.34,10),mats21.stone,x,.17,z);for(let i=0;i<7;i++){const a=i*Math.PI*2/7;townPart21(new THREE.SphereGeometry(.19,6,5),i%2?mats21.gold:mats21.leaf,x+Math.cos(a)*.57,.48,z+Math.sin(a)*.57)}}
 // Paved streets: a road into the town and a circular plaza.
 const stoneMat=new THREE.MeshStandardMaterial({color:0x9b9689,roughness:1});
 const road=new THREE.Mesh(new THREE.PlaneGeometry(8,42),stoneMat);road.rotation.x=-Math.PI/2;road.position.set(2,.026,-9);road.receiveShadow=true;scene.add(road);
@@ -121,7 +133,7 @@ for(let i=0;i<110;i++){const a=i*2.39996,r=18+(i%23)*2.1;const x=Math.cos(a)*r,z
 const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshStandardMaterial({color:0xd7c7a4,metalness:.12}));ring.rotation.x=Math.PI/2;ring.position.set(2,.14,7);scene.add(ring);
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
 const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
-const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ALPHA 1.9';document.querySelector('#app').appendChild(versionLabel);
+const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ALPHA 2.2';document.querySelector('#app').appendChild(versionLabel);
 const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
 let potions16=Math.max(0,Number(saved.potions16??2)||0),questKills16=Math.max(0,Number(saved.questKills16)||0);
@@ -641,8 +653,82 @@ renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookPoin
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer){lookPointer=null;lastLook=null}});
 const pad=document.querySelector('#pad'),stick=document.querySelector('#stick');let padId=null;function padMove(e){const r=pad.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const len=Math.hypot(dx,dy);if(len>48){dx*=48/len;dy*=48/len}move={x:dx/48,y:-dy/48};stick.style.transform=`translate(${dx}px,${dy}px)`}pad.addEventListener('pointerdown',e=>{padId=e.pointerId;pad.setPointerCapture(e.pointerId);padMove(e)});pad.addEventListener('pointermove',e=>{if(e.pointerId===padId)padMove(e)});function stopPad(){padId=null;move={x:0,y:0};stick.style.transform='translate(0,0)'}pad.addEventListener('pointerup',stopPad);pad.addEventListener('pointercancel',stopPad);
 for(const [id,fn] of Object.entries({attack,dodge,switch:swap,lock,skill1:()=>skill(0),skill2:()=>skill(1),skill3:()=>skill(2)}))document.querySelector('#'+id).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn()});
-let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();
-state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));
+// Alpha 2.1 — distinctive skill icons with accessible names and cooldown labels.
+const skillVisual21=[['✦','Цохилтын давалгаа','slash'],['⚡','Шуурхай дайралт','rush'],['✹','Хүчтэй цохилт','burst']];
+skillVisual21.forEach(([glyph,label,style],i)=>{const b=document.getElementById('skill'+(i+1));b.classList.add('skill21','skill-'+style+'21');b.title=label;b.setAttribute('aria-label',label);b.innerHTML='<span class="skillGlyph21">'+glyph+'</span><span class="skillIndex21">'+(i+1)+'</span><span class="skillCooldown21"></span>';});
+function updateSkills21(){skillVisual21.forEach((_,i)=>{const b=document.getElementById('skill'+(i+1));const remain=state.skillCool[i];b.classList.toggle('cooling21',remain>.05);b.querySelector('.skillCooldown21').textContent=remain>.05?Math.ceil(remain)+'s':'';b.style.setProperty('--cool21',String(Math.min(100,remain/[3,6,10][i]*100))+'%');});}
+
+// Alpha 2.2 Living World: additive systems. Existing character/animation code untouched.
+const living22=new THREE.Group();scene.add(living22);
+const mat22=(c,emissive=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.82,emissive,emissiveIntensity:emissive?.28:0});
+const wood22=mat22(0x6e4932),stone22=mat22(0x77847c),leaf22=mat22(0x327e60),magic22=mat22(0x68d6d0,0x236f78);
+function piece22(parent,geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+// Mobile-friendly moving townsfolk; do not modify hero rig or animation.
+const citizens22=[
+ {name:'Болд · Дархан',x:-8,z:4,color:0xa67a58,axis:0,range:3},
+ {name:'Номин · Худалдаачин',x:8,z:6,color:0x6d9eb9,axis:1,range:3},
+ {name:'Тэмүүлэн · Судлаач',x:0,z:-6,color:0x9a83c8,axis:0,range:5},
+ {name:'Энхээ · Аялагч',x:12,z:-8,color:0xb5a064,axis:1,range:4}
+].map((c,i)=>{const g=new THREE.Group();g.position.set(c.x,0,c.z);living22.add(g);piece22(g,new THREE.CylinderGeometry(.32,.42,1.15,8),mat22(c.color),0,.85,0);piece22(g,new THREE.SphereGeometry(.29,10,8),mat22(0xe9c5a6),0,1.65,0);piece22(g,new THREE.ConeGeometry(.4,.33,8),mat22(0x443d43),0,1.98,0);return {...c,g,phase:i*1.8};});
+// New walkable outdoor regions (existing scene ground and navigation retained).
+const grove22=new THREE.Group();grove22.position.set(-36,0,-43);living22.add(grove22);
+for(let i=0;i<11;i++){const a=i*2.399,r=4+(i%4)*2.3,x=Math.cos(a)*r,z=Math.sin(a)*r;piece22(grove22,new THREE.CylinderGeometry(.17,.26,3,6),wood22,x,1.5,z);piece22(grove22,new THREE.ConeGeometry(1.15,3.2,7),leaf22,x,4,z)}
+const groveStone22=piece22(grove22,new THREE.OctahedronGeometry(1.25),magic22,0,1.65,0);
+piece22(grove22,new THREE.CylinderGeometry(3.1,3.4,.2,12),stone22,0,.05,0);
+const ruins22=new THREE.Group();ruins22.position.set(36,0,-44);living22.add(ruins22);
+for(let i=0;i<6;i++){const a=i*Math.PI/3;piece22(ruins22,new THREE.CylinderGeometry(.4,.5,3.5,7),stone22,Math.cos(a)*4,1.75,Math.sin(a)*4)}
+piece22(ruins22,new THREE.TorusGeometry(2.1,.18,8,24),magic22,0,2.9,-1).rotation.y=Math.PI/2;
+const ruinsRelic22=piece22(ruins22,new THREE.DodecahedronGeometry(.72),mat22(0xe0b15b,0x6b4318),0,1.15,0);
+// Distinct interior dressing, activated only in the matching house.
+const rooms22=[new THREE.Group(),new THREE.Group(),new THREE.Group()];
+rooms22.forEach(g=>interior09.add(g));
+// Armory: anvil, weapon racks.
+piece22(rooms22[0],new THREE.BoxGeometry(1.6,.65,.9),stone22,0,.65,-2.1);
+for(const x of [-2.8,2.8]){piece22(rooms22[0],new THREE.BoxGeometry(.25,2.4,.3),wood22,x,1.3,-3.2);piece22(rooms22[0],new THREE.BoxGeometry(1.1,.12,.15),magic22,x,2.1,-3)}
+// Inn: bed, fireplace and table.
+for(const x of [-2.8,2.8]){piece22(rooms22[1],new THREE.BoxGeometry(1.5,.4,2.2),wood22,x,.4,-1.4);piece22(rooms22[1],new THREE.BoxGeometry(1.3,.17,.55),mat22(0xe6d5a4),x,.7,-2.1)}
+piece22(rooms22[1],new THREE.BoxGeometry(1.1,1.5,.5),mat22(0x8d5338,0x4c2410),0,.85,-4);
+// General store: shelves and supply crates.
+for(const x of [-3.2,3.2])for(let y=.8;y<3;y+=.8){piece22(rooms22[2],new THREE.BoxGeometry(1.6,.15,.7),wood22,x,y,-2.6);piece22(rooms22[2],new THREE.BoxGeometry(.45,.42,.45),mat22(0xb68c57),x,y+.3,-2.6)}
+function refreshRoom22(){rooms22.forEach((g,i)=>g.visible=inside09>=0&&inside09%3===i)}
+const oldEnter22=enterHouse09;enterHouse09=function(i){oldEnter22(i);refreshRoom22();msg(['⚒ Дархны газар','🛏 Дэн буудал','🛒 Худалдааны газар'][i%3])};
+const oldExit22=exitHouse09;exitHouse09=function(){oldExit22();refreshRoom22()};
+let story22=Number(saved.story22)||0,storyReward22=!!saved.storyReward22,groveFound22=!!saved.groveFound22,ruinFound22=!!saved.ruinFound22;
+let mp22=Math.min(100,Math.max(0,Number(saved.mp22??100))),mpMax22=100;
+const saveOriginal22=saveGame;saveGame=function(){saveOriginal22();try{const d=JSON.parse(localStorage.getItem(saveKey)||'{}');Object.assign(d,{story22,storyReward22,groveFound22,ruinFound22,mp22});localStorage.setItem(saveKey,JSON.stringify(d))}catch{}};
+const storyButton22=document.createElement('button');storyButton22.id='story22';storyButton22.textContent='📖 Түүх';panel.appendChild(storyButton22);
+const mapButton22=document.createElement('button');mapButton22.id='map22';mapButton22.textContent='🧭 Газрын зураг';panel.appendChild(mapButton22);
+const mpHud22=document.createElement('div');mpHud22.id='mpHud22';mpHud22.innerHTML='<div id="mpFill22"></div><span id="mpText22">MP 100/100</span>';document.getElementById('hud').appendChild(mpHud22);
+const worldHint22=document.createElement('div');worldHint22.id='worldHint22';app.appendChild(worldHint22);
+function storyWindow22(){const stage=[
+ 'Саруул хотын ойролцоо нууцлаг талстын гэрэл үзэгдсэн тухай ярив. Шидэт ойд очиж талстыг судал.',
+ 'Шидэт ойн талстыг оллоо. Одоо зүүн талын Эртний балгас руу очиж дурсгалыг судал.',
+ 'Балгасын дурсгал олдлоо. Хотод буцаж Саруулд мэдээ хүргэ.',
+ 'Эхний бүлэг дууссан. Дараагийн адал явдалд бэлэн!'
+ ];openWindow('📖 Саруулын түүх · I бүлэг',`<p>${stage[Math.min(3,story22)]}</p><p>Шидэт ой: (-36, -43)<br>Эртний балгас: (36, -44)</p><p>Шагнал: 250 алт, 150 EXP, 2 кристалл</p>${story22===0?'<button id="startStory22">Адал явдал эхлүүлэх</button>':''}`);
+ const b=document.getElementById('startStory22');if(b)b.onclick=()=>{story22=1;saveGame();closeWindow();msg('📖 I бүлэг эхэллээ')};}
+storyButton22.onclick=storyWindow22;
+mapButton22.onclick=()=>openWindow('🧭 Аяллын газрын зураг',`<p>🏘 Эхлэл хот: (0, 0)</p><p>🌲 Шидэт ой: (-36, -43) · Талст</p><p>🏛 Эртний балгас: (36, -44) · Дурсгал</p><p>☠ Dungeon: (48, -38)</p><p>Тоглогч: (${Math.round(player.position.x)}, ${Math.round(player.position.z)})</p>`);
+const oldTalk22=talk;talk=function(){if(player.position.distanceTo(npc.position)<6&&story22===3&&!storyReward22){storyReward22=true;story22=4;gold+=250;crystal18+=2;gainXp(150);saveGame();msg('📖 Түүх дууслаа! +250 алт +150 EXP +2 талст');storyWindow22();return}oldTalk22()};
+const oldInteract22=interactWorld06;interactWorld06=function(){
+ if(inside09>=0){const r=inside09%3;openWindow(['⚒ Дархны газар','🛏 Дэн буудал','🛒 Худалдааны газар'][r],'<p>Үйлчилгээ сонгоно уу.</p><button id="service22">Үйлчилгээ авах</button><button id="leave22">🚪 Гарах</button>');document.getElementById('leave22').onclick=()=>{closeWindow();exitHouse09()};document.getElementById('service22').onclick=()=>{closeWindow();if(r===0)showForge18();else if(r===1){state.hp=state.max;mp22=mpMax22;saveGame();msg('🛏 HP/MP сэргэлээ')}else showShop16()};return}
+ if(!inDungeon07){const citizen=citizens22.find(c=>c.g.position.distanceTo(player.position)<3.5);if(citizen){openWindow(citizen.name,`<p>${citizen.name.includes('Дархан')?'Сайн зэвсэг хүсвэл дархны газраар ороорой.':citizen.name.includes('Худалдаачин')?'Худалдааны газар эдгээх эм зардаг.':citizen.name.includes('Судлаач')?'Шидэт ойд талст, балгасанд эртний дурсгал бий.':'Адал явдалд гарахын өмнө дэн буудалд амраарай.'}</p>`);return}
+ if(player.position.distanceTo(grove22.position)<4){groveFound22=true;if(story22===1)story22=2;mp22=mpMax22;saveGame();msg('🌲 Шидэт талст оллоо · MP сэргэлээ');return}
+ if(player.position.distanceTo(ruins22.position)<4){ruinFound22=true;if(story22===2)story22=3;saveGame();msg('🏛 Дурсгал оллоо · Саруулд буц!');return}}
+ oldInteract22();};
+const oldSkill22=skill;const skillCosts22=[12,20,32];skill=function(i){if(state.skillCool[i]>0)return;if(mp22<skillCosts22[i]){msg('MP хүрэлцэхгүй · '+skillCosts22[i]+' хэрэгтэй');return}mp22-=skillCosts22[i];oldSkill22(i);saveGame()};
+function updateLiving22(now,dt){
+ citizens22.forEach(c=>{const t=now*.00032+c.phase,v=Math.sin(t)*c.range;c.g.position.set(c.x+(c.axis===0?v:0),0,c.z+(c.axis===1?v:0));c.g.rotation.y=Math.cos(t)>0?0:Math.PI;});
+ groveStone22.rotation.y+=dt*.6;groveStone22.position.y=1.65+Math.sin(now*.002)*.14;
+ ruinsRelic22.rotation.y+=dt*.5;mp22=Math.min(mpMax22,mp22+dt*3);
+ document.getElementById('mpFill22').style.width=(mp22/mpMax22*100)+'%';document.getElementById('mpText22').textContent='MP '+Math.floor(mp22)+'/'+mpMax22;
+ const nearby=inside09>=0?'✦ Судлах: барилгын үйлчилгээ':citizens22.find(c=>c.g.position.distanceTo(player.position)<4)?.name|| (player.position.distanceTo(grove22.position)<5?'🌲 Шидэт ой · ✦ Судлах':player.position.distanceTo(ruins22.position)<5?'🏛 Балгас · ✦ Судлах':'');
+ worldHint22.textContent=nearby;
+}
+window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyM')mapButton22.click();if(e.code==='KeyQ')storyButton22.click()});
+
+let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);
+state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 animateCharacters12(now,dt,walking);
@@ -679,3 +765,27 @@ if(inside09>=0){
 camera.lookAt(camTarget);
 bossHud07.style.display=(inDungeon07&&boss07.alive)?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP · ${boss07.hp<boss07.max*.5?'II үе: Уур хилэн':'I үе'}`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(questKills16,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · 🪙 ${gold} · ❤️ ${potions16} · ⛏️ ${ore18} · ${state.weapon?'Нум':'Илд'} +${state.weapon?bowRank18:swordRank18}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+// Alpha 2.0: landscape-first mobile experience. Orientation lock is best-effort.
+const rotateUI = document.createElement('div');
+rotateUI.id='rotatePrompt20';
+rotateUI.innerHTML='<div class="rotateIcon20">↻</div><h2>ASTRAL RIFT</h2><p>Тоглохын тулд утсаа хэвтүүлээрэй</p><button id="fullscreen20" type="button">⛶ Бүтэн дэлгэцээр тоглох</button><small>Дэлгэц автоматаар эргэхгүй бол утасны Auto-rotate тохиргоог асаана уу.</small>';
+document.body.appendChild(rotateUI);
+const fullBtn=document.createElement('button');
+fullBtn.id='landscapeFullscreen20';fullBtn.type='button';fullBtn.textContent='⛶';fullBtn.title='Бүтэн дэлгэц';fullBtn.setAttribute('aria-label','Бүтэн дэлгэц');
+document.body.appendChild(fullBtn);
+async function enterLandscape20(){
+ try{if(!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();}catch(e){}
+ try{if(screen.orientation?.lock) await screen.orientation.lock('landscape');}catch(e){}
+ updateLandscape20();
+}
+function updateLandscape20(){
+ const portrait=window.innerHeight>window.innerWidth && matchMedia('(pointer: coarse)').matches;
+ rotateUI.classList.toggle('show',portrait);
+ fullBtn.style.display=portrait?'none':'block';
+}
+document.getElementById('fullscreen20').addEventListener('click',enterLandscape20);
+fullBtn.addEventListener('click',enterLandscape20);
+window.addEventListener('resize',updateLandscape20);
+window.addEventListener('orientationchange',updateLandscape20);
+updateLandscape20();
