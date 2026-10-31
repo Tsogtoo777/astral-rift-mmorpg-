@@ -1,18 +1,17 @@
-# Astral Rift Alpha 2.5 — Living Kingdom + Combat
+# Astral Rift Alpha 2.5.1 — Polished Kingdom
 
-Based on Alpha 2.4, preserving hero GLB files and character animation code.
+Alpha 2.5 source retained, including original hero/saruul GLB and existing animation logic.
 
-## New in 2.5
-- Open castle entrance and explorable throne room (approach the castle gate and tap ✦ Судлах; tap again near exit).
-- Visible town quest board at (-4, -19): accept, defeat 5 enemies, return to claim rewards.
-- Visible blue portal at (9, -21) with destinations: forest, ruins, town.
-- Stamina gauge and hold-to-block control (keyboard R). Dodge consumes stamina.
-- Quest-board progress stored separately in localStorage; previous save key untouched.
-- Version text unified to Alpha 2.5.
-- Original shops, inn, blacksmith, NPC patrols, minimap, skill, day/night and equipment preserved.
+## Changes
+- Unified visible version label in HUD (removed duplicate bottom labels).
+- Compact landscape HUD and expandable/collapsible quest tracker.
+- Moved block and quest-board buttons away from combat skill grid.
+- Quest-board action now requires approaching the actual board in town.
+- Royal hall now has a carpeted aisle, throne, raised dais, decorative pillars, banners and a warm light.
+- Preserved current save keys and character animation logic.
 
 ## Deploy
-Unzip into GitHub repository root, preserve public/models. Vercel framework Vite, build `npm run build`, output `dist`.
+Extract ZIP contents at the GitHub repository root. Vercel: `npm run build`, output `dist`.
 
-## Notes
-This is an incremental feature pack. Full combat overhaul, NPC pathfinding and unique 3D interiors for every building are not claimed. Test on device before replacing production.
+## Verification
+JavaScript syntax and archive integrity checked. A complete browser/gameplay test is still required.
