@@ -29,8 +29,8 @@ export function createSamurai53(THREE, gltf, holder) {
   root.position.set(-(bounds.min.x + bounds.max.x) * .5 * scale,
                     -bounds.min.y * scale,
                     -(bounds.min.z + bounds.max.z) * .5 * scale);
-  holder.add(root);
-  // Keep imported node names intact; animation tracks bind by exact names.
+  // The GLTFLoader can sanitize punctuation in bone names (e.g. arm_stretch.r
+  // becomes arm_stretch_r). Do not rename GLTF nodes: clip bindings depend on them.
   root.userData.astralPlayer53 = true;
 
   const mixer = new THREE.AnimationMixer(root);
@@ -46,8 +46,21 @@ export function createSamurai53(THREE, gltf, holder) {
     if (ev.action === drawAction) drawAction.fadeOut(.18);
   });
 
-  const mesh = name => root.getObjectByName(name);
-  const bone = name => root.getObjectByName(name);
+  // GLTFLoader sanitizes names differently between Three.js revisions.  The
+  // original asset calls its arm bone "arm_stretch.r"; the runtime can expose
+  // it as "arm_stretch_r" or "arm_stretchr".  The 5.3 implementation used only
+  // exact original strings and threw during avatar initialization, leaving a
+  // visible but unanimated Samurai in its bind pose.
+  const canonical = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const nodesByCanonical = new Map();
+  root.traverse(node => {
+    for (const name of [node.name,node.userData?.name,node.userData?.originalName]) {
+      if (name && !nodesByCanonical.has(canonical(name))) nodesByCanonical.set(canonical(name),node);
+    }
+  });
+  const lookup = name => root.getObjectByName(name) || nodesByCanonical.get(canonical(name));
+  const mesh = name => lookup(name);
+  const bone = name => lookup(name);
   const swords = {
     hip: mesh('katana'),
     hand: mesh('katana_hand'),
@@ -67,8 +80,16 @@ export function createSamurai53(THREE, gltf, holder) {
   const overlayBones = [arm,shoulder,forearm,spine,head].filter(Boolean);
   const baseRotations = overlayBones.map(node => node.quaternion.clone());
   if (!arm || !spine || !swords.hand || !swords.handBone) {
-    throw new Error('Samurai arm or sword bone missing');
+    const missing = [
+      !arm && 'arm_stretch.r',
+      !spine && 'spine_02.x',
+      !swords.hand && 'katana_hand',
+      !swords.handBone && 'bone_sword_hand'
+    ].filter(Boolean);
+    throw new Error('Samurai required nodes missing: '+missing.join(', '));
   }
+  // Mount only after we know the animation controller can be initialized.
+  holder.add(root);
 
   // The original clips animate visibility by scaling *multiple copies* of the
   // sword, rather than attaching a separate sword. Override at the end of each
@@ -137,8 +158,11 @@ export function createSamurai53(THREE, gltf, holder) {
     elapsed += dt;
     if (currentWeapon !== weapon) setWeapon(currentWeapon);
     movementWeight = THREE.MathUtils.damp(movementWeight,moving ? 1 : 0,9,dt);
-    runAction.setEffectiveWeight(movementWeight);
-    runAction.setEffectiveTimeScale(sprinting ? 1.28 : .78);
+    // Source pack has no Idle clip. Hold a gentle fraction of the run stance
+    // while stationary instead of snapping back to the rig's T-pose.
+    runAction.setEffectiveWeight(.22 + .78*movementWeight);
+    runAction.setEffectiveTimeScale(moving ? (sprinting ? 1.28 : .78) : 0);
+    if (!moving) runAction.time = Math.min(runClip.duration || .67, .12);
     overlayBones.forEach((node,i) => node.quaternion.copy(baseRotations[i]));
     mixer.update(dt);
 
