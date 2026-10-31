@@ -1,0 +1,197 @@
+*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#182d36;color:#fff;font-family:system-ui,Arial,sans-serif}canvas{display:block;touch-action:none}button{cursor:pointer}#hud{position:absolute;z-index:3;top:calc(10px + env(safe-area-inset-top));left:12px;width:min(380px,58vw);pointer-events:none;text-shadow:0 2px 5px #000c}#hud strong{font-family:Georgia,serif;font-size:clamp(18px,2.5vw,29px);letter-spacing:2px;white-space:nowrap}#hud small{font:12px system-ui;letter-spacing:1px;color:#e7d8b4}.bar,.expbar{height:15px;border:2px solid #e5d5b8;border-radius:15px;background:#17202eab;margin-top:7px;overflow:hidden;box-shadow:0 2px 6px #0009}#hpbar{height:100%;background:linear-gradient(#f45c62,#a92735)}.expbar{height:10px;margin-top:4px}#expfill{height:100%;background:linear-gradient(90deg,#236ca7,#61baf6)}#stats{font-size:12px;margin-top:7px;background:#0a1c29a6;padding:5px 7px;border-radius:5px}#target{font-size:12px;margin-top:3px;color:#fff0bd}#hint{font-size:10px;margin-top:4px;color:#eee}#questbox{position:absolute;top:137px;left:12px;z-index:3;background:#17222dc9;border:1px solid #cba6659c;border-radius:8px;padding:10px 12px;min-width:205px;max-width:43vw;box-shadow:0 5px 20px #0005;color:#e7c47d;font-size:13px;pointer-events:none}#questtext{color:#f2f0e6;font-size:12px;margin-top:6px}#minimap{position:absolute;top:14px;right:14px;width:112px;height:112px;z-index:3;border:4px solid #d6c7a6;border-radius:50%;background:radial-gradient(circle at 50% 50%,#a7a18a 0 14%,#738a65 15% 34%,#ad9d82 35% 41%,#486f55 42% 60%,#526b4b 61%);box-shadow:0 4px 18px #000a;pointer-events:none}#minimap:before,#minimap:after{content:'';position:absolute;inset:25%;border:2px solid #e3d5b4;transform:rotate(45deg)}#minimap:after{inset:9%;border:1px dashed #e3d5b4aa;border-radius:50%}#maparrow{position:absolute;top:50%;left:50%;font-size:20px;color:#ffcf65;text-shadow:0 1px 5px #000;z-index:2}#minimap span{position:absolute;top:100%;left:50%;transform:translateX(-50%);white-space:nowrap;background:#14232bce;padding:2px 7px;border-radius:4px;font-size:11px}#cross{position:absolute;top:51%;left:50%;transform:translate(-50%,-50%);font-size:25px;color:#fff9;pointer-events:none}#mobile{position:absolute;inset:0;pointer-events:none;z-index:4}#pad{position:absolute;left:3%;bottom:7%;width:min(30vw,170px);height:min(30vw,170px);border-radius:50%;border:3px solid #dfebeea9;background:#1b314b6b;box-shadow:inset 0 0 35px #08182670;pointer-events:auto;touch-action:none}#stick{position:absolute;left:calc(50% - 40px);top:calc(50% - 40px);width:80px;height:80px;background:#cad9df88;border:3px solid #f2f6f9;border-radius:50%;pointer-events:none}#actions{position:absolute;right:2%;bottom:6%;display:grid;grid-template-columns:repeat(3,68px);gap:7px;pointer-events:auto}#actions button{height:66px;border:2px solid #d8c79b;border-radius:50%;background:radial-gradient(circle at 30% 20%,#56748b,#1c3046 72%);color:#fff;font-size:24px;box-shadow:0 3px 10px #0009;touch-action:manipulation}#actions #attack{border-color:#e3b95d;color:#ffdd86;font-size:31px;background:radial-gradient(circle,#7a5b32,#293042)}#actions button:active{filter:brightness(1.5)}#toast{position:absolute;left:50%;top:29%;transform:translateX(-50%);background:#152634e8;border:1px solid #d9b77b;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;z-index:8;text-align:center;max-width:90vw}#panel{position:absolute;top:139px;right:12px;z-index:5;display:flex;gap:5px}#panel button{background:#172b3de8;color:#f6e4c6;border:1px solid #d4b87c;padding:8px;border-radius:8px;font-size:12px}#window{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:min(440px,92vw);max-height:65vh;overflow:auto;background:#172431f5;border:2px solid #c4a76f;border-radius:14px;padding:20px;z-index:9;display:none;box-shadow:0 10px 50px #000a}#window h2{margin:0 0 12px;color:#f0d49a}#window button{padding:10px 14px;margin:5px;background:#36516a;color:#fff;border:1px solid #b9a071;border-radius:8px}@media(max-width:650px){#hud{width:61vw;top:10px}#hud strong{font-size:17px;letter-spacing:1px}#hud small{font-size:9px}#stats{font-size:11px;line-height:1.3}.bar{height:12px}.expbar{height:8px}#hint{display:none}#questbox{top:121px;left:9px;min-width:0;width:46vw;padding:7px;font-size:11px}#questtext{font-size:10px}#minimap{width:76px;height:76px;right:8px;top:8px;border-width:3px}#panel{top:102px;right:8px;flex-direction:column}#panel button{padding:6px;font-size:11px}#pad{width:138px;height:138px;bottom:6%;left:3%}#actions{grid-template-columns:repeat(3,54px);gap:5px;bottom:6%;right:2%}#actions button{height:54px;font-size:20px}#actions #attack{font-size:26px}}@media(max-height:560px){#questbox{top:98px}#pad{bottom:3%;width:118px;height:118px}#actions{bottom:3%}#actions button{height:48px}}
+/* Alpha 0.5 — compact anime fantasy HUD */
+#hud strong{color:#fff3d2;text-shadow:0 2px 10px #102738,0 0 12px #7ebbc777}#hud small{color:#80e8ff}#stats{border-left:3px solid #76d9ee;background:linear-gradient(90deg,#0e233cde,#142b39a8);border-radius:7px}#questbox{background:linear-gradient(140deg,#1d3146ed,#0c1b2dcf);border-color:#e4be7b;box-shadow:0 6px 20px #06111b9c}#actions button{background:radial-gradient(circle at 32% 18%,#5e8c9d,#17263d 72%);border-color:#88bbca;box-shadow:inset 0 1px 6px #a7eaff4a,0 4px 10px #0008}#actions #attack{background:radial-gradient(circle at 35% 22%,#c19a65,#42304c 76%);border-color:#ffd38d}#pad{background:radial-gradient(circle,#4a80944a,#102b455e);border-color:#b8e8e7a0}#stick{background:#90d5e38a}#minimap{border-color:#e7d5a5}#zoneLabel{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:3;color:#f4e3bc;font:600 12px Georgia,serif;letter-spacing:2px;text-shadow:0 2px 8px #06121c;pointer-events:none;white-space:nowrap}@media(max-width:650px){#zoneLabel{top:auto;bottom:9px;font-size:9px;letter-spacing:1px;opacity:.8}}
+
+/* Alpha 0.6 exploration controls */
+#interact06{display:block;margin-top:8px;padding:9px 12px;border:1px solid #cbb27b;border-radius:12px;background:#142e3eea;color:#f9e3a7;font-weight:700;touch-action:manipulation}
+#exploreHint06{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);max-width:75vw;text-align:center;color:#fff3d1;text-shadow:0 2px 6px #000;font:600 12px system-ui;pointer-events:none;opacity:.85}
+@media(max-width:600px){#interact06{padding:8px;font-size:12px}#exploreHint06{bottom:13%;font-size:10px;max-width:48vw}}
+
+/* Alpha 0.7 boss HUD */
+#bossHud07{display:none;position:absolute;top:25%;left:50%;transform:translateX(-50%);width:min(88vw,460px);z-index:9;padding:10px 14px;background:rgba(24,12,36,.83);border:1px solid #a780d4;border-radius:12px;text-align:center;color:#f6e7ff;pointer-events:none;font-size:14px}
+.bossTrack07{height:12px;border:1px solid #e2b8ff;background:#201329;border-radius:9px;overflow:hidden;margin:7px 0 3px}
+#bossFill07{height:100%;width:100%;background:linear-gradient(90deg,#9d43b4,#ed74b4)}
+
+/* Alpha 0.8: cleaner mobile HUD without changing touch targets */
+#hud strong{filter:drop-shadow(0 2px 6px #0b182d)}
+#questbox{backdrop-filter:blur(5px);border-radius:12px}
+#stats{backdrop-filter:blur(4px)}
+#panel button{box-shadow:0 3px 12px #07131a88}
+#actions button{transition:filter .12s,transform .12s}
+#actions button:active{transform:scale(.94)}
+@media(max-width:650px){#questbox{max-width:45vw}#bossHud07{top:17%}}
+
+/* Alpha 0.9 */
+#exploreHint06{display:none}
+#zoneLabel{opacity:.8}
+@media(max-width:650px){#questbox{top:118px;max-width:43vw}#interiorTitle09{font-size:11px;top:18%}}
+
+/* Alpha 1.3 — readable damage numbers on mobile */
+.damage-number13{position:absolute;z-index:30;pointer-events:none;transform:translate(-50%,-50%);font:bold 25px system-ui,sans-serif;color:#ffe3a0;text-shadow:0 2px 3px #4c1724,0 0 10px #e04e3c;white-space:nowrap;}
+
+/* Alpha 1.6 mobile shop controls */
+#window button{touch-action:manipulation;min-height:42px}#panel{flex-wrap:wrap;max-width:43vw;justify-content:flex-end}#panel button{touch-action:manipulation}
+
+/* Alpha 1.7 touch UI: separate multi-touch healing from joystick and attacks */
+#quickPotion17{position:absolute;left:calc(3% + 145px);bottom:7%;z-index:6;padding:10px 13px;border:1px solid #f3c98e;border-radius:14px;background:#183447ed;color:#fff4df;font-weight:700;touch-action:manipulation;box-shadow:0 3px 12px #0008}
+#journal17,#return17{touch-action:manipulation}
+@media(max-height:560px){#quickPotion17{left:calc(3% + 123px);bottom:4%;padding:7px 10px;font-size:12px}}
+@media(max-width:650px){#quickPotion17{left:calc(3% + 140px);padding:8px 9px;font-size:11px}#panel{gap:3px}#panel button{padding:5px}}
+
+/* Alpha 1.8 forge / bounty panels, mobile-friendly scroll and touch */
+#panel{max-height:calc(100dvh - 155px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:auto}
+#window{max-height:75dvh;overscroll-behavior:contain}#window button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:650px){#panel{top:98px;right:6px;max-height:calc(100dvh - 115px)}#panel button{font-size:10px;padding:5px 7px}#window{top:10%;max-height:82dvh;padding:13px}}
+
+/* Alpha 2.0 — mobile landscape mode */
+#rotatePrompt20{display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#101d34,#1b4050);color:#f8e5bd;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:28px;font-family:system-ui,sans-serif;gap:12px}
+#rotatePrompt20.show{display:flex}
+#rotatePrompt20 h2{margin:0;font-family:Georgia,serif;letter-spacing:3px}
+#rotatePrompt20 p{margin:0;font-weight:600}
+#rotatePrompt20 small{font-size:12px;max-width:320px;line-height:1.5;color:#c3d2da}
+.rotateIcon20{font-size:62px;line-height:1.1;transform:rotate(-90deg)}
+#fullscreen20{border:1px solid #ebd3a2;border-radius:12px;background:#29445c;color:#fff1d1;padding:13px 20px;font-size:15px;font-weight:700;touch-action:manipulation}
+#landscapeFullscreen20{position:fixed;z-index:7;top:calc(7px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#152a3dbb;color:#fff;border:1px solid #d6c59c;border-radius:8px;padding:5px 10px;font-size:18px;touch-action:manipulation}
+@media (orientation:landscape) and (pointer:coarse){
+ #hud{top:calc(5px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:min(36vw,320px)}
+ #hud strong{font-size:clamp(13px,2.5vh,19px)}
+ #hud small{font-size:9px}
+ #stats{font-size:10px;margin-top:3px;padding:3px 6px}
+ .bar{height:10px;margin-top:3px}.expbar{height:7px;margin-top:3px}
+ #questbox{top:105px;left:calc(8px + env(safe-area-inset-left));max-width:29vw;width:220px;padding:6px 8px;font-size:11px}
+ #questtext{font-size:10px;margin-top:3px}
+ #minimap{width:66px;height:66px;top:6px;right:calc(7px + env(safe-area-inset-right))}
+ #panel{top:86px;right:calc(6px + env(safe-area-inset-right));display:flex;flex-direction:column;gap:3px;max-height:calc(100dvh - 160px);overflow-y:auto;overscroll-behavior:contain}
+ #panel button{font-size:10px;padding:4px 7px}
+ #pad{width:min(26vh,120px);height:min(26vh,120px);bottom:calc(6px + env(safe-area-inset-bottom));left:calc(12px + env(safe-area-inset-left))}
+ #stick{width:45%;height:45%;left:27.5%;top:27.5%}
+ #actions{grid-template-columns:repeat(3,min(12vh,54px));gap:5px;bottom:calc(7px + env(safe-area-inset-bottom));right:calc(12px + env(safe-area-inset-right))}
+ #actions button{height:min(12vh,54px);font-size:17px}#actions #attack{font-size:23px}
+ #zoneLabel{top:auto;bottom:3px;font-size:9px}
+ #bossHud07{top:8%;width:min(45vw,400px)}
+ #window{top:8%;max-height:82dvh;width:min(500px,74vw);padding:12px}
+ #landscapeFullscreen20{top:4px;font-size:13px;padding:3px 8px}
+}
+
+/* Alpha 2.1 — clear fantasy skill icons and cooldown feedback */
+#actions button.skill21{position:relative;overflow:hidden;font-family:Georgia,serif;border-width:2px;box-shadow:0 0 0 2px #142337a8,0 0 12px #6ad3ee66,inset 0 2px 8px #ffffff35;background:radial-gradient(circle at 35% 22%,#6e95b5,#172e54 78%);touch-action:manipulation}
+#actions button.skill-rush21{background:radial-gradient(circle at 35% 20%,#72c7bb,#1d5365 75%);border-color:#7be9d7}
+#actions button.skill-burst21{background:radial-gradient(circle at 35% 20%,#f6b36a,#754050 75%);border-color:#ffcb81}
+.skillGlyph21{font-size:clamp(21px,4vh,34px);font-weight:bold;line-height:1}.skillIndex21{position:absolute;bottom:2px;right:5px;font:700 10px system-ui;color:#fff6db;text-shadow:0 1px 2px #000}.skillCooldown21{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:bold 15px system-ui;color:#fff;z-index:2;text-shadow:0 1px 4px #000}
+#actions button.skill21.cooling21:before{content:'';position:absolute;inset:0;background:linear-gradient(to top,#071321d9 var(--cool21),transparent var(--cool21));z-index:1;pointer-events:none}#actions button.skill21.cooling21 .skillGlyph21{opacity:.48}
+@media (orientation:landscape) and (pointer:coarse){#actions button.skill21{min-width:42px}.skillGlyph21{font-size:clamp(20px,5vh,29px)}}
+
+/* Alpha 2.2 Living World / MP / touch-friendly panels */
+#mpHud22{position:relative;margin-top:5px;height:13px;border-radius:10px;background:#13253f;border:1px solid #83d8f0;overflow:hidden}
+#mpFill22{height:100%;width:100%;background:linear-gradient(90deg,#2468ae,#5bdbed)}
+#mpText22{position:absolute;inset:0;text-align:center;font-size:9px;font-weight:700;line-height:11px;color:#fff;text-shadow:0 1px 2px #000}
+#worldHint22{position:absolute;left:50%;bottom:20%;transform:translateX(-50%);z-index:4;color:#ffe5ad;font:600 12px system-ui;text-shadow:0 2px 5px #000;pointer-events:none;white-space:nowrap}
+#panel{max-height:70vh;overflow-y:auto;scrollbar-width:thin}
+#panel button{min-height:34px}
+@media(max-width:700px){#mpHud22{height:11px}#worldHint22{font-size:10px;bottom:16%}#panel{max-height:66vh}#panel button{min-height:30px}}
+
+/* Alpha 2.3 Kingdom Expansion */
+#menuToggle23{position:fixed;right:calc(8px + env(safe-area-inset-right));top:88px;z-index:12;background:#172d42ed;color:#ffe6a7;border:1px solid #e5c786;border-radius:12px;padding:9px 14px;font:700 13px system-ui;touch-action:manipulation;box-shadow:0 3px 14px #0008}
+#panel.collapsed23{display:none!important}
+#panel{top:134px!important;max-width:min(46vw,280px)!important;max-height:calc(100dvh - 190px)!important;background:#0d2432bb;border-radius:12px;padding:5px;z-index:11}
+#panel button{min-height:34px}
+#mapCanvas23{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;opacity:.85;pointer-events:none}
+#minimap{overflow:visible}#minimap #maparrow{display:none}#minimap span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);white-space:nowrap}
+#clock23{position:fixed;top:7px;left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;color:#fff1c9;background:#13283cb8;border:1px solid #e5c88c;border-radius:8px;padding:3px 9px;font:600 10px system-ui}
+#kingdomTitle23{position:fixed;bottom:3px;left:50%;transform:translateX(-50%);pointer-events:none;color:#f4dba0;font:700 10px Georgia,serif;letter-spacing:2px;text-shadow:0 2px 4px #000;z-index:3}
+@media (orientation:landscape) and (pointer:coarse){#menuToggle23{top:80px;padding:6px 10px;font-size:11px}#panel{top:116px!important;max-height:calc(100dvh - 130px)!important}#clock23{left:56%;font-size:9px}#kingdomTitle23{font-size:8px}}
+
+#version24{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);pointer-events:none;z-index:8;color:#f6d58b;background:#122638b8;border:1px solid #d6b66b88;border-radius:14px;padding:4px 12px;font:700 11px sans-serif;letter-spacing:1px;white-space:nowrap}#kingdomTitle23{display:none!important}
+
+/* Alpha 2.5 controls, separate from the character animation layer */
+#status25{position:absolute;top:108px;right:180px;z-index:9;background:#142838d9;border:1px solid #d8bd78;border-radius:14px;padding:6px 10px;color:#ffe3a0;font:12px sans-serif;pointer-events:none}#stTrack25{width:90px;height:5px;background:#273e4b;border-radius:8px;margin-top:3px}#stFill25{display:block;width:100%;height:100%;background:#f3cf75;border-radius:8px}#control25{position:absolute;right:14px;bottom:12px;z-index:12;display:flex;gap:6px;transform:translateY(-120px)}#control25 button{border:1px solid #e1c17b;border-radius:12px;background:#152c42dd;color:#fff0c6;padding:8px;font-size:12px;touch-action:none}#control25 button.active25{background:#236d75}@media(max-height:450px){#status25{top:86px;right:150px}#control25{bottom:0;transform:translateY(-110px)}}
+
+/* Alpha 2.5.1: compact landscape HUD, unobstructed skills and context actions */
+#zoneLabel{display:none!important}
+#version24{display:none!important}
+#questbox{pointer-events:auto;cursor:pointer;user-select:none}
+#questbox.quest-collapsed251 #questtext{display:none}
+#questbox.quest-collapsed251{opacity:.82}
+#questbox:after{content:'⌃';position:absolute;right:8px;top:5px;font-size:13px;color:#e9d49f}
+#questbox.quest-collapsed251:after{content:'⌄'}
+#control25{transform:none!important;right:calc(12px + env(safe-area-inset-right));bottom:calc(148px + env(safe-area-inset-bottom));gap:7px}
+#control25 button{width:42px;height:42px;border-radius:50%;padding:0;font-size:20px;box-shadow:0 2px 10px #0009;touch-action:manipulation}
+#status25{right:calc(102px + env(safe-area-inset-right));top:calc(58px + env(safe-area-inset-top));padding:5px 9px;font-size:11px;z-index:5}
+#stTrack25{width:88px}
+@media (orientation:landscape) and (pointer:coarse){
+ #hud{width:min(36vw,550px);max-width:none}
+ #hud strong{font-size:clamp(14px,3.2vh,22px);letter-spacing:1px}
+ #hud small{font-size:clamp(9px,1.9vh,12px)}
+ #stats{font-size:clamp(10px,2vh,14px);max-width:100%;line-height:1.2}
+ #questbox{top:calc(114px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:min(31vw,360px);max-width:none;min-width:0;padding:7px 23px 7px 10px}
+ #status25{top:calc(67px + env(safe-area-inset-top));right:calc(102px + env(safe-area-inset-right))}
+ #control25{bottom:calc(156px + env(safe-area-inset-bottom));right:calc(12px + env(safe-area-inset-right))}
+ #control25 button{width:38px;height:38px;font-size:18px}
+ #menuToggle23{top:calc(95px + env(safe-area-inset-top))}
+ #panel{top:calc(130px + env(safe-area-inset-top))!important;max-height:calc(100dvh - 145px)!important}
+ #window{z-index:25}
+}
+@media (orientation:landscape) and (max-height:430px){
+ #questbox{top:calc(99px + env(safe-area-inset-top));font-size:10px}
+ #control25{bottom:calc(115px + env(safe-area-inset-bottom))}
+ #control25 button{width:34px;height:34px}
+}
+
+/* Final 2.5.1 positioning: context buttons LEFT of the attack grid, not on top of skills */
+#control25{right:calc(min(29vw,255px) + env(safe-area-inset-right))!important;bottom:calc(20px + env(safe-area-inset-bottom))!important;transform:none!important}
+@media (orientation:landscape) and (pointer:coarse){#control25{right:calc(min(29vw,255px) + env(safe-area-inset-right))!important;bottom:calc(20px + env(safe-area-inset-bottom))!important}}
+
+/* Astral Rift Alpha 4.0 — consistent, touch-safe landscape HUD. */
+#hud{z-index:8;max-width:min(34vw,400px)}
+#hud strong small{display:inline-block;letter-spacing:.3px;color:#ffe0a0}
+#hint{display:none!important}
+#questbox{top:auto!important;bottom:calc(13px + env(safe-area-inset-bottom))!important;left:50%!important;transform:translateX(-50%);width:auto!important;max-width:30vw!important;min-width:150px!important;z-index:5;font-size:11px;padding:6px 20px 6px 9px;opacity:.85}
+#questbox.quest-collapsed251{opacity:.65}
+#questbox #questtext{font-size:10px}
+#worldMapButton40{border-color:#77d5dc!important}
+#worldMap40{position:fixed;z-index:100;inset:4% 8%;display:none;flex-direction:column;align-items:stretch;background:linear-gradient(160deg,#0f2536f7,#163b46f8);border:2px solid #ddc18a;border-radius:16px;box-shadow:0 12px 80px #000d;color:#f6e8c7;padding:12px;box-sizing:border-box;overflow:hidden}
+#worldMap40.open40{display:flex}
+#worldMap40 .mapTop40{display:flex;align-items:center;justify-content:space-between;gap:12px;font:700 15px system-ui}
+#worldMap40 .mapTop40 button{background:#304d61;color:white;border:1px solid #e6c58d;border-radius:9px;padding:6px 12px;min-width:44px;min-height:36px;touch-action:manipulation}
+#worldMap40 canvas{width:100%;height:calc(100% - 75px);object-fit:contain;min-height:0;display:block;flex:1}
+#worldMap40 .mapBottom40{text-align:center;font:11px system-ui;color:#c4dce0;white-space:normal}
+#quest40{position:fixed;z-index:7;left:calc(9px + env(safe-area-inset-left));top:calc(122px + env(safe-area-inset-top));font:700 11px system-ui;background:#102c3edb;border:1px solid #d8b675;border-radius:7px;color:#ffe7b2;padding:6px 9px;max-width:30vw;pointer-events:none;text-shadow:0 1px 2px #000}
+#zone40{position:fixed;z-index:4;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);background:#0b2639a6;color:#ffebba;border:1px solid #d3bb8066;border-radius:9px;padding:4px 10px;white-space:nowrap;font:700 11px Georgia,serif;pointer-events:none;letter-spacing:.6px}
+#clock23{top:calc(35px + env(safe-area-inset-top));left:50%}
+#status25{right:calc(104px + env(safe-area-inset-right));top:calc(45px + env(safe-area-inset-top))}
+#minimap{z-index:6}
+#control25{z-index:10}
+#actions{z-index:9}
+#quickPotion17{z-index:9}
+#panel{z-index:13}
+#menuToggle23{z-index:14}
+#window{z-index:60;max-height:85dvh;overflow-y:auto}
+#window button{cursor:pointer}
+#version24{display:none!important}
+#kingdomTitle23{display:none!important}
+#exploreHint06{display:none!important}
+@media (orientation:landscape) and (pointer:coarse){
+ #hud{width:min(31vw,340px)}
+ #hud strong{font-size:clamp(12px,2.5vh,18px)}
+ #hud strong small{font-size:clamp(8px,1.6vh,11px)}
+ #stats{font-size:clamp(9px,1.8vh,12px)}
+ #quest40{top:calc(102px + env(safe-area-inset-top));font-size:10px;max-width:28vw}
+ #questbox{bottom:calc(3px + env(safe-area-inset-bottom))!important;max-width:28vw!important;font-size:9px}
+ #zone40{font-size:10px;top:calc(2px + env(safe-area-inset-top));left:52%}
+ #clock23{top:calc(23px + env(safe-area-inset-top));left:52%}
+ #control25{right:calc(min(29vw,255px) + env(safe-area-inset-right))!important;bottom:calc(9px + env(safe-area-inset-bottom))!important}
+ #control25 button{width:min(11vh,44px);height:min(11vh,44px)}
+ #worldMap40{inset:2% 6%;padding:7px}
+ #worldMap40 .mapTop40{font-size:12px}
+ #worldMap40 .mapBottom40{font-size:9px}
+}
+@media(max-height:360px){#questbox{display:none}#quest40{top:90px}#hud strong{font-size:12px}#worldMap40{inset:1% 3%}}
+
+/* Alpha 4.0.2: consolidate the two overlapping quest readouts on small phones. */
+@media (orientation:landscape) and (pointer:coarse){
+ #quest40{top:calc(104px + env(safe-area-inset-top));left:calc(9px + env(safe-area-inset-left));max-width:26vw;line-height:1.25}
+ #questbox{display:none!important}
+ #hud{max-width:32vw!important}
+ #zone40{max-width:28vw;overflow:hidden;text-overflow:ellipsis;text-align:center}
+ #status25{top:calc(55px + env(safe-area-inset-top))}
+}
