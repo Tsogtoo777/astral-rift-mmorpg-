@@ -133,7 +133,7 @@ for(let i=0;i<110;i++){const a=i*2.39996,r=18+(i%23)*2.1;const x=Math.cos(a)*r,z
 const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshStandardMaterial({color:0xd7c7a4,metalness:.12}));ring.rotation.x=Math.PI/2;ring.position.set(2,.14,7);scene.add(ring);
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
 const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
-const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · ALPHA 2.2';document.querySelector('#app').appendChild(versionLabel);
+const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';document.querySelector('#app').appendChild(versionLabel);
 const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
 let potions16=Math.max(0,Number(saved.potions16??2)||0),questKills16=Math.max(0,Number(saved.questKills16)||0);
@@ -331,7 +331,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 2.2 · LIVING WORLD';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 2.5.1 · POLISHED KINGDOM';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · LIVING WORLD 2.2';
 
 
@@ -857,7 +857,7 @@ const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 const cameraRay24=new THREE.Raycaster();
 function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const hits=cameraRay24.intersectObjects(cameraObstacles24,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 2.5 · LIVING KINGDOM' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 2.5.1 · POLISHED KINGDOM' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -881,16 +881,38 @@ hall25(16,6,.35,material25.stone,0,3,-9);
 hall25(5,1.2,3,material25.gold,0,.6,-6);
 hall25(2.3,2.6,1.3,material25.wood,0,2,-7.4);
 for(const x of [-5,5]){hall25(.7,4,.7,material25.gold,x,2,-5);hall25(.8,.8,.8,material25.magic,x,4.4,-5)}
+// 2.5.1: visible throne-room identity, all objects placed in hall local coordinates.
+const carpet251=new THREE.MeshStandardMaterial({color:0x8c2941,roughness:.95});
+const brass251=new THREE.MeshStandardMaterial({color:0xd9b86a,metalness:.38,roughness:.4});
+const dark251=new THREE.MeshStandardMaterial({color:0x30445a,roughness:.8});
+hall25(3.3,.035,13,carpet251,0,.04,-.5);
+for(const x of [-1.7,1.7])hall25(.12,.04,13,brass251,x,.065,-.5);
+// Raised dais and ornate royal seat.
+hall25(5,.35,3.4,dark251,0,.18,-6.6);
+hall25(2.2,.35,1.1,brass251,0,.72,-7.2);
+hall25(2.2,2.4,.32,carpet251,0,2.0,-7.7);
+for(const x of [-1.15,1.15]){hall25(.24,2.7,.32,brass251,x,2.05,-7.7);hall25(.3,.25,.9,brass251,x,1.3,-7.15)}
+for(const x of [-6.8,6.8]){
+ for(const z of [-6,-1,4]){hall25(.8,4,.8,dark251,x,2,z);hall25(1,.18,1,brass251,x,4.05,z)}
+}
+for(const x of [-7.6,7.6]){
+ for(const z of [-4,2]){
+  hall25(.1,2.7,1.3,carpet251,x,3,z);
+  hall25(.12,.15,1.45,brass251,x,4.35,z);
+ }
+}
+const hallGlow251=new THREE.PointLight(0xffd29a,2,17);hallGlow251.position.set(hallOrigin25.x,4,hallOrigin25.z-5);castleHall25.add(hallGlow251);
 let inCastle25=false;
 const saved25=(()=>{try{return JSON.parse(localStorage.getItem('astralRift25')||'{}')}catch{return {}}})();
 let boardKills25=Number(saved25.boardKills||0),boardClaim25=!!saved25.boardClaim,boardActive25=!!saved25.boardActive;
 let stamina25=100,blocking25=false;
 const status25=document.createElement('div');status25.id='status25';status25.innerHTML='<span>⚡ ST <b id="stNum25">100</b></span><div id="stTrack25"><i id="stFill25"></i></div>';
 app.appendChild(status25);
-const control25=document.createElement('div');control25.id='control25';control25.innerHTML='<button id="block25">🛡 Хаах</button><button id="board25">📜 Даалгавар</button>';
+const control25=document.createElement('div');control25.id='control25';control25.innerHTML='<button id="block25" aria-label="Хамгаалах" title="Хамгаалах">🛡</button><button id="board25" aria-label="Даалгаврын самбар" title="Даалгаврын самбар">📜</button>';
 app.appendChild(control25);
 function saveExtra25(){try{localStorage.setItem('astralRift25',JSON.stringify({boardKills:boardKills25,boardClaim:boardClaim25,boardActive:boardActive25}))}catch{}}
 function questBoard25(){
+ if(!inCastle25 && inside09<0 && Math.hypot(player.position.x+4,player.position.z+19)>4.2){msg('📜 Даалгаврын самбарт ойртоорой');return}
  if(!boardActive25&&!boardClaim25){boardActive25=true;saveExtra25();msg('📜 Даалгавар: 5 дайсан ял');return}
  if(boardActive25&&boardKills25>=5&&!boardClaim25){boardClaim25=true;boardActive25=false;gold+=180;ore18+=3;gainXp(120);saveExtra25();saveGame();msg('📜 +180 алт, +3 хүдэр, +120 EXP');return}
  openWindow('📜 Хотын даалгаврын самбар',`<p>${boardClaim25?'Даалгавар биелсэн.':boardActive25?'Ялсан дайсан: '+boardKills25+'/5':'Самбарт ойртож даалгавар аваарай.'}</p>`);
@@ -993,3 +1015,11 @@ fullBtn.addEventListener('click',enterLandscape20);
 window.addEventListener('resize',updateLandscape20);
 window.addEventListener('orientationchange',updateLandscape20);
 updateLandscape20();
+
+// 2.5.1 optional compact quest tracker. Tapping it does not trigger movement.
+const questTracker251=document.getElementById('questbox');
+questTracker251.setAttribute('role','button');questTracker251.setAttribute('tabindex','0');
+questTracker251.setAttribute('aria-label','Даалгаврын мэдээллийг дэлгэх эсвэл хураах');
+function toggleQuest251(){questTracker251.classList.toggle('quest-collapsed251')}
+questTracker251.addEventListener('click',toggleQuest251);
+questTracker251.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleQuest251()}});
