@@ -2,7 +2,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 2.3</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 2.5</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -743,11 +743,11 @@ const stone23=mat23(0x9c9d98),dark23=mat23(0x52616b),roof23=mat23(0x335c85),gold
 function k23(geo,mat,x,y,z,parent=kingdom23){const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.receiveShadow=true;parent.add(o);return o}
 // Distinct skyline: a large keep, four towers, crenellations, a front gate, and a bridge.
 const castle23=new THREE.Group();castle23.position.set(0,0,32);kingdom23.add(castle23);
-k23(new THREE.BoxGeometry(21,9,13),stone23,0,4.5,0,castle23);
+k23(new THREE.BoxGeometry(8.2,9,13),stone23,-6.4,4.5,0,castle23);k23(new THREE.BoxGeometry(8.2,9,13),stone23,6.4,4.5,0,castle23);k23(new THREE.BoxGeometry(4.7,4,13),stone23,0,7,0,castle23);
 k23(new THREE.BoxGeometry(14,3,10),dark23,0,10,0,castle23);
 for(const x of [-11,11])for(const z of [-7,7]){k23(new THREE.CylinderGeometry(2.4,2.7,13,8),stone23,x,6.5,z,castle23);k23(new THREE.ConeGeometry(3.15,4.5,8),roof23,x,15.1,z,castle23);for(let i=0;i<8;i++){const a=i*Math.PI/4;k23(new THREE.BoxGeometry(.9,1.2,.9),dark23,x+Math.cos(a)*2.3,13.3,z+Math.sin(a)*2.3,castle23)}}
 for(let x=-9;x<=9;x+=2){k23(new THREE.BoxGeometry(1.1,1.4,1.2),dark23,x,9.7,-6.5,castle23)}
-const gate23=k23(new THREE.BoxGeometry(4.2,5,.4),wood23,0,2.5,-6.7,castle23);
+const gate23=k23(new THREE.BoxGeometry(4.2,5,.4),wood23,0,2.5,-6.7,castle23);gate23.visible=false; // Gate opened in Alpha 2.5
 k23(new THREE.BoxGeometry(5,.6,1.5),gold23,0,5.2,-6.9,castle23);
 for(let i=0;i<10;i++)k23(new THREE.BoxGeometry(3.2,.16,2.5),i%2?stone23:dark23,0,.12,14+i*1.9);
 // New plaza architecture, bridges, gardens, colored stalls, and lanterns.
@@ -800,13 +800,13 @@ const prevSave23=saveGame;saveGame=function(){prevSave23();try{const d=JSON.pars
 function updateKingdom23(now,dt){
  time23.hour=(time23.hour+dt*.065)%24;const a=(time23.hour/24)*Math.PI*2;const day=Math.max(.08,Math.sin(a-Math.PI/2)*.5+.5);
  sun.intensity=.28+day*1.72;sun.position.set(Math.cos(a)*35,8+day*40,16);scene.background.setRGB(.035+day*.56,.06+day*.69,.14+day*.73);scene.fog.color.copy(scene.background);
- renderer.toneMappingExposure=.85+day*.5;clock23.textContent=`${day<.3?'🌙':'☀'} ${String(Math.floor(time23.hour)).padStart(2,'0')}:${String(Math.floor((time23.hour%1)*60)).padStart(2,'0')} · KINGDOM 2.3`;
+ renderer.toneMappingExposure=.85+day*.5;clock23.textContent=`${day<.3?'🌙':'☀'} ${String(Math.floor(time23.hour)).padStart(2,'0')}:${String(Math.floor((time23.hour%1)*60)).padStart(2,'0')}`;
  for(let i=bursts23.length-1;i>=0;i--){const q=bursts23[i];q.t-=dt;q.b.scale.multiplyScalar(1+dt*2);q.b.material.opacity=Math.max(0,q.t/.48);if(q.t<=0){scene.remove(q.b);q.b.geometry.dispose();q.b.material.dispose();bursts23.splice(i,1)}}
  drawMap23(now);
 }
 // Visibly distinct named areas, with a landmark and navigation hint.
 const castleSign23=sign21('♜ ХААНЫ ЦАЙЗ',0,25.05);
-const gameTitle23=document.createElement('div');gameTitle23.id='kingdomTitle23';gameTitle23.textContent='✦ KINGDOM EXPANSION · ALPHA 2.3';app.appendChild(gameTitle23);
+const gameTitle23=document.createElement('div');gameTitle23.id='kingdomTitle23';gameTitle23.textContent='' ;app.appendChild(gameTitle23);
 
 
 // === Alpha 2.4 Kingdom Reborn: visible city rebuild, independent of hero animations ===
@@ -843,7 +843,7 @@ for(const x of [-7.6,7.6])for(const z of [22,28])tower24(city24,x,z);
 // New solid props and castle footprint; original house footprints stay solid.
 for(const [x,z,w,d] of [[0,32,21,13],[-7.6,22,2.2,2.2],[7.6,22,2.2,2.2],[-7.6,28,2.2,2.2],[7.6,28,2.2,2.2]])citySolid24.push({x,z,w,d});
 const oldBlocked24=blocked09;
-blocked09=function(x,z){if(oldBlocked24(x,z))return true;if(inside09>=0||inDungeon07)return false;return citySolid24.some(b=>Math.abs(x-b.x)<b.w/2+.42&&Math.abs(z-b.z)<b.d/2+.42)};
+blocked09=function(x,z){if(oldBlocked24(x,z))return true;if(inside09>=0||inDungeon07)return false;return citySolid24.some(b=>{if(b.w>15&&Math.abs(x)<2.15&&z>24.5&&z<39.5)return false;return Math.abs(x-b.x)<b.w/2+.42&&Math.abs(z-b.z)<b.d/2+.42})};
 // Citizen schedules: walking by day, return to fixed stations at night.
 const cityCitizenStations24=citizens22.map(c=>({x:c.x,z:c.z}));
 function updateCitizens24(now){const night=time23.hour<6||time23.hour>21;citizens22.forEach((c,i)=>{const base=cityCitizenStations24[i];if(night){c.g.position.x=base.x;c.g.position.z=base.z;c.g.rotation.y=Math.PI;}else{const t=now*.00024+i*1.7;c.g.position.x=base.x+(c.axis===0?Math.sin(t)*c.range:0);c.g.position.z=base.z+(c.axis===1?Math.sin(t)*c.range:0);c.g.rotation.y=Math.cos(t)>0?0:Math.PI;}})}
@@ -857,20 +857,90 @@ const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 const cameraRay24=new THREE.Raycaster();
 function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const hits=cameraRay24.intersectObjects(cameraObstacles24,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 2.4 · KINGDOM REBORN';app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 2.5 · LIVING KINGDOM' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
-let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);
+
+// Alpha 2.5: visible living kingdom interactions and combat extensions.
+// The character model, rig and animation update code are deliberately unchanged.
+const features25=new THREE.Group();scene.add(features25);
+const material25={wood:new THREE.MeshStandardMaterial({color:0x684831}),gold:new THREE.MeshStandardMaterial({color:0xf5c86b,metalness:.35}),stone:new THREE.MeshStandardMaterial({color:0x526a7a}),magic:new THREE.MeshStandardMaterial({color:0x52e4ef,emissive:0x0d7f9b,emissiveIntensity:1.1})};
+function prop25(geo,mat,x,y,z){const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;features25.add(o);return o}
+// The quest board and portal are placed beside the main road, rather than hidden in a menu.
+prop25(new THREE.BoxGeometry(2.9,1.8,.25),material25.wood,-4,2.1,-19);
+for(const x of [-5.15,-2.85])prop25(new THREE.BoxGeometry(.18,2.8,.2),material25.stone,x,1.4,-19);
+prop25(new THREE.BoxGeometry(2.5,.2,.35),material25.gold,-4,3.1,-19);
+const portal25=prop25(new THREE.TorusGeometry(1.5,.24,9,32),material25.magic,9,2.2,-21);
+const portalBase25=prop25(new THREE.CylinderGeometry(1.8,2,.32,12),material25.stone,9,.16,-21);
+const castleHall25=new THREE.Group();scene.add(castleHall25);
+const hallOrigin25=new THREE.Vector3(56,0,51);
+function hall25(w,h,d,mat,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);o.position.set(hallOrigin25.x+x,y,hallOrigin25.z+z);o.receiveShadow=true;castleHall25.add(o);return o}
+hall25(16,.2,18,material25.stone,0,-.1,0);
+for(const x of [-8,8])hall25(.35,6,18,material25.stone,x,3,0);
+hall25(16,6,.35,material25.stone,0,3,-9);
+hall25(5,1.2,3,material25.gold,0,.6,-6);
+hall25(2.3,2.6,1.3,material25.wood,0,2,-7.4);
+for(const x of [-5,5]){hall25(.7,4,.7,material25.gold,x,2,-5);hall25(.8,.8,.8,material25.magic,x,4.4,-5)}
+let inCastle25=false;
+const saved25=(()=>{try{return JSON.parse(localStorage.getItem('astralRift25')||'{}')}catch{return {}}})();
+let boardKills25=Number(saved25.boardKills||0),boardClaim25=!!saved25.boardClaim,boardActive25=!!saved25.boardActive;
+let stamina25=100,blocking25=false;
+const status25=document.createElement('div');status25.id='status25';status25.innerHTML='<span>⚡ ST <b id="stNum25">100</b></span><div id="stTrack25"><i id="stFill25"></i></div>';
+app.appendChild(status25);
+const control25=document.createElement('div');control25.id='control25';control25.innerHTML='<button id="block25">🛡 Хаах</button><button id="board25">📜 Даалгавар</button>';
+app.appendChild(control25);
+function saveExtra25(){try{localStorage.setItem('astralRift25',JSON.stringify({boardKills:boardKills25,boardClaim:boardClaim25,boardActive:boardActive25}))}catch{}}
+function questBoard25(){
+ if(!boardActive25&&!boardClaim25){boardActive25=true;saveExtra25();msg('📜 Даалгавар: 5 дайсан ял');return}
+ if(boardActive25&&boardKills25>=5&&!boardClaim25){boardClaim25=true;boardActive25=false;gold+=180;ore18+=3;gainXp(120);saveExtra25();saveGame();msg('📜 +180 алт, +3 хүдэр, +120 EXP');return}
+ openWindow('📜 Хотын даалгаврын самбар',`<p>${boardClaim25?'Даалгавар биелсэн.':boardActive25?'Ялсан дайсан: '+boardKills25+'/5':'Самбарт ойртож даалгавар аваарай.'}</p>`);
+}
+function portalWindow25(){openWindow('🌀 Шилжих хаалга',`<p>Шилжих газраа сонго:</p><p><button id="forest25">🌲 Шидэт ой</button> <button id="ruins25">🏛 Эртний балгас</button> <button id="town25">🏰 Хот</button></p>`);document.querySelector('#forest25').onclick=()=>teleport25(-35,-38);document.querySelector('#ruins25').onclick=()=>teleport25(36,-39);document.querySelector('#town25').onclick=()=>teleport25(2,-17)}
+function teleport25(x,z){closeWindow();if(inCastle25)exitCastle25();if(inside09>=0)exitHouse09();player.position.set(x,0,z);state.target=null;msg('🌀 Шилжлээ')}
+function enterCastle25(){inCastle25=true;player.position.set(hallOrigin25.x,0,hallOrigin25.z+6);msg('🏰 Хааны танхимд орлоо')}
+function exitCastle25(){inCastle25=false;player.position.set(0,0,22);msg('🏰 Цайзын гадна гарлаа')}
+const oldInteract25=interactWorld06;
+interactWorld06=function(){
+ if(inCastle25){if(player.position.z>hallOrigin25.z+3){exitCastle25();return}openWindow('👑 Хааны танхим','<p>Хаант улсын хамгаалагчид алга болсон тухай цуурхал тархжээ. Хотын самбараас даалгавар ав.</p>');return}
+ if(inside09<0&&!inDungeon07){
+ if(Math.hypot(player.position.x+4,player.position.z+19)<3.6){questBoard25();return}
+ if(Math.hypot(player.position.x-9,player.position.z+21)<3.8){portalWindow25();return}
+ if(Math.abs(player.position.x)<2.4&&player.position.z>23&&player.position.z<28){enterCastle25();return}
+ }
+ oldInteract25();
+};
+document.getElementById('board25').onclick=questBoard25;
+function setBlock25(v){blocking25=!!v&&stamina25>3;document.getElementById('block25').classList.toggle('active25',blocking25)}
+const blockButton25=document.getElementById('block25');
+blockButton25.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setBlock25(true)});
+for(const ev of ['pointerup','pointercancel','pointerleave'])blockButton25.addEventListener(ev,()=>setBlock25(false));
+window.addEventListener('keydown',e=>{if(e.code==='KeyR'&&!e.repeat)setBlock25(true)});
+window.addEventListener('keyup',e=>{if(e.code==='KeyR')setBlock25(false)});
+const prevDodge25=dodge;
+dodge=function(){if(stamina25<22){msg('⚡ Stamina хүрэлцэхгүй');return}if(state.dodge<=0){stamina25-=22;prevDodge25()}};
+const prevHit25=hit;
+hit=function(damage=25,range=2.8){const e=state.target?.alive?state.target:closest();const wasAlive=!!e?.alive;prevHit25(damage,range);if(boardActive25&&wasAlive&&e&&!e.alive&&!e.boss){boardKills25++;saveExtra25();if(boardKills25===5)msg('📜 Самбар руу буцаж шагналаа ав!')}};
+const prevBlocked25=blocked09;
+blocked09=function(x,z){if(inCastle25){return Math.abs(x-hallOrigin25.x)>7.35||Math.abs(z-hallOrigin25.z)>8.2}return prevBlocked25(x,z)};
+function update25(now,dt){
+ stamina25=Math.max(0,Math.min(100,stamina25+(blocking25?-22:17)*dt));if(stamina25<1)setBlock25(false);
+ document.getElementById('stNum25').textContent=Math.floor(stamina25);
+ document.getElementById('stFill25').style.width=stamina25+'%';
+ portal25.rotation.z=now*.0004;
+ if(inCastle25){castleHall25.visible=true;roomTitle09.style.display='block';roomTitle09.textContent='🏰 ХААНЫ ТАНХИМ · Гарах: ✦ Судлах'}else{castleHall25.visible=false;if(inside09<0)roomTitle09.style.display='none'}
+}
+
+let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);update25(now,dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
 animateCharacters12(now,dt,walking);
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;cape.rotation.x=-.12+Math.sin(now*.005)*.05+(walking?-.12:0);leftLeg.rotation.x=stride;rightLeg.rotation.x=-stride;
 leftArm.rotation.x=-stride*.7;rightArm.rotation.x=stride*.7-(state.attacking>0?Math.sin(state.attacking*13)*1.15:0);
-blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2));e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
+blade.rotation.z=-.3+Math.sin(state.attacking*19)*1.15;blade.rotation.x=state.attacking>0?Math.sin(state.attacking*20)*.55:0;body.rotation.z=len>.1?Math.sin(now*.012)*.035:0;head.position.y=2.13+(len>.1?Math.sin(now*.016)*.035:0);for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4)e.g.position.addScaledVector(diff.normalize(),dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1));e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
-const cameraDistance10=inside09>=0?3.4:6.8;
-const cameraHeight10=inside09>=0?1.05:2.4;
+const cameraDistance10=(inside09>=0||inCastle25)?3.4:6.8;
+const cameraHeight10=(inside09>=0||inCastle25)?1.05:2.4;
 const desiredCamera10=camTarget.clone().add(new THREE.Vector3(
   -Math.sin(state.angle)*cameraDistance10,
   cameraHeight10+state.pitch*(inside09>=0?1.2:4),
@@ -889,7 +959,7 @@ if(inside09>=0){
   const hits10=ray10.intersectObjects(town.children,true);
   if(hits10.length){desiredCamera10.copy(camTarget).addScaledVector(direction10,Math.max(.65,hits10[0].distance-.35));}
 }
-resolveCamera24(camTarget,desiredCamera10);
+if(!inCastle25)resolveCamera24(camTarget,desiredCamera10);
 camera.position.lerp(desiredCamera10,Math.min(1,dt*13));
 if(inside09>=0){
   camera.position.x=THREE.MathUtils.clamp(camera.position.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
