@@ -1,13 +1,14 @@
 {
   "name": "astral-rift-alpha",
-  "version": "4.1.0-alpha",
+  "version": "4.2.0-alpha",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test:smoke": "node tests/alpha40-smoke.mjs"
+    "test:smoke": "node tests/alpha40-smoke.mjs && node tests/architecture42-smoke.mjs",
+    "test:assets": "python tests/validate-assets.py"
   },
   "dependencies": {
     "three": "^0.170.0",
