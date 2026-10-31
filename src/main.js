@@ -2,7 +2,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 2.2</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 2.3</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -331,8 +331,8 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 1.6';
-versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · SYSTEMS 1.6';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 2.2 · LIVING WORLD';
+versionLabel.textContent='✦ ЭХЛЭЛ ХОТ · LIVING WORLD 2.2';
 
 
 // Alpha 1.0: refine the player silhouette and helmet.
@@ -660,6 +660,14 @@ function updateSkills21(){skillVisual21.forEach((_,i)=>{const b=document.getElem
 
 // Alpha 2.2 Living World: additive systems. Existing character/animation code untouched.
 const living22=new THREE.Group();scene.add(living22);
+// Visible town upgrade: festival lantern arches at the main square.
+const townArch22=new THREE.Group();living22.add(townArch22);
+for(const x of [-11,11]){
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.16,.21,6,8),new THREE.MeshStandardMaterial({color:0x69452d}));pole.position.set(x,3,-11);townArch22.add(pole);
+ const lantern=new THREE.Mesh(new THREE.OctahedronGeometry(.52),new THREE.MeshStandardMaterial({color:0xffca67,emissive:0x99511c,emissiveIntensity:.65}));lantern.position.set(x,5.5,-11);townArch22.add(lantern);
+}
+const archBeam22=new THREE.Mesh(new THREE.BoxGeometry(22,.3,.3),new THREE.MeshStandardMaterial({color:0x69452d}));archBeam22.position.set(0,5.9,-11);townArch22.add(archBeam22);
+for(let i=0;i<9;i++){const banner=new THREE.Mesh(new THREE.ConeGeometry(.43,1.35,3),new THREE.MeshStandardMaterial({color:i%2?0x3db9ba:0xe4b35c,side:THREE.DoubleSide}));banner.position.set(-9+i*2.25,5.05,-11);banner.rotation.z=Math.PI;townArch22.add(banner)}
 const mat22=(c,emissive=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.82,emissive,emissiveIntensity:emissive?.28:0});
 const wood22=mat22(0x6e4932),stone22=mat22(0x77847c),leaf22=mat22(0x327e60),magic22=mat22(0x68d6d0,0x236f78);
 function piece22(parent,geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
@@ -727,7 +735,132 @@ function updateLiving22(now,dt){
 }
 window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyM')mapButton22.click();if(e.code==='KeyQ')storyButton22.click()});
 
-let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);
+
+// === Alpha 2.3 Kingdom Expansion: additive world systems. Hero rig and animation untouched. ===
+const kingdom23=new THREE.Group();scene.add(kingdom23);
+const mat23=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.78,metalness:metal});
+const stone23=mat23(0x9c9d98),dark23=mat23(0x52616b),roof23=mat23(0x335c85),gold23=mat23(0xd7ae60,.35),wood23=mat23(0x624534),green23=mat23(0x33755b);
+function k23(geo,mat,x,y,z,parent=kingdom23){const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.receiveShadow=true;parent.add(o);return o}
+// Distinct skyline: a large keep, four towers, crenellations, a front gate, and a bridge.
+const castle23=new THREE.Group();castle23.position.set(0,0,32);kingdom23.add(castle23);
+k23(new THREE.BoxGeometry(21,9,13),stone23,0,4.5,0,castle23);
+k23(new THREE.BoxGeometry(14,3,10),dark23,0,10,0,castle23);
+for(const x of [-11,11])for(const z of [-7,7]){k23(new THREE.CylinderGeometry(2.4,2.7,13,8),stone23,x,6.5,z,castle23);k23(new THREE.ConeGeometry(3.15,4.5,8),roof23,x,15.1,z,castle23);for(let i=0;i<8;i++){const a=i*Math.PI/4;k23(new THREE.BoxGeometry(.9,1.2,.9),dark23,x+Math.cos(a)*2.3,13.3,z+Math.sin(a)*2.3,castle23)}}
+for(let x=-9;x<=9;x+=2){k23(new THREE.BoxGeometry(1.1,1.4,1.2),dark23,x,9.7,-6.5,castle23)}
+const gate23=k23(new THREE.BoxGeometry(4.2,5,.4),wood23,0,2.5,-6.7,castle23);
+k23(new THREE.BoxGeometry(5,.6,1.5),gold23,0,5.2,-6.9,castle23);
+for(let i=0;i<10;i++)k23(new THREE.BoxGeometry(3.2,.16,2.5),i%2?stone23:dark23,0,.12,14+i*1.9);
+// New plaza architecture, bridges, gardens, colored stalls, and lanterns.
+for(const [x,z] of [[-18,2],[19,3],[-18,-14],[19,-13]]){
+ const g=new THREE.Group();g.position.set(x,0,z);kingdom23.add(g);
+ k23(new THREE.BoxGeometry(7,4.6,6),stone23,0,2.3,0,g);k23(new THREE.ConeGeometry(5.2,3.6,4),roof23,0,6.25,0,g).rotation.y=Math.PI/4;
+ k23(new THREE.BoxGeometry(1.3,2.5,.25),wood23,0,1.25,3.05,g);
+ for(const dx of [-2.1,2.1])k23(new THREE.BoxGeometry(1,.95,.15),gold23,dx,2.7,3.08,g);
+}
+for(let i=0;i<12;i++){
+ const x=-21+i*3.9,z=-23+(i%2)*1.1;
+ k23(new THREE.CylinderGeometry(.15,.18,3.5,6),wood23,x,1.75,z);
+ k23(new THREE.OctahedronGeometry(.45),gold23,x,3.7,z);
+}
+for(const x of [-24,24])for(let z=-17;z<17;z+=5){k23(new THREE.CylinderGeometry(.42,.55,1.1,8),stone23,x,.55,z);k23(new THREE.SphereGeometry(.9,9,7),green23,x,1.5,z)}
+// Separate equipment overview (no mutation of hero model or animation).
+const equip23=document.createElement('button');equip23.id='equipment23';equip23.textContent='🛡 Тоноглол';panel.appendChild(equip23);
+equip23.onclick=()=>openWindow('🛡 Тоноглол',`<p>⚔ Илд: +${swordRank18} · 🏹 Нум: +${bowRank18}</p><p>🛡 Хуяг: +${armorRank18} · ❤️ ${state.hp}/${state.max} HP</p><p>✨ Ур чадварын оноо: ${talentPoints19}</p><p>⛏ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="goForge23">⚒ Дарханд сайжруулах</button>`);
+document.addEventListener('click',e=>{if(e.target?.id==='goForge23')showForge18()});
+// Collapsible mobile menu, defaults closed on touch devices; preserves all existing button handlers.
+const menuToggle23=document.createElement('button');menuToggle23.id='menuToggle23';menuToggle23.textContent='☰ Цэс';menuToggle23.setAttribute('aria-expanded','false');app.appendChild(menuToggle23);
+const compact23=matchMedia('(pointer:coarse)').matches;
+if(compact23)panel.classList.add('collapsed23');
+menuToggle23.onclick=()=>{panel.classList.toggle('collapsed23');const opened=!panel.classList.contains('collapsed23');menuToggle23.textContent=opened?'✕ Хаах':'☰ Цэс';menuToggle23.setAttribute('aria-expanded',String(opened))};
+// Live overhead minimap, world positions and compass direction. Canvas is kept lightweight.
+const mapCanvas23=document.createElement('canvas');mapCanvas23.id='mapCanvas23';mapCanvas23.width=160;mapCanvas23.height=160;
+const oldMini23=document.getElementById('minimap');oldMini23.appendChild(mapCanvas23);
+const ctx23=mapCanvas23.getContext('2d');let mapTick23=0;
+function drawMap23(now){if(now-mapTick23<180)return;mapTick23=now;const c=ctx23;c.clearRect(0,0,160,160);c.fillStyle='#153e39';c.fillRect(0,0,160,160);c.strokeStyle='#456b61';c.lineWidth=1;for(let i=0;i<=160;i+=20){c.beginPath();c.moveTo(i,0);c.lineTo(i,160);c.moveTo(0,i);c.lineTo(160,i);c.stroke()}
+const pt=(x,z)=>[80+(x-player.position.x)*1.55,80+(z-player.position.z)*1.55];
+for(const [x,z,col] of [[0,32,'#ffdf92'],[-36,-43,'#5ce0a0'],[36,-44,'#a9baff'],[48,-38,'#ff778b'],[0,0,'#ffffff']]){const [px,py]=pt(x,z);c.fillStyle=col;c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill()}
+for(const citizen of citizens22){const [px,py]=pt(citizen.g.position.x,citizen.g.position.z);c.fillStyle='#8bd9ff';c.fillRect(px-2,py-2,4,4)}
+c.save();c.translate(80,80);c.rotate(-player.rotation.y);c.fillStyle='#fff';c.beginPath();c.moveTo(0,-8);c.lineTo(-6,6);c.lineTo(6,6);c.closePath();c.fill();c.restore();}
+// Day/night cycle; existing sun reused. No extra shadow maps.
+const time23={hour:Math.min(24,Math.max(0,Number(saved.kingdomHour23??9))),cycle:true};
+const clock23=document.createElement('div');clock23.id='clock23';app.appendChild(clock23);
+// Three combat skill visuals and new field enemies. Existing hero animation remains unchanged.
+const fxMat23=[new THREE.MeshBasicMaterial({color:0x5fe7ff,transparent:true,opacity:.8,depthWrite:false}),new THREE.MeshBasicMaterial({color:0x84f7b7,transparent:true,opacity:.8,depthWrite:false}),new THREE.MeshBasicMaterial({color:0xffb16c,transparent:true,opacity:.8,depthWrite:false})];
+const bursts23=[];
+const prevSkill23=skill;
+skill=function(i){const before=state.skillCool[i],mpBefore=mp22;prevSkill23(i);if(before>0||mpBefore===mp22)return;
+const b=new THREE.Mesh(new THREE.TorusGeometry(1.1+i*.45,.08+i*.03,7,32),fxMat23[i].clone());b.rotation.x=-Math.PI/2;b.position.copy(player.position);b.position.y=.35;scene.add(b);bursts23.push({b,t:.48});};
+const extraEnemies23=[];
+for(const [x,z,type] of [[-42,-39,0],[-29,-50,1],[31,-49,2],[42,-52,0],[-47,-53,1]]){
+ const e=spawn(x,z); // spawn adds the enemy to the existing combat/loot/respawn system
+ if(e)extraEnemies23.push(e);
+}
+// Persist new world clock without interfering with previous save fields.
+const prevSave23=saveGame;saveGame=function(){prevSave23();try{const d=JSON.parse(localStorage.getItem(saveKey)||'{}');d.kingdomHour23=time23.hour;localStorage.setItem(saveKey,JSON.stringify(d))}catch{}};
+function updateKingdom23(now,dt){
+ time23.hour=(time23.hour+dt*.065)%24;const a=(time23.hour/24)*Math.PI*2;const day=Math.max(.08,Math.sin(a-Math.PI/2)*.5+.5);
+ sun.intensity=.28+day*1.72;sun.position.set(Math.cos(a)*35,8+day*40,16);scene.background.setRGB(.035+day*.56,.06+day*.69,.14+day*.73);scene.fog.color.copy(scene.background);
+ renderer.toneMappingExposure=.85+day*.5;clock23.textContent=`${day<.3?'🌙':'☀'} ${String(Math.floor(time23.hour)).padStart(2,'0')}:${String(Math.floor((time23.hour%1)*60)).padStart(2,'0')} · KINGDOM 2.3`;
+ for(let i=bursts23.length-1;i>=0;i--){const q=bursts23[i];q.t-=dt;q.b.scale.multiplyScalar(1+dt*2);q.b.material.opacity=Math.max(0,q.t/.48);if(q.t<=0){scene.remove(q.b);q.b.geometry.dispose();q.b.material.dispose();bursts23.splice(i,1)}}
+ drawMap23(now);
+}
+// Visibly distinct named areas, with a landmark and navigation hint.
+const castleSign23=sign21('♜ ХААНЫ ЦАЙЗ',0,25.05);
+const gameTitle23=document.createElement('div');gameTitle23.id='kingdomTitle23';gameTitle23.textContent='✦ KINGDOM EXPANSION · ALPHA 2.3';app.appendChild(gameTitle23);
+
+
+// === Alpha 2.4 Kingdom Reborn: visible city rebuild, independent of hero animations ===
+// Preserve the old houses' doorway coordinates and existing enter/exit services.
+town.visible=false;
+const city24=new THREE.Group();scene.add(city24);
+const citySolid24=[];
+const c24={wall:new THREE.MeshStandardMaterial({color:0xd8c8a5,roughness:.95}),beam:new THREE.MeshStandardMaterial({color:0x594332}),slate:new THREE.MeshStandardMaterial({color:0x304b66}),copper:new THREE.MeshStandardMaterial({color:0x94613c}),gold:new THREE.MeshStandardMaterial({color:0xf0ca78,metalness:.25}),blue:new THREE.MeshStandardMaterial({color:0x368fba,emissive:0x0a2736}),red:new THREE.MeshStandardMaterial({color:0xb45655}),green:new THREE.MeshStandardMaterial({color:0x427b65}),stone:new THREE.MeshStandardMaterial({color:0x8b9b9c}),glass:new THREE.MeshStandardMaterial({color:0x89d8e2,emissive:0x174b5d,transparent:true,opacity:.82})};
+function block24(parent,w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function tower24(parent,x,z){const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const body=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.25,7.5,8),c24.stone);body.position.y=3.75;g.add(body);const cap=new THREE.Mesh(new THREE.ConeGeometry(1.65,3,8),c24.slate);cap.position.y=9;g.add(cap);citySolid24.push({x,z,w:2.2,d:2.2})}
+const colors24=[c24.red,c24.blue,c24.green,c24.copper];
+for(let i=0;i<houses09.length;i++){
+ const [x,z]=houses09[i],g=new THREE.Group();g.position.set(x,0,z);city24.add(g);
+ block24(g,5.2,3.5,4.8,c24.wall,0,1.75,0);
+ for(const side of [-2.52,2.52])block24(g,.22,4,.22,c24.beam,side,2,0);
+ for(const zz of [-2.35,2.35])block24(g,5.35,.2,.22,c24.beam,0,3.25,zz);
+ const roof=new THREE.Mesh(new THREE.ConeGeometry(4.1,3.05,4),colors24[i%4]);roof.position.y=5.1;roof.rotation.y=Math.PI/4;roof.castShadow=true;g.add(roof);
+ for(const side of [-1.55,1.55]){block24(g,.85,1.12,.1,c24.glass,side,2.12,2.47);block24(g,.12,1.3,.2,c24.beam,side,2.12,2.55)}
+ block24(g,1.38,2.08,.16,c24.beam,0,1.04,2.49);block24(g,1.65,.23,.26,c24.gold,0,2.27,2.58);
+ const canopy=block24(g,2.4,.2,1.35,colors24[i%4],0,2.7,3.1);canopy.rotation.x=-.15;
+ for(const side of [-1,1])block24(g,.12,2.1,.12,c24.beam,side*1.1,1.45,3.65);
+ // Each doorway remains at z+3.2 and uses the existing interact key.
+ const plate=block24(g,2.1,.08,1.25,c24.stone,0,.04,3.05);
+ const sign=block24(g,2.1,.42,.15,c24.slate,0,3.08,2.61);
+ sign.material= i%3===0?c24.copper:i%3===1?c24.blue:c24.green;
+}
+// Distinct central landmark: layered plaza and arched entry, visible from spawn.
+const plaza24=new THREE.Group();city24.add(plaza24);
+const dais24=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.85,.32,24),c24.stone);dais24.position.set(0,.12,-1);plaza24.add(dais24);
+for(let i=0;i<8;i++){const a=i*Math.PI/4;const x=Math.sin(a)*4.2,z=-1+Math.cos(a)*4.2;const lantern=block24(plaza24,.3,2.9,.3,c24.beam,x,1.5,z);const light=new THREE.Mesh(new THREE.OctahedronGeometry(.4),c24.gold);light.position.set(x,3.25,z);plaza24.add(light)}
+// The castle gate and the bridge form a visible, recognizable northern destination.
+for(let i=0;i<10;i++)block24(city24,2.3,.18,2.3,i%2?c24.stone:c24.wall,0,.08,16+i*1.65);
+for(const x of [-7.6,7.6])for(const z of [22,28])tower24(city24,x,z);
+// New solid props and castle footprint; original house footprints stay solid.
+for(const [x,z,w,d] of [[0,32,21,13],[-7.6,22,2.2,2.2],[7.6,22,2.2,2.2],[-7.6,28,2.2,2.2],[7.6,28,2.2,2.2]])citySolid24.push({x,z,w,d});
+const oldBlocked24=blocked09;
+blocked09=function(x,z){if(oldBlocked24(x,z))return true;if(inside09>=0||inDungeon07)return false;return citySolid24.some(b=>Math.abs(x-b.x)<b.w/2+.42&&Math.abs(z-b.z)<b.d/2+.42)};
+// Citizen schedules: walking by day, return to fixed stations at night.
+const cityCitizenStations24=citizens22.map(c=>({x:c.x,z:c.z}));
+function updateCitizens24(now){const night=time23.hour<6||time23.hour>21;citizens22.forEach((c,i)=>{const base=cityCitizenStations24[i];if(night){c.g.position.x=base.x;c.g.position.z=base.z;c.g.rotation.y=Math.PI;}else{const t=now*.00024+i*1.7;c.g.position.x=base.x+(c.axis===0?Math.sin(t)*c.range:0);c.g.position.z=base.z+(c.axis===1?Math.sin(t)*c.range:0);c.g.rotation.y=Math.cos(t)>0?0:Math.PI;}})}
+const prevLiving24=updateLiving22;updateLiving22=function(now,dt){prevLiving24(now,dt);updateCitizens24(now)};
+// Interact with city guards, with a visible dialogue instead of silent decorative NPCs.
+const guards24=[[-5,20],[5,20]].map(([x,z],i)=>{const g=new THREE.Group();g.position.set(x,0,z);city24.add(g);block24(g,.72,1.4,.5,c24.slate,0,.9,0);const helm=new THREE.Mesh(new THREE.SphereGeometry(.4,9,7),c24.gold);helm.position.y=1.85;g.add(helm);return g});
+const previousInteract24=interactWorld06;
+interactWorld06=function(){if(inside09<0&&!inDungeon07){const guard=guards24.find(g=>g.position.distanceTo(player.position)<3.1);if(guard){openWindow('🏰 Хотын харуул','<p>Хааны цайзын үүдэнд тавтай морил. Хотын дэлгүүр, дэн буудал, дархны газрыг ашиглаж болно.</p>');return}}previousInteract24()};
+// Camera raycast against actual new buildings and castle, with near-plane safety.
+const cameraObstacles24=[];
+for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
+const cameraRay24=new THREE.Raycaster();
+function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const hits=cameraRay24.intersectObjects(cameraObstacles24,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 2.4 · KINGDOM REBORN';app.appendChild(version24);
+// Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
+
+let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;const len=Math.hypot(x,z);if(len>.1){x/=Math.max(1,len);z/=Math.max(1,len);const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);moveSafely09(dir.x*dt*(state.dodge>0?13:5),dir.z*dt*(state.dodge>0?13:5));player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70)}
 const walking=len>.1;const stride=walking?Math.sin(now*.012)*.48:0;
@@ -756,6 +889,7 @@ if(inside09>=0){
   const hits10=ray10.intersectObjects(town.children,true);
   if(hits10.length){desiredCamera10.copy(camTarget).addScaledVector(direction10,Math.max(.65,hits10[0].distance-.35));}
 }
+resolveCamera24(camTarget,desiredCamera10);
 camera.position.lerp(desiredCamera10,Math.min(1,dt*13));
 if(inside09>=0){
   camera.position.x=THREE.MathUtils.clamp(camera.position.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
