@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 4.0.1 · WORLD REBORN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 4.2 · MEDIEVAL GLTF</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -332,7 +332,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 4.0.1 · WORLD REBORN';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 4.2 · MEDIEVAL GLTF';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -369,6 +369,7 @@ function loadCharacter11(url,root,isHero){
         if(child!==blade&&child!==bow)child.visible=false;
       }
       heroModel11=model;
+      model.visible=!rodinPreviewEnabled43;
     }else{
       for(const child of [...root.children])child.visible=false;
       saruulModel11=model;
@@ -381,6 +382,35 @@ function loadCharacter11(url,root,isHero){
 }
 loadCharacter11('/models/hero.glb',player,true);
 loadCharacter11('/models/saruul.glb',npc,false);
+
+// Alpha 4.3: non-destructive Rodin model preview. This model has no skeleton or animations.
+// Keep the animated original active during gameplay. Toggle only in the preview state.
+let rodinPreview43=null;
+let rodinPreviewEnabled43=false;
+const rodinButton43=document.createElement('button');
+rodinButton43.type='button';
+rodinButton43.textContent='3D дүр харах';
+rodinButton43.title='Rodin дүрийг хөдөлгөөнгүйгээр харах / буцах';
+Object.assign(rodinButton43.style,{position:'fixed',left:'12px',top:'min(44vh,300px)',zIndex:'1000',background:'rgba(12,27,42,.86)',color:'#fff',border:'1px solid #80a7c7',borderRadius:'12px',padding:'8px 10px',fontSize:'12px',touchAction:'manipulation'});
+document.body.appendChild(rodinButton43);
+modelLoader11.load('/models/rodin-warrior.glb',gltf=>{
+  const model=gltf.scene;
+  model.name='RodinWarriorStaticPreview43';
+  model.visible=false;
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=true;}});
+  // Rodin model is approximately 1.69 world units high; keep native dimensions.
+  player.add(model);
+  rodinPreview43=model;
+},undefined,e=>{console.warn('Rodin preview unavailable:',e);rodinButton43.disabled=true;rodinButton43.textContent='3D дүр алдаа';});
+rodinButton43.addEventListener('click',()=>{
+  if(!rodinPreview43){rodinButton43.textContent='3D дүр ачаалж байна';return;}
+  rodinPreviewEnabled43=!rodinPreviewEnabled43;
+  rodinPreview43.visible=rodinPreviewEnabled43;
+  // The original mesh remains loaded, and is restored on every toggle.
+  if(heroModel11)heroModel11.visible=!rodinPreviewEnabled43;
+  rodinButton43.textContent=rodinPreviewEnabled43?'Хуучин дүр рүү':'3D дүр харах';
+});
+
 
 // Alpha 1.3 — lightweight procedural joints for existing local GLB assets.
 // GLB meshes are authored with baked vertex positions, so group pivots are
@@ -864,8 +894,8 @@ const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 const cameraRay24=new THREE.Raycaster();
 let previousCameraZone401=null;
-function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const hits=cameraRay24.intersectObjects(cameraObstacles24,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 4.0.1 · WORLD REBORN' ;app.appendChild(version24);
+function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const visibleObstacles=cameraObstacles24.filter(o=>o.visible&&o.parent?.visible!==false);const hits=cameraRay24.intersectObjects(visibleObstacles,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 4.2 · MEDIEVAL GLTF' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -967,7 +997,7 @@ function update25(now,dt){
 town.visible=false;
 guards24.forEach(g=>g.visible=false);
 const world40=createAlpha40({
-  scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,
+  scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,city24,houses09,
   openWindow,closeWindow,msg,saveGame,gainXp,teleport25,app,panel,
   isCastle:()=>inCastle25,isInterior:()=>inside09>=0,isDungeon:()=>inDungeon07,
   getHour:()=>time23.hour,

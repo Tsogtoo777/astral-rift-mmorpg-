@@ -1,11 +1,11 @@
 // Astral Rift 4.0 — additive world systems. No character mesh/rig/animation mutations.
 import * as THREE from 'three';
-import { installArchitecture41 } from './architecture41.js';
+import { installArchitecture42 } from './architecture42.js';
 
 export function createAlpha40(api) {
-  const {scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,openWindow,closeWindow,msg,saveGame,gainXp,teleport25,app}=api;
+  const {scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,openWindow,closeWindow,msg,saveGame,gainXp,teleport25,app,city24,houses09}=api;
   const root=new THREE.Group();root.name='AstralRift40World';scene.add(root);
-  installArchitecture41(scene);
+  const architecture42=installArchitecture42({scene,city24,houses09,onStatus:msg});
   const solid=[];const cameraSolids=[];const interactables=[];const patrols=[];const pickupMeshes=[];
   const mat={
     stone:new THREE.MeshStandardMaterial({color:0x86949a,roughness:.9}),
@@ -180,6 +180,7 @@ export function createAlpha40(api) {
       return false;
     }
     if(api.isInterior()||api.isDungeon())return false;
+    if(architecture42.blocked(x,z))return true;
     return solid.some(b=>Math.abs(x-b.x)<b.w/2+.39&&Math.abs(z-b.z)<b.d/2+.39);
   }
   function groundHeight(){
@@ -197,6 +198,7 @@ export function createAlpha40(api) {
     if(!api.isCastle()&&!api.isInterior()&&!api.isDungeon()){
       const v=desired.clone().sub(target);const dist=v.length();if(dist>.2){ray.set(target,v.normalize());ray.near=.1;ray.far=dist;const hits=ray.intersectObjects(cameraSolids,false);if(hits.length)desired.copy(target).addScaledVector(v.normalize(),Math.max(.6,hits[0].distance-.35))}
     }
+    if(!api.isCastle()&&!api.isInterior()&&!api.isDungeon())architecture42.cameraCollision(target,desired);
     if(api.isCastle()){
       desired.x=THREE.MathUtils.clamp(desired.x,hx-6.8,hx+6.8);
       desired.z=THREE.MathUtils.clamp(desired.z,hz-8,hz+8);
@@ -228,6 +230,7 @@ export function createAlpha40(api) {
   let lastZone='';
   function update(now,dt){
     const inHall=api.isCastle(),inDungeon=api.isDungeon();
+    architecture42.update(now,player.position,api.isInterior(),inDungeon,inHall);
     root.traverse(o=>{if(o.userData.interiorRoof40){const {cx,cz}=o.userData.interiorRoof40;o.visible=!(Math.abs(player.position.x-cx)<4.7&&Math.abs(player.position.z-cz)<4.7)}});
     dungeon.visible=inDungeon;royal.visible=inHall;
     const y=groundHeight();player.position.y+=(y-player.position.y)*Math.min(1,dt*12);
@@ -244,5 +247,5 @@ export function createAlpha40(api) {
     qualityClock+=dt;qualityFrames++;
     if(qualityClock>6){const fps=qualityFrames/qualityClock;qualityClock=0;qualityFrames=0;if(fps<37&&!lowQuality){lowQuality=true;renderer.setPixelRatio(Math.min(devicePixelRatio,.95));renderer.shadowMap.enabled=false;renderer.setSize(innerWidth,innerHeight);msg('⚙ FPS хамгаалах горим идэвхжив')}}
   }
-  return {update,interact,recordKill,blocked,cameraCollision,showMap,hideMap,getQuest:()=>({...state})};
+  return {update,interact,recordKill,blocked,cameraCollision,showMap,hideMap,architectureReady:architecture42.ready,getQuest:()=>({...state})};
 }
