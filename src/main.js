@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 4.0 · WORLD REBORN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 4.0.1 · WORLD REBORN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -332,7 +332,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 4.0 · WORLD REBORN';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 4.0.1 · WORLD REBORN';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -356,7 +356,13 @@ let heroModel11=null,saruulModel11=null;
 function loadCharacter11(url,root,isHero){
   modelLoader11.load(url,gltf=>{
     const model=gltf.scene;
-    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
+    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;
+      // Subtle armor finish only; do not change the GLB geometry, rig or animation.
+      if(isHero && o.material){
+        const refine=(mat)=>{const copy=mat.clone();if(copy.metalness!==undefined)copy.metalness=Math.min(0.75,copy.metalness+0.08);if(copy.roughness!==undefined)copy.roughness=Math.max(0.28,copy.roughness-0.04);return copy;};
+        o.material=Array.isArray(o.material)?o.material.map(refine):refine(o.material);
+      }
+    }});
     // Model coordinates match the existing game character height (~2.5 units).
     if(isHero){
       for(const child of [...root.children]){
@@ -857,8 +863,9 @@ interactWorld06=function(){if(inside09<0&&!inDungeon07){const guard=guards24.fin
 const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 const cameraRay24=new THREE.Raycaster();
+let previousCameraZone401=null;
 function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const hits=cameraRay24.intersectObjects(cameraObstacles24,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 4.0 · WORLD REBORN' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 4.0.1 · WORLD REBORN' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -1008,7 +1015,11 @@ if(inside09>=0){
 }
 if(!inCastle25)resolveCamera24(camTarget,desiredCamera10);
 world40.cameraCollision(camTarget,desiredCamera10);
-camera.position.lerp(desiredCamera10,Math.min(1,dt*13));
+// Teleport/room transitions need an immediate valid camera position;
+// smoothing from the outdoor position can briefly place it inside a wall.
+const cameraZone401=inside09>=0?`house-${inside09}`:inCastle25?'castle':inDungeon07?'dungeon':'outdoor';
+if(cameraZone401!==previousCameraZone401){camera.position.copy(desiredCamera10);previousCameraZone401=cameraZone401;}
+else camera.position.lerp(desiredCamera10,Math.min(1,dt*13));
 if(inside09>=0){
   camera.position.x=THREE.MathUtils.clamp(camera.position.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
   camera.position.z=THREE.MathUtils.clamp(camera.position.z,interiorOrigin09.z-3.85,interiorOrigin09.z+3.85);

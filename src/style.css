@@ -186,3 +186,12 @@
  #worldMap40 .mapBottom40{font-size:9px}
 }
 @media(max-height:360px){#questbox{display:none}#quest40{top:90px}#hud strong{font-size:12px}#worldMap40{inset:1% 3%}}
+
+/* Alpha 4.0.2: consolidate the two overlapping quest readouts on small phones. */
+@media (orientation:landscape) and (pointer:coarse){
+ #quest40{top:calc(104px + env(safe-area-inset-top));left:calc(9px + env(safe-area-inset-left));max-width:26vw;line-height:1.25}
+ #questbox{display:none!important}
+ #hud{max-width:32vw!important}
+ #zone40{max-width:28vw;overflow:hidden;text-overflow:ellipsis;text-align:center}
+ #status25{top:calc(55px + env(safe-area-inset-top))}
+}

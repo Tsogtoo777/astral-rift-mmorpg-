@@ -1,9 +1,11 @@
 // Astral Rift 4.0 — additive world systems. No character mesh/rig/animation mutations.
 import * as THREE from 'three';
+import { installArchitecture41 } from './architecture41.js';
 
 export function createAlpha40(api) {
   const {scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,openWindow,closeWindow,msg,saveGame,gainXp,teleport25,app}=api;
   const root=new THREE.Group();root.name='AstralRift40World';scene.add(root);
+  installArchitecture41(scene);
   const solid=[];const cameraSolids=[];const interactables=[];const patrols=[];const pickupMeshes=[];
   const mat={
     stone:new THREE.MeshStandardMaterial({color:0x86949a,roughness:.9}),
@@ -34,12 +36,14 @@ export function createAlpha40(api) {
     const g=new THREE.Group();g.position.set(cx,0,cz);root.add(g);
     const front=side===0?-4.5:4.5;
     block(g,10,.25,10,mat.stone,0,.02,0);
-    cameraSolids.push(block(g,.5,5.5,10,mat.limestone,-5,2.75,0));
-    cameraSolids.push(block(g,.5,5.5,10,mat.limestone,5,2.75,0));
-    cameraSolids.push(block(g,10,5.5,.5,mat.limestone,0,2.75,-front));
+    block(g,.5,5.5,10,mat.limestone,-5,2.75,0);
+    block(g,.5,5.5,10,mat.limestone,5,2.75,0);
+    block(g,10,5.5,.5,mat.limestone,0,2.75,-front);
     // Entrance on the city-facing side; two wall sections leave a 3m gap.
-    for(const dx of [-3.35,3.35])cameraSolids.push(block(g,3.3,5.5,.5,mat.limestone,dx,2.75,front));
-    block(g,10.8,.42,10.8,mat.roof,0,5.65,0);
+    for(const dx of [-3.35,3.35])block(g,3.3,5.5,.5,mat.limestone,dx,2.75,front);
+    const roof=block(g,10.8,.42,10.8,mat.roof,0,5.65,0);
+    // Hide the roof only while the player is inside this hall, preserving its exterior silhouette.
+    roof.userData.interiorRoof40={cx,cz};
     for(const dx of [-4.6,4.6])for(const dz of [-4.1,4.1])pillar(g,dx,dz,5.5);
     for(const dx of [-2.4,2.4])mesh(g,new THREE.BoxGeometry(1.3,1.5,.14),mat.glass,dx,3.3,-front);
     // Walls are physical; entrance is open and has no teleport screen.
@@ -224,6 +228,7 @@ export function createAlpha40(api) {
   let lastZone='';
   function update(now,dt){
     const inHall=api.isCastle(),inDungeon=api.isDungeon();
+    root.traverse(o=>{if(o.userData.interiorRoof40){const {cx,cz}=o.userData.interiorRoof40;o.visible=!(Math.abs(player.position.x-cx)<4.7&&Math.abs(player.position.z-cz)<4.7)}});
     dungeon.visible=inDungeon;royal.visible=inHall;
     const y=groundHeight();player.position.y+=(y-player.position.y)*Math.min(1,dt*12);
     if(now-lastNpc>90){lastNpc=now;
