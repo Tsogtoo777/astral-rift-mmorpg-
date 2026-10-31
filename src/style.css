@@ -140,3 +140,49 @@
 /* Final 2.5.1 positioning: context buttons LEFT of the attack grid, not on top of skills */
 #control25{right:calc(min(29vw,255px) + env(safe-area-inset-right))!important;bottom:calc(20px + env(safe-area-inset-bottom))!important;transform:none!important}
 @media (orientation:landscape) and (pointer:coarse){#control25{right:calc(min(29vw,255px) + env(safe-area-inset-right))!important;bottom:calc(20px + env(safe-area-inset-bottom))!important}}
+
+/* Astral Rift Alpha 4.0 — consistent, touch-safe landscape HUD. */
+#hud{z-index:8;max-width:min(34vw,400px)}
+#hud strong small{display:inline-block;letter-spacing:.3px;color:#ffe0a0}
+#hint{display:none!important}
+#questbox{top:auto!important;bottom:calc(13px + env(safe-area-inset-bottom))!important;left:50%!important;transform:translateX(-50%);width:auto!important;max-width:30vw!important;min-width:150px!important;z-index:5;font-size:11px;padding:6px 20px 6px 9px;opacity:.85}
+#questbox.quest-collapsed251{opacity:.65}
+#questbox #questtext{font-size:10px}
+#worldMapButton40{border-color:#77d5dc!important}
+#worldMap40{position:fixed;z-index:100;inset:4% 8%;display:none;flex-direction:column;align-items:stretch;background:linear-gradient(160deg,#0f2536f7,#163b46f8);border:2px solid #ddc18a;border-radius:16px;box-shadow:0 12px 80px #000d;color:#f6e8c7;padding:12px;box-sizing:border-box;overflow:hidden}
+#worldMap40.open40{display:flex}
+#worldMap40 .mapTop40{display:flex;align-items:center;justify-content:space-between;gap:12px;font:700 15px system-ui}
+#worldMap40 .mapTop40 button{background:#304d61;color:white;border:1px solid #e6c58d;border-radius:9px;padding:6px 12px;min-width:44px;min-height:36px;touch-action:manipulation}
+#worldMap40 canvas{width:100%;height:calc(100% - 75px);object-fit:contain;min-height:0;display:block;flex:1}
+#worldMap40 .mapBottom40{text-align:center;font:11px system-ui;color:#c4dce0;white-space:normal}
+#quest40{position:fixed;z-index:7;left:calc(9px + env(safe-area-inset-left));top:calc(122px + env(safe-area-inset-top));font:700 11px system-ui;background:#102c3edb;border:1px solid #d8b675;border-radius:7px;color:#ffe7b2;padding:6px 9px;max-width:30vw;pointer-events:none;text-shadow:0 1px 2px #000}
+#zone40{position:fixed;z-index:4;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);background:#0b2639a6;color:#ffebba;border:1px solid #d3bb8066;border-radius:9px;padding:4px 10px;white-space:nowrap;font:700 11px Georgia,serif;pointer-events:none;letter-spacing:.6px}
+#clock23{top:calc(35px + env(safe-area-inset-top));left:50%}
+#status25{right:calc(104px + env(safe-area-inset-right));top:calc(45px + env(safe-area-inset-top))}
+#minimap{z-index:6}
+#control25{z-index:10}
+#actions{z-index:9}
+#quickPotion17{z-index:9}
+#panel{z-index:13}
+#menuToggle23{z-index:14}
+#window{z-index:60;max-height:85dvh;overflow-y:auto}
+#window button{cursor:pointer}
+#version24{display:none!important}
+#kingdomTitle23{display:none!important}
+#exploreHint06{display:none!important}
+@media (orientation:landscape) and (pointer:coarse){
+ #hud{width:min(31vw,340px)}
+ #hud strong{font-size:clamp(12px,2.5vh,18px)}
+ #hud strong small{font-size:clamp(8px,1.6vh,11px)}
+ #stats{font-size:clamp(9px,1.8vh,12px)}
+ #quest40{top:calc(102px + env(safe-area-inset-top));font-size:10px;max-width:28vw}
+ #questbox{bottom:calc(3px + env(safe-area-inset-bottom))!important;max-width:28vw!important;font-size:9px}
+ #zone40{font-size:10px;top:calc(2px + env(safe-area-inset-top));left:52%}
+ #clock23{top:calc(23px + env(safe-area-inset-top));left:52%}
+ #control25{right:calc(min(29vw,255px) + env(safe-area-inset-right))!important;bottom:calc(9px + env(safe-area-inset-bottom))!important}
+ #control25 button{width:min(11vh,44px);height:min(11vh,44px)}
+ #worldMap40{inset:2% 6%;padding:7px}
+ #worldMap40 .mapTop40{font-size:12px}
+ #worldMap40 .mapBottom40{font-size:9px}
+}
+@media(max-height:360px){#questbox{display:none}#quest40{top:90px}#hud strong{font-size:12px}#worldMap40{inset:1% 3%}}
