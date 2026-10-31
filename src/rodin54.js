@@ -1,156 +1,226 @@
 /**
- * Astral Rift Alpha 5.4 — one rigged Rodin player.
- * Animations come directly from user-supplied AnnoMotion `rigged-model (1).glb`:
- * Idle, Walk, Run, Wave.  `Bind` is a rest pose, not a gameplay animation.
- * Sword swing, dodge and block are modest procedural overlays, NOT authored clips.
+ * Astral Rift Alpha 5.5 — Rigged Rodin combat controller.
+ * The original user-supplied GLB provides Idle, Walk, Run and Wave clips.
+ * Attacks, guard and dodge use small, time-bounded PROCEDURAL bone overlays:
+ * they are not authored sword-animation clips or full IK.
+ * This module intentionally retains the rodin54.js path for a small GitHub patch.
  */
 export function createRodin54(THREE, gltf, holder) {
   const root = gltf?.scene;
   if (!root) throw new Error('Rodin GLB scene олдсонгүй');
   const clips = new Map((gltf.animations || []).map(clip => [clip.name, clip]));
-  for (const name of ['Idle','Walk','Run']) {
+  for (const name of ['Idle', 'Walk', 'Run']) {
     if (!clips.has(name)) throw new Error(`Rodin animation дутуу: ${name}`);
   }
-  const skinMeshes = [];
+  let skinnedCount = 0;
   root.traverse(obj => {
-    if (obj.isSkinnedMesh) skinMeshes.push(obj);
-    if (obj.isMesh) {
-      obj.castShadow = true;
-      obj.receiveShadow = false;
-      // Bounds of animated geometry can exceed the static/rest mesh bounds.
-      if (obj.isSkinnedMesh) obj.frustumCulled = false;
+    if (obj.isSkinnedMesh) skinnedCount++;
+    if (!obj.isMesh) return;
+    obj.castShadow = true;
+    obj.receiveShadow = false;
+    // Skin deformation can extend beyond the original mesh bounding box.
+    if (obj.isSkinnedMesh) obj.frustumCulled = false;
+    // One untextured gray material is embedded in the supplied GLB. Respect
+    // its geometry while giving the armor a more readable steel finish.
+    if (obj.isSkinnedMesh && obj.material && !Array.isArray(obj.material)) {
+      const armor = obj.material.clone();
+      armor.color.setHex(0xb9c6d6);
+      armor.metalness = .28;
+      armor.roughness = .52;
+      obj.material = armor;
     }
   });
-  if (!skinMeshes.length) throw new Error('Rodin GLB skeleton/skin олдсонгүй');
-  const getBone = name => root.getObjectByName(name);
-  const rightArm = getBone('RightArm');
-  const rightForeArm = getBone('RightForeArm');
-  const rightHand = getBone('RightHand');
-  const leftHand = getBone('LeftHand');
-  const spine = getBone('Spine2') || getBone('Spine');
-  if (!rightArm || !rightForeArm || !rightHand || !spine) {
+  if (!skinnedCount) throw new Error('Rodin skeleton/skin олдсонгүй');
+  const bone = name => root.getObjectByName(name);
+  const joints = {
+    rightArm: bone('RightArm'),
+    rightForeArm: bone('RightForeArm'),
+    rightHand: bone('RightHand'),
+    leftArm: bone('LeftArm'),
+    leftForeArm: bone('LeftForeArm'),
+    leftHand: bone('LeftHand'),
+    spine: bone('Spine2') || bone('Spine')
+  };
+  if (!joints.rightArm || !joints.rightForeArm || !joints.rightHand ||
+      !joints.leftArm || !joints.leftForeArm || !joints.spine) {
     throw new Error('Rodin гар/нурууны ясны нэр таарахгүй байна');
   }
 
-  // Normalize the original 1.69m model to the game's existing 2.25-unit capsule.
   const bounds = new THREE.Box3().setFromObject(root);
   const size = bounds.getSize(new THREE.Vector3());
-  if (!(size.y > .2) || !Number.isFinite(size.y)) {
-    throw new Error('Rodin model bounds буруу');
-  }
+  if (!Number.isFinite(size.y) || size.y <= .2) throw new Error('Rodin хэмжээ буруу');
   const s = 2.25 / size.y;
   root.scale.setScalar(s);
-  root.position.set(-.5 * (bounds.min.x + bounds.max.x) * s,
-                     -bounds.min.y * s,
-                     -.5 * (bounds.min.z + bounds.max.z) * s);
-  root.name = 'RodinRiggedPlayer54';
+  root.position.set(
+    -(bounds.min.x + bounds.max.x) * .5 * s,
+    -bounds.min.y * s,
+    -(bounds.min.z + bounds.max.z) * .5 * s
+  );
+  root.name = 'RodinRiggedPlayer55';
 
-  // One animation mixer; state changes fade rather than snapping to a bind pose.
   const mixer = new THREE.AnimationMixer(root);
-  const actions = Object.fromEntries(['Idle','Walk','Run'].map(name => {
+  const actions = Object.fromEntries(['Idle', 'Walk', 'Run'].map(name => {
     const action = mixer.clipAction(clips.get(name));
     action.setLoop(THREE.LoopRepeat, Infinity);
-    return [name,action];
+    return [name, action];
   }));
-  let state = 'Idle';
+  let movementState = 'Idle';
   let active = actions.Idle;
   active.reset().setEffectiveWeight(1).setEffectiveTimeScale(1).play();
   mixer.update(0);
   function transition(next) {
-    if (next === state) return;
-    const nextAction = actions[next];
-    if (!nextAction) return;
-    active.fadeOut(.17);
-    nextAction.reset().setEffectiveWeight(1).setEffectiveTimeScale(1).fadeIn(.17).play();
-    active = nextAction;
-    state = next;
+    if (next === movementState) return;
+    const candidate = actions[next];
+    if (!candidate) return;
+    active.fadeOut(.19);
+    candidate.reset().setEffectiveWeight(1).setEffectiveTimeScale(1).fadeIn(.19).play();
+    active = candidate;
+    movementState = next;
   }
 
-  // Sword and bow are new game props, parented to bones, NOT second player meshes.
-  // The uploaded GLB contains NO weapon or SwordAttack animation.
-  const sword = new THREE.Group();
-  sword.name = 'RodinSword54';
-  const steel = new THREE.MeshStandardMaterial({color:0xc7d9e3,metalness:.72,roughness:.3});
-  const gold = new THREE.MeshStandardMaterial({color:0xb59b62,metalness:.55,roughness:.35});
-  const grip = new THREE.MeshStandardMaterial({color:0x302734,roughness:.8});
-  function part(parent,geometry,material,x,y,z) {
-    const obj = new THREE.Mesh(geometry,material);
-    obj.position.set(x,y,z);
-    obj.castShadow = true;
-    parent.add(obj);
-    return obj;
+  const steel = new THREE.MeshStandardMaterial({color:0xd7e7f1,metalness:.68,roughness:.27});
+  const brass = new THREE.MeshStandardMaterial({color:0xb8a06c,metalness:.5,roughness:.38});
+  const leather = new THREE.MeshStandardMaterial({color:0x302b31,metalness:.03,roughness:.82});
+  function piece(parent, geometry, material, x, y, z) {
+    const item = new THREE.Mesh(geometry,material);
+    item.position.set(x,y,z);
+    item.castShadow = true;
+    parent.add(item);
+    return item;
   }
-  part(sword,new THREE.CylinderGeometry(.022,.027,.20,7),grip,0,-.09,0);
-  part(sword,new THREE.BoxGeometry(.20,.035,.065),gold,0,-.22,0);
-  part(sword,new THREE.BoxGeometry(.058,.72,.024),steel,0,-.59,0);
-  const point = part(sword,new THREE.ConeGeometry(.041,.15,4),steel,0,-1.01,0);
-  point.rotation.z = Math.PI;
-  sword.position.set(0,-.045,.015);
-  sword.rotation.set(.05,0,-.07);
-  rightHand.add(sword);
+  // The rig is authored at ~1.69m, while the game scales it to 2.25 units.
+  // Weapon dimensions here are in rig LOCAL units so it does not hang through
+  // the ground. Sword center of grip is mounted to the RightHand bone.
+  const sword = new THREE.Group();
+  sword.name = 'RodinSword55';
+  piece(sword,new THREE.CylinderGeometry(.024,.024,.17,8),leather,0,-.065,0);
+  piece(sword,new THREE.SphereGeometry(.035,8,6),brass,0,.025,0);
+  piece(sword,new THREE.BoxGeometry(.24,.045,.074),brass,0,-.17,0);
+  piece(sword,new THREE.BoxGeometry(.062,.56,.031),steel,0,-.48,0);
+  const tip = piece(sword,new THREE.ConeGeometry(.042,.14,4),steel,0,-.83,0);
+  tip.rotation.z = Math.PI;
+  sword.position.set(-.015,-.07,.028);
+  sword.rotation.set(-.34,.04,-.32);
+  joints.rightHand.add(sword);
 
   const bow = new THREE.Group();
-  bow.name = 'RodinBow54';
-  const wood = new THREE.MeshStandardMaterial({color:0x775037,roughness:.8});
-  const string = new THREE.LineBasicMaterial({color:0xe9e0c5});
-  const bowArc = new THREE.Mesh(new THREE.TorusGeometry(.34,.02,5,14,Math.PI),wood);
+  bow.name = 'RodinBow55';
+  const wood = new THREE.MeshStandardMaterial({color:0x73503a,roughness:.78});
+  const string = new THREE.LineBasicMaterial({color:0xe6e0c7});
+  const bowArc = new THREE.Mesh(new THREE.TorusGeometry(.32,.022,6,18,Math.PI),wood);
   bowArc.rotation.y = Math.PI/2;
   bow.add(bowArc);
   bow.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0,-.34,0),new THREE.Vector3(.02,0,0),new THREE.Vector3(0,.34,0)
+    new THREE.Vector3(0,-.32,0),new THREE.Vector3(.015,0,0),new THREE.Vector3(0,.32,0)
   ]),string));
-  bow.position.set(.03,-.1,0);
-  (leftHand || rightHand).add(bow);
-  let weapon = 0; // 0=sword, 1=bow. Keep existing combat and equipment rules.
-  function setWeapon(value) {
-    weapon = value ? 1 : 0;
-    sword.visible = weapon === 0;
-    bow.visible = weapon === 1;
+  bow.position.set(.025,-.06,0);
+  (joints.leftHand || joints.rightHand).add(bow);
+  let equippedWeapon = 0;
+  function setWeapon(next) {
+    equippedWeapon = next ? 1 : 0;
+    sword.visible = equippedWeapon === 0;
+    bow.visible = equippedWeapon === 1;
   }
   setWeapon(0);
 
-  let attackTime = 0;
-  let attackCombo = 0;
-  let clock = 0;
-  const swingQuat = new THREE.Quaternion();
-  const angles = new THREE.Euler();
-  function augment(bone,rx=0,ry=0,rz=0) {
-    if (!bone) return;
-    swingQuat.setFromEuler(angles.set(rx,ry,rz,'XYZ'));
-    bone.quaternion.multiply(swingQuat);
+  const euler = new THREE.Euler();
+  const q = new THREE.Quaternion();
+  const PI = Math.PI;
+  const clamp01 = x => Math.max(0,Math.min(1,x));
+  const smooth = x => {x=clamp01(x);return x*x*(3-2*x);};
+  function rotate(joint, x=0, y=0, z=0) {
+    if (!joint) return;
+    q.setFromEuler(euler.set(x,y,z,'XYZ'));
+    joint.quaternion.multiply(q);
   }
-  function triggerAttack() {
-    attackCombo = (attackCombo % 3) + 1;
-    attackTime = .48;
-  }
-  function update({dt=0,moving=false,sprinting=false,blocking=false,dodging=false,weapon:nextWeapon=0}={}) {
-    dt = Math.max(0,Math.min(.05,dt));
-    clock += dt;
-    if (nextWeapon !== weapon) setWeapon(nextWeapon);
-    transition(!moving ? 'Idle' : sprinting ? 'Run' : 'Walk');
-    // Keep animations at authored tempo; joystick movement is handled by game.
-    mixer.update(dt);
-    attackTime = Math.max(0,attackTime-dt);
-    if (attackTime > 0) {
-      const p = 1-attackTime/.48;
-      const k = Math.sin(p*Math.PI);
-      const side = attackCombo === 2 ? -1 : 1;
-      // Additive after AnimationMixer update; bones belong to the real rig.
-      augment(rightArm,-.8*k,side*.18*k,side*.22*k);
-      augment(rightForeArm,-.55*k,0,-.10*k);
-      augment(spine,0,side*.14*k,0);
-    } else if (blocking) {
-      augment(rightArm,-.45,0,-.16);
-      augment(rightForeArm,-.3,0,0);
-    } else if (dodging) {
-      augment(spine,-.16,0,.08*Math.sin(clock*18));
+  function addPose(pose, factor=1) {
+    if (!pose || factor<=.0001) return;
+    for (const name of Object.keys(pose)) {
+      const a = pose[name];
+      rotate(joints[name],a[0]*factor,a[1]*factor,a[2]*factor);
     }
   }
+
+  // Distinct restrained poses, with a wind-up, strike, and recovery. The
+  // shoulder, forearm and spine all have authored locomotion base tracks;
+  // applying offsets AFTER mixer.update avoids irreversible accumulation.
+  const comboPoses = [
+    {
+      wind:{rightArm:[-.72,-.10,-.20],rightForeArm:[-.28,0,-.08],leftArm:[-.18,0,.10],spine:[-.05,-.12,0]},
+      hit: {rightArm:[.46,.15,.48],rightForeArm:[.24,0,-.18],leftArm:[-.12,0,-.12],spine:[.09,.19,0]},
+      duration:.51
+    },
+    {
+      wind:{rightArm:[-.60,.16,.37],rightForeArm:[-.34,0,.09],leftArm:[-.20,0,-.09],spine:[-.05,.18,0]},
+      hit: {rightArm:[.28,-.25,-.52],rightForeArm:[.31,0,.10],leftArm:[-.18,0,.10],spine:[.06,-.21,0]},
+      duration:.54
+    },
+    {
+      wind:{rightArm:[-.82,-.07,-.32],rightForeArm:[-.24,0,.04],leftArm:[-.32,0,.24],leftForeArm:[-.18,0,0],spine:[-.10,-.10,0]},
+      hit: {rightArm:[.58,.12,.12],rightForeArm:[-.50,0,.06],leftArm:[-.38,0,.18],leftForeArm:[-.13,0,0],spine:[.11,.14,0]},
+      duration:.68
+    }
+  ];
+  const bowWind={leftArm:[-.55,0,-.35],rightArm:[-.65,-.12,.22],rightForeArm:[-.40,0,.10],spine:[-.08,0,0]};
+  const bowRelease={leftArm:[-.50,0,-.34],rightArm:[-.14,.12,-.10],rightForeArm:[-.06,0,-.08],spine:[0,.06,0]};
+  let attackElapsed=99;
+  let comboIndex=0;
+  let comboWindow=0;
+  let attackWeapon=0;
+  let guardWeight=0;
+  let clock=0;
+  let currentSwing=0;
+  function triggerAttack(nextWeapon=equippedWeapon) {
+    attackWeapon=nextWeapon ? 1 : 0;
+    if (comboWindow<=0 || attackWeapon===1) comboIndex=0;
+    comboIndex=(comboIndex%3)+1;
+    comboWindow=.86;
+    attackElapsed=0;
+  }
+  function applyAttack(dt) {
+    if (attackElapsed>=10) return;
+    const duration=attackWeapon ? .52 : comboPoses[comboIndex-1].duration;
+    const p=clamp01(attackElapsed/duration);
+    const pose=attackWeapon ? {wind:bowWind,hit:bowRelease} : comboPoses[comboIndex-1];
+    // Explicit wind-up and follow-through; both fade away by the end.
+    const windWeight=p<.28?smooth(p/.28):p<.65?1-smooth((p-.28)/.37):0;
+    const hitWeight=p<.28?0:p<.65?smooth((p-.28)/.37):1-smooth((p-.65)/.35);
+    addPose(pose.wind,windWeight);
+    addPose(pose.hit,hitWeight);
+    currentSwing=hitWeight;
+    attackElapsed+=dt;
+    if (attackElapsed>=duration) attackElapsed=10;
+  }
+  function update({dt=0,moving=false,sprinting=false,blocking=false,dodging=false,weapon:nextWeapon=0}={}) {
+    dt=Math.max(0,Math.min(.06,Number.isFinite(dt)?dt:0));
+    clock+=dt;
+    comboWindow=Math.max(0,comboWindow-dt);
+    if (nextWeapon!==equippedWeapon) setWeapon(nextWeapon);
+    transition(!moving?'Idle':sprinting?'Run':'Walk');
+    active.setEffectiveTimeScale(movementState==='Walk'?.97:movementState==='Run'?1.04:1);
+    mixer.update(dt);
+
+    guardWeight+=(Number(blocking && attackElapsed>=10)-guardWeight)*(1-Math.exp(-dt*13));
+    if (guardWeight>.003) {
+      addPose({rightArm:[-.40,0,-.12],rightForeArm:[-.24,0,.06],leftArm:[-.22,0,.10],spine:[-.04,0,0]},guardWeight);
+    }
+    if (dodging) {
+      addPose({spine:[-.16,0,.05*Math.sin(clock*16)],rightArm:[-.20,0,0],leftArm:[-.18,0,0]},1);
+    }
+    currentSwing=0;
+    applyAttack(dt);
+    // Weapon orientation follows the same hand bone through locomotion,
+    // guards and strikes; its additional tilt is absolute, not accumulated.
+    sword.rotation.set(-.34-currentSwing*.24,.04,-.32+currentSwing*.12);
+  }
+
   holder.add(root);
   return {
-    root,mixer,animations:[...clips.keys()],
-    setWeapon,triggerAttack,update,
-    get movementState(){return state;},
-    get currentWeapon(){return weapon;}
+    version:'5.5',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,update,
+    get movementState(){return movementState;},
+    get currentWeapon(){return equippedWeapon;},
+    get comboStep(){return comboIndex;},
+    get strikeWeight(){return currentSwing;},
+    get attackActive(){return attackElapsed<10;}
   };
 }
