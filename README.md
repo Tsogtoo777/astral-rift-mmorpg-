@@ -1,17 +1,16 @@
-# Astral Rift Alpha 2.2 — Living World
+# Astral Rift Alpha 2.4 — Kingdom Reborn
 
-Based on Alpha 2.1. Existing character models, animations, combat, joystick, dungeon, forge, and save key preserved.
+Mobile landscape Three.js / Vite RPG. Based on Alpha 2.3; hero GLB, rig and animation loop are unchanged.
 
-## New
-- Four walking NPCs in town, with interactions using ✦ Судлах / F
-- Three distinct building interiors: forge, inn (HP/MP recovery), shop
-- Story Quest chapter: Saruul → magical grove (-36,-43) → ancient ruins (36,-44) → Saruul
-- Two outdoor regions: magical grove and ancient ruins, with collectible story interactions
-- Skill 2.0: MP bar, costs 12/20/32, passive MP regeneration (3/s), existing cooldowns retained
-- World map and story journal buttons, keyboard M/Q
-- Story and MP persistence using the existing localStorage save key
+## Visible changes
+- Rebuilt the eight existing town houses with different roofs, doors, windows, canopies and entrance paths. Original door coordinates and enter/exit interactions are preserved.
+- New plaza lanterns, castle approach, four guard towers and two interactive castle guards.
+- Citizens follow day/night station schedules; earlier dialogues and services remain.
+- New city/castle solid collision volumes and camera raycast against new city geometry.
+- Persistent visible `ALPHA 2.4 · KINGDOM REBORN` marker for deploy verification.
 
-## Mobile GitHub / Vercel
-Upload all extracted project files to a NEW branch or repo, keeping src/ and public/models/ structure. Vercel framework: Vite; Build: npm run build; Output: dist.
+## GitHub/Vercel
+Unzip and upload `src/`, `public/`, `index.html`, `package.json` and `README.md` into the repo root. Vercel: framework Vite; build `npm run build`; output `dist`. Deployments should show Ready before testing. Test in a private browser window if cache is stale.
 
-**Note:** Browser orientation lock is best effort. Landscape UI remains from Alpha 2.0. This build does not change any hero animation code.
+## QA caveat
+JavaScript syntax and ZIP integrity checked. Full Vite build and phone browser runtime not verified in this environment. Keep a backup of the prior deployed version. Existing save key and hero animations were not changed.
