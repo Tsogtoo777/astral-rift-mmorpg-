@@ -1,12 +1,16 @@
 /**
- * Astral Rift 5.9.4 — independent cape visibility + vertex-weighted gear.
+ * Astral Rift 5.9.5 — fitted original cape recolor, no floating GLB cape.
  *
  * The offline build transforms the supplied GLBs into Rodin's bind-space and
  * transfers skin influences (filtered by garment region) onto their vertices.
  * No new rig, manual marker placement, per-frame CPU vertex deformation, or
  * second animation mixer is required. SkinnedMesh uses the existing GPU skinning.
  * Katana is still a hard object attached via Rodin's hand grip socket.
- * Cape is weighted clothing, not a cloth physics simulation.
+ * The external AI-generated cape does not match Rodin's silhouette. To avoid
+ * floating fabric, the default visible teal cape is a material variation of
+ * RodinOriginalCape594 (already skinned correctly to Rodin). The separate
+ * teal cape GLB remains on disk for future offline re-fitting, but is NOT
+ * rendered as wearable in 5.9.5. Not a cloth physics simulation.
  */
 const ASSETS_592 = Object.freeze({
   boots:'/equipment/rodin-greaves-skinned.glb',
@@ -55,9 +59,9 @@ export function validateSkinnedGear592(THREE, source, rigSkeleton, expectedNames
 export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=()=>{}}={}) {
   if(!rodin?.root||!rodin?.setExternalSwordModel)throw new Error('Rodin equipment hooks missing');
   const root=rodin.root;
-  // New Rodin GLB (5.9.4) separates the original white cape into a SECOND
-  // SkinnedMesh with the same skeleton. Never hide it until teal gear actually
-  // loads successfully. If the replacement GLB fails, show original instead.
+  // 5.9.4 Rodin GLB has a separately controllable, already fitted cape.
+  // Make a color-only cape variant from the actual Rodin mesh: it follows the
+  // original skinning exactly. The unfitted user GLB remains offscreen.
   const originalCape=root.getObjectByName('RodinOriginalCape594');
   if (!originalCape?.isSkinnedMesh) {
     console.warn('[Equipment 5.9.4] Original cape is not independently switchable; replace rodin-rigged.glb with patched asset');
@@ -65,8 +69,23 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
   let host=null;
   root.traverse(o=>{if(o.isSkinnedMesh&&!host)host=o;});
   if(!host?.skeleton?.bones?.length)throw new Error('Rodin skinned mesh missing');
+  const originalCapeMaterial=originalCape?.material || null;
+  const makeTeal=(src)=>{
+    const material=src.clone();
+    material.name='Rodin Fitted Teal Cape 595';
+    material.color.set('#18aab3');
+    if('roughness' in material)material.roughness=.92;
+    if('metalness' in material)material.metalness=0;
+    material.side=THREE.DoubleSide;
+    return material;
+  };
+  const tealCapeMaterial=originalCape
+    ? (Array.isArray(originalCapeMaterial)
+        ? originalCapeMaterial.map(makeTeal)
+        : makeTeal(originalCapeMaterial)) : null;
   const loaded={};
   const pending=new Map();
+  let cloakReported=false;
   let disposed=false;
   const report=(key,message)=>{try{onStatus({key,message});}catch{}}
   function configured(key){
@@ -75,11 +94,15 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
     return equipment.get('weapon')?.id==='dark-katana';
   }
   function refresh(){
-    for (const key of ['boots','cloak']) {
-      for (const obj of loaded[key]||[]) obj.visible=configured(key);
+    for(const obj of loaded.boots||[])obj.visible=configured('boots');
+    if(originalCape){
+      // NEVER hide original cape when teal is equipped; it IS the fitted
+      // wearable, changing only its material. This prevents gaps/detachment.
+      originalCape.visible=true;
+      const active=configured('cloak');
+      originalCape.material=active?tealCapeMaterial:originalCapeMaterial;
+      if(active && !cloakReported){report('cloak','loaded');cloakReported=true;}
     }
-    const tealReady=Boolean(loaded.cloak?.length) && configured('cloak');
-    if (originalCape) originalCape.visible=!tealReady;
   }
 
   function bindSkinnedAsset(gltf,key) {
@@ -169,18 +192,28 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
       cloak:equipment.get('cloak')?.id,
       weapon:equipment.get('weapon')?.id
     });
-    for(const key of plan){if(disposed)break;await load(key);}
+    for(const key of plan){
+      if(disposed)break;
+      if(key==='cloak'){
+        if(!originalCape)report('cloak','base-asset-missing');
+        // Do not fetch/render ill-fitting external teal cape.
+        continue;
+      }
+      await load(key);
+    }
     refresh();
   }
   function dispose(){
     disposed=true;
-    for(const key of ['boots','cloak'])for(const item of loaded[key]||[]){
+    for(const key of ['boots'])for(const item of loaded[key]||[]){
       item.removeFromParent();
       const mats=Array.isArray(item.material)?item.material:[item.material];
       for(const mat of mats)mat?.dispose?.();
     }
-    if(originalCape)originalCape.visible=true;
+    if(originalCape){originalCape.material=originalCapeMaterial;originalCape.visible=true;}
+    const tealMats=Array.isArray(tealCapeMaterial)?tealCapeMaterial:[tealCapeMaterial];
+    tealMats.forEach(m=>m?.dispose?.());
     if(loaded.katana?.length)rodin.setExternalSwordModel(null);
   }
-  return {sync,dispose,loaded,assets:ASSETS_592,originalCape};
+  return {sync,dispose,loaded,assets:ASSETS_592,originalCape,capeMode:'fitted-recolor-595'};
 }
