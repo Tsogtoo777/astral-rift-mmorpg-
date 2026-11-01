@@ -1,12 +1,15 @@
 import { createRodin54 } from './rodin54.js';
-document.title='Astral Rift Alpha 5.5 — Sword Combat';
+import { createCombat56 } from './combat56.js';
+import { createCameraGuard56 } from './camera56.js';
+import { createProjectile56 } from './projectile56.js';
+document.title='Astral Rift Alpha 5.6 — World & Combat';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.5 · SWORD COMBAT</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.6 · WORLD & COMBAT</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -15,7 +18,9 @@ const ground=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStand
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 function trunk(x,z){const t=new THREE.Mesh(new THREE.CylinderGeometry(.27,.4,3,7),new THREE.MeshStandardMaterial({color:0x60452f}));t.position.set(x,1.5,z);t.castShadow=true;scene.add(t);const c=new THREE.Mesh(new THREE.ConeGeometry(1.7,4.5,8),new THREE.MeshStandardMaterial({color:0x254f3c}));c.position.set(x,4.6,z);c.castShadow=true;scene.add(c)}
 for(let i=0;i<65;i++){const a=i*2.399,r=24+(i%9)*4;trunk(Math.cos(a)*r,Math.sin(a)*r)}
-for(let i=0;i<9;i++)box(1.8,1.5,1.8,0x727c83,-16+i*4,.75,-17);
+// Remove nine old placeholder gray cubes that blocked the main street.
+// Streets/market and the medieval buildings remain unchanged.
+
 const player=new THREE.Group();scene.add(player);
 // Alpha 5.5: one rigged Rodin player; no Samurai or LEGO avatar.
 // Preserve world material palette; do not allocate old LEGO body, sword, or bow.
@@ -303,7 +308,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.5 · SWORD COMBAT';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.6 · WORLD & COMBAT';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -581,8 +586,22 @@ const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){to
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
 function swap(){state.weapon=1-state.weapon;rodin54?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Rodin илд')}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=state.target?.alive?state.target:closest();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
-function attack(){if(state.cool>0)return;slashFx13(0);const e=state.target?.alive?state.target:closest();if(e){const to=e.g.position.clone().sub(player.position);if(to.length()>0.01)player.rotation.y=Math.atan2(to.x,to.z)}hit(state.weapon?18:28,state.weapon?17:3)}
+let queuedHitEnemy56=null;
+function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function attack(){
+  if(state.cool>0||state.hp<=0||combat56.pending)return;
+  const weapon=state.weapon;
+  const enemy=activeEnemy56();
+  if(enemy){const to=enemy.g.position.clone().sub(player.position);
+    if(to.length()>.01 && to.length()<(weapon?18:4))player.rotation.y=Math.atan2(to.x,to.z);
+  }
+  // The damage is resolved at the release frame, not when the button is pressed.
+  if(combat56.queue({weapon,target:enemy,damage:weapon?18:28,range:weapon?17:3})){
+    rodin54?.triggerAttack(weapon);
+    state.cool=weapon?.48:.36;
+  }
+}
 function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
 function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range)}
 window.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyX')swap();if(e.code==='Space')dodge();if(e.code==='Tab')lock();if(e.code==='Digit1')skill(0);if(e.code==='Digit2')skill(1);if(e.code==='Digit3')skill(2)});window.addEventListener('keyup',e=>keys.delete(e.code));
@@ -793,10 +812,9 @@ interactWorld06=function(){if(inside09<0&&!inDungeon07){const guard=guards24.fin
 // Camera raycast against actual new buildings and castle, with near-plane safety.
 const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
-const cameraRay24=new THREE.Raycaster();
+// The Alpha 5.6 camera guard replaces the old per-frame pre-lerp raycast.
 let previousCameraZone401=null;
-function resolveCamera24(target,desired){if(inside09>=0||inDungeon07)return;const v=desired.clone().sub(target),distance=v.length();if(distance<.01)return;cameraRay24.set(target,v.normalize());cameraRay24.near=.25;cameraRay24.far=distance;const visibleObstacles=cameraObstacles24.filter(o=>o.visible&&o.parent?.visible!==false);const hits=cameraRay24.intersectObjects(visibleObstacles,false);if(hits.length){const safe=Math.max(.7,hits[0].distance-.48);desired.copy(target).addScaledVector(v.normalize(),safe)}}
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.5 · SWORD COMBAT' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.6 · WORLD & COMBAT' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -880,7 +898,7 @@ window.addEventListener('keyup',e=>{if(e.code==='KeyR')setBlock25(false)});
 const prevDodge25=dodge;
 dodge=function(){if(stamina25<22){msg('⚡ Stamina хүрэлцэхгүй');return}if(state.dodge<=0){stamina25-=22;prevDodge25()}};
 const prevHit25=hit;
-hit=function(damage=25,range=2.8){const e=state.target?.alive?state.target:closest();const wasAlive=!!e?.alive;prevHit25(damage,range);if(boardActive25&&wasAlive&&e&&!e.alive&&!e.boss){boardKills25++;saveExtra25();if(boardKills25===5)msg('📜 Самбар руу буцаж шагналаа ав!')}};
+hit=function(damage=25,range=2.8){const e=activeEnemy56();const wasAlive=!!e?.alive;prevHit25(damage,range);if(boardActive25&&wasAlive&&e&&!e.alive&&!e.boss){boardKills25++;saveExtra25();if(boardKills25===5)msg('📜 Самбар руу буцаж шагналаа ав!')}};
 const prevBlocked25=blocked09;
 blocked09=function(x,z){if(inCastle25){return Math.abs(x-hallOrigin25.x)>7.35||Math.abs(z-hallOrigin25.z)>8.2}return prevBlocked25(x,z)};
 function update25(now,dt){
@@ -909,14 +927,60 @@ blocked09=function(x,z){if(inCastle25)return world40.blocked(x,z);if(world40.blo
 const oldInteract40=interactWorld06;
 interactWorld06=function(){if(world40.interact())return;oldInteract40()};
 const oldHit40=hit;
-hit=function(damage=25,range=2.8){const enemy=state.target?.alive?state.target:closest();const wasAlive=!!enemy?.alive;oldHit40(damage,range);if(wasAlive&&enemy&&!enemy.alive)world40.recordKill(enemy)};
+hit=function(damage=25,range=2.8){const enemy=activeEnemy56();const wasAlive=!!enemy?.alive;oldHit40(damage,range);if(wasAlive&&enemy&&!enemy.alive)world40.recordKill(enemy)};
 let parryWindow40=0;
 const block40=document.getElementById('block25');
 block40.addEventListener('pointerdown',()=>{if(stamina25>=12)parryWindow40=.23});
 window.addEventListener('keydown',e=>{if(e.code==='KeyR'&&!e.repeat&&stamina25>=12)parryWindow40=.23});
 
+// Alpha 5.6: delayed hit frames, line-of-sight, knockback and stagger.
+// Lock-on marker: one reused overlay and HP track, no per-frame DOM allocations.
+// CSS is scoped here so the GitHub playtest PATCH only changes four JS files.
+const lockStyles56=document.createElement('style');
+lockStyles56.textContent=`
+#enemyLock56{display:none;position:absolute;z-index:3;pointer-events:none;width:94px;transform:translate(-50%,-108%);text-align:center;font:700 11px system-ui,sans-serif;color:#ffeab7;text-shadow:0 2px 6px #030e19;filter:drop-shadow(0 2px 5px #02070b)}
+#enemyLock56 span{display:block;letter-spacing:.5px;margin-bottom:3px}
+.enemyTrack56{height:7px;border-radius:9px;border:1px solid #f4d99b;background:#213044dd;overflow:hidden}
+.enemyFill56{height:100%;background:linear-gradient(90deg,#ad2a44,#f59b60);width:100%;transition:width .12s linear}`;
+document.head.appendChild(lockStyles56);
+const lockMarker56=document.createElement('div');
+lockMarker56.id='enemyLock56';
+lockMarker56.innerHTML='<span>◇ TARGET</span><div class="enemyTrack56"><div class="enemyFill56"></div></div>';
+app.appendChild(lockMarker56);
+const lockHP56=lockMarker56.querySelector('.enemyFill56');
+const lockScreen56=new THREE.Vector3();
+function updateTargetMarker56(){
+  const target=state.target?.alive?state.target:null;
+  if(!target){lockMarker56.style.display='none';return;}
+  camera.updateMatrixWorld();
+  lockScreen56.copy(target.g.position).add(new THREE.Vector3(0,target.boss?3.3:2.2,0)).project(camera);
+  if(lockScreen56.z<-.9||lockScreen56.z>1||Math.abs(lockScreen56.x)>1.1||Math.abs(lockScreen56.y)>1.1){
+    lockMarker56.style.display='none';return;
+  }
+  lockMarker56.style.display='block';
+  lockMarker56.style.left=((lockScreen56.x*.5+.5)*100)+'%';
+  lockMarker56.style.top=((-lockScreen56.y*.5+.5)*100)+'%';
+  lockHP56.style.width=Math.max(0,Math.min(100,target.hp/target.max*100))+'%';
+}
+const projectile56=createProjectile56(THREE,scene,player);
+const combat56=createCombat56({
+  player,enemies,isBlocked:(x,z)=>blocked09(x,z),
+  onLaunch:(weapon,target)=>{
+    if(weapon===0)slashFx13(0);
+    else if(target?.alive)projectile56.fire(target.g.position);
+    state.attacking=.23;
+  },
+  onStrike:(enemy,damage,range)=>{
+    queuedHitEnemy56=enemy;
+    try{hit(damage,range)}finally{queuedHitEnemy56=null}
+  },
+  onMiss:reason=>{if(reason==='obstructed')msg('Хана цаана байгаа бай руу онохгүй');
+    else if(reason==='range')msg('Дайсан хэт хол байна');}
+});
+const cameraGuard56=createCameraGuard56(THREE,cameraObstacles24);
 const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
 let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
+combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
 let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;
@@ -934,7 +998,7 @@ if(walking){
   player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70);
 }
 animateCharacters12(now,dt,walking);updateRodin54(now,dt,walking,sprint55);advancedFX50.update(dt,walking,state.attacking);
-shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4){const step=diff.normalize().multiplyScalar(dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));const nx=e.g.position.x+step.x,nz=e.g.position.z+step.z;if(!blocked09(nx,nz))e.g.position.set(nx,e.g.position.y,nz)};e.m.rotation.y+=dt*.5;if(d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){if(blocking25&&parryWindow40>0){parryWindow40=0;stamina25=Math.max(0,stamina25-9);e.cool=1.8;msg('✦ PARRY · Цохилтыг буцаалаа')}else{state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1))}e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
+shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;combat56.updateEnemy(e,dt);const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(!(e.stun56>0)&&d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4){const step=diff.normalize().multiplyScalar(dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));const nx=e.g.position.x+step.x,nz=e.g.position.z+step.z;if(!blocked09(nx,nz))e.g.position.set(nx,e.g.position.y,nz)};e.m.rotation.y+=dt*.5;if(!(e.stun56>0)&&d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){if(blocking25&&parryWindow40>0){parryWindow40=0;stamina25=Math.max(0,stamina25-9);e.cool=1.8;msg('✦ PARRY · Цохилтыг буцаалаа')}else{state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1))}e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
 const cameraDistance10=(inside09>=0||inCastle25)?3.15:3.95;
 const cameraHeight10=(inside09>=0||inCastle25)?.95:1.02;
@@ -948,21 +1012,20 @@ if(inside09>=0){
   desiredCamera10.x=THREE.MathUtils.clamp(desiredCamera10.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
   desiredCamera10.z=THREE.MathUtils.clamp(desiredCamera10.z,interiorOrigin09.z-3.85,interiorOrigin09.z+3.85);
   desiredCamera10.y=THREE.MathUtils.clamp(desiredCamera10.y,1.55,3.65);
-}else if(!inDungeon07){
-  // Move camera forward when a house occludes the view.
-  const direction10=desiredCamera10.clone().sub(camTarget);
-  const distance10=direction10.length();
-  const ray10=new THREE.Raycaster(camTarget,direction10.normalize(),.12,distance10);
-  const hits10=[]; // Hidden legacy houses must not occlude the rebuilt town camera.
-  if(hits10.length){desiredCamera10.copy(camTarget).addScaledVector(direction10,Math.max(.65,hits10[0].distance-.35));}
 }
-if(!inCastle25)resolveCamera24(camTarget,desiredCamera10);
+// World 4.0 resolves structural walls before interpolation. Alpha 5.6
+// checks dynamic medieval meshes AFTER interpolation, preventing tunneling.
 world40.cameraCollision(camTarget,desiredCamera10);
 // Teleport/room transitions need an immediate valid camera position;
 // smoothing from the outdoor position can briefly place it inside a wall.
 const cameraZone401=inside09>=0?`house-${inside09}`:inCastle25?'castle':inDungeon07?'dungeon':'outdoor';
 if(cameraZone401!==previousCameraZone401){camera.position.copy(desiredCamera10);previousCameraZone401=cameraZone401;}
-else camera.position.lerp(desiredCamera10,Math.min(1,dt*13));
+else camera.position.lerp(desiredCamera10,1-Math.exp(-dt*12));
+// Prevent wall penetration between the eased camera and the resolved target.
+if(inside09<0&&!inDungeon07&&!inCastle25){
+  cameraGuard56.resolve(camTarget,camera.position);
+  world40.cameraCollision(camTarget,camera.position);
+}
 if(inside09>=0){
   camera.position.x=THREE.MathUtils.clamp(camera.position.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);
   camera.position.z=THREE.MathUtils.clamp(camera.position.z,interiorOrigin09.z-3.85,interiorOrigin09.z+3.85);
@@ -970,6 +1033,7 @@ if(inside09>=0){
 }
 if(inCastle25){camera.position.x=THREE.MathUtils.clamp(camera.position.x,hallOrigin25.x-6.8,hallOrigin25.x+6.8);camera.position.z=THREE.MathUtils.clamp(camera.position.z,hallOrigin25.z-8,hallOrigin25.z+8);camera.position.y=THREE.MathUtils.clamp(camera.position.y,1.45,5.65)}
 camera.lookAt(camTarget);
+updateTargetMarker56();
 bossHud07.style.display=(inDungeon07&&boss07.alive)?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP · ${boss07.hp<boss07.max*.5?'II үе: Уур хилэн':'I үе'}`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(questKills16,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · 🪙 ${gold} · ❤️ ${potions16} · ⛏️ ${ore18} · ${state.weapon?'Нум':'Илд'} +${state.weapon?bowRank18:swordRank18}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
