@@ -1,5 +1,5 @@
 /**
- * Astral Rift Alpha 5.8.1 — Rigged Rodin + retargeted Great Sword combat controller.
+ * Astral Rift Alpha 5.8.2 — Rigged Rodin + restrained two-handed combat.
  * The original user-supplied GLB provides Idle, Walk, Run and Wave clips.
  * Attacks, guard and dodge use small, time-bounded PROCEDURAL bone overlays:
  * they are not authored sword-animation clips or full IK.
@@ -299,7 +299,9 @@ export function createRodin54(THREE, gltf, holder) {
     applyAttack(dt);
     // Weapon orientation follows the same hand bone through locomotion,
     // guards and strikes; its additional tilt is absolute, not accumulated.
-    sword.rotation.set(-.34-currentSwing*.24,.04,-.32+currentSwing*.12);
+    // Keep the blade near the hand instead of sweeping it sideways with a
+    // large secondary wrist twist. The FBX arm tracks own the sword arc.
+    sword.rotation.set(-.30-currentSwing*.09,.04,-.25+currentSwing*.04);
   }
 
   function triggerImpact() {return playCombatAction('Impact',.48);}
@@ -309,7 +311,7 @@ export function createRodin54(THREE, gltf, holder) {
   }
   holder.add(root);
   return {
-    version:'5.8.1',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
+    version:'5.8.2',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
     get combatMotions(){return [...combatClips.keys()];},
     get movementState(){return movementState;},
     get currentWeapon(){return equippedWeapon;},

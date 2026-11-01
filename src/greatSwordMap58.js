@@ -34,16 +34,16 @@ export function greatSwordNames58(targetBoneNames, sourceBoneNames) {
 }
 
 
-/** Alpha 5.8.1 safety profile: never let foreign sword clips rotate the
+/** Alpha 5.8.2 safety profile: never let foreign sword clips rotate the
  * character's Hips, root, pelvis or legs. The game itself owns orientation,
  * motion, dodge and grounding. Only bounded upper-body deltas are imported.
  */
 const UPPER_LIMITS_581 = Object.freeze({
-  leftshoulder:.28,rightshoulder:.28,
-  leftarm:1.02,rightarm:1.02,
-  leftforearm:.80,rightforearm:.80,
-  lefthand:.42,righthand:.42,
-  spine1:.16,spine2:.22,spine:.12
+  leftshoulder:.18,rightshoulder:.18,
+  leftarm:.64,rightarm:.64,
+  leftforearm:.52,rightforearm:.52,
+  lefthand:.28,righthand:.28,
+  spine1:.10,spine2:.14,spine:.09
 });
 export function safeCombatBone581(name) {
   return UPPER_LIMITS_581[canonicalBone58(name)] || null;

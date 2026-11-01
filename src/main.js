@@ -1,6 +1,6 @@
 import { loadGreatSword58 } from './greatSword58.js';
 import { createRodin54 } from './rodin54.js';
-import { createCombat56 } from './combat56.js';
+import { createCombat56, effectiveStrikeRange56 } from './combat56.js';
 import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.8.1 · SWORD STABILITY FIX</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.8.2 · COMBAT CONTROL</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -311,7 +311,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.8.1 · SWORD STABILITY FIX';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.8.2 · COMBAT CONTROL';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -341,10 +341,10 @@ document.body.appendChild(avatarStatus54);
 modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
   try{
     rodin54=createRodin54(THREE,gltf,rodinHolder54);
-    if(rodin54.version!=='5.8.1')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
+    if(rodin54.version!=='5.8.2')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
     rodin54.setWeapon(state.weapon);
     avatarStatus54.remove();
-    console.info('Rodin Alpha 5.8.1 ready:',rodin54.animations.join(', '));
+    console.info('Rodin Alpha 5.8.2 ready:',rodin54.animations.join(', '));
     // Load FBX animation-only files progressively; on failure keep playable
     // 5.7 procedural attacks rather than leaving the avatar in a T-pose.
     void loadGreatSword58(THREE,rodin54,{
@@ -603,7 +603,7 @@ function lock(){state.target=state.target?.alive?null:closest();msg(state.target
 function swap(){state.weapon=1-state.weapon;rodin54?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Rodin илд')}
 let queuedHitEnemy56=null;
 function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>range){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){
   if(state.cool>0||state.hp<=0||combat56.pending)return;
   const weapon=state.weapon;
@@ -841,7 +841,7 @@ const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 // The Alpha 5.6 camera guard replaces the old per-frame pre-lerp raycast.
 let previousCameraZone401=null;
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.8.1 · SWORD STABILITY FIX' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.8.2 · COMBAT CONTROL' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 

@@ -4,12 +4,23 @@
  */
 const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
 
+/** Body-contact margin for melee. The old code measured from enemy origin
+ * to player origin (both mesh centers), making a visibly touching sword miss.
+ * Bow still checks its original range with no bonus.
+ */
+export function effectiveStrikeRange56(enemy, range, weapon) {
+  if (weapon) return range;
+  const scale = Number(enemy?.g?.scale?.x);
+  const normalizedScale = Number.isFinite(scale) ? clamp(scale,.85,1.35) : 1;
+  return range + .42*normalizedScale;
+}
+
 /** Geometry-only strike check; ignores vertical distance for terrain variations. */
 export function strikeCheck56(player, enemy, range, weapon, blocked = () => false) {
   if (!enemy?.alive || !player?.position || !enemy.g?.position) return {ok:false,reason:'no-target'};
   const a=player.position,b=enemy.g.position;
   const dx=b.x-a.x,dz=b.z-a.z,dist=Math.hypot(dx,dz);
-  if (!Number.isFinite(dist) || dist>range+.12) return {ok:false,reason:'range'};
+  if (!Number.isFinite(dist) || dist>effectiveStrikeRange56(enemy,range,weapon)+.12) return {ok:false,reason:'range'};
   if (dist>.25) {
     const facingX=Math.sin(player.rotation.y),facingZ=Math.cos(player.rotation.y);
     // The click auto-turn faces the selected enemy. Crossing behind after wind-up must miss.
