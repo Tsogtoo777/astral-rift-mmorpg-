@@ -27,7 +27,7 @@ class SkinnedMesh {
 const parent=obj('RigParent'),host=obj('RodinBody',true);host.isSkinnedMesh=true;
 host.skeleton={bones:boneNames.map(name=>({name}))};host.bindMatrix={clone(){return {source:'bodyBind'}}};host.bindMode='attached';
 parent.add(host);
-const root=obj('RodinRoot');root.add(parent);
+const root=obj('RodinRoot');root.add(parent);const originalCape=obj('RodinOriginalCape594',true);originalCape.isSkinnedMesh=true;root.add(originalCape);
 const rodin={root,setExternalSwordModel(v){this.sword=v}};
 const resources={};const urls=[];
 function mesh(name){const m=obj(name,true);m.geometry=geo();m.material=material();return m}
@@ -44,6 +44,7 @@ const equip=createEquipment59();const visual=createEquipmentVisual591(THREE,load
 await visual.sync();
 assert.equal(visual.loaded.boots.length,2);
 assert.equal(visual.loaded.cloak.length,1);
+assert.equal(originalCape.visible,false,'new teal cape hides the original cape only after successful load');
 assert.equal(host.children?.length||0,0,'does not mount static gear under existing bone or original body');
 assert.equal(parent.children.length,4,'body plus two skinned greaves and cape');
 for(const item of [...visual.loaded.boots,...visual.loaded.cloak]){
@@ -52,12 +53,13 @@ for(const item of [...visual.loaded.boots,...visual.loaded.cloak]){
  assert.equal(item.bindMatrix.source,'bodyBind');
 }
 assert(urls.every(s=>s.includes('-skinned.glb')));
-equip.unequip('cloak');await visual.sync();assert.equal(visual.loaded.cloak[0].visible,false);
+equip.unequip('cloak');await visual.sync();assert.equal(visual.loaded.cloak[0].visible,false);assert.equal(originalCape.visible,true,'unequip restores original cape');
+equip.equip('teal-cape');await visual.sync();assert.equal(originalCape.visible,false,'re-equip hides original again');
 equip.buy('dark-katana',999);equip.equip('dark-katana');await visual.sync();
 assert(rodin.sword,'Katana retains hand socket, not a deforming skinned mesh');
 assert(urls.some(s=>s.endsWith('rodin-dark-katana.glb')));
 await visual.sync();assert.equal(urls.length,3,'cached');
-visual.dispose();assert.equal(parent.children.length,1);
+visual.dispose();assert.equal(parent.children.length,1);assert.equal(originalCape.visible,true,'cleanup restores original cape');
 // The renamed existing file is intentionally kept for small patches.
 const code=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 assert(code.includes('createEquipmentVisual591'));
