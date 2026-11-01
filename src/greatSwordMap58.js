@@ -32,3 +32,32 @@ export function greatSwordNames58(targetBoneNames, sourceBoneNames) {
   }
   return names;
 }
+
+
+/** Alpha 5.8.1 safety profile: never let foreign sword clips rotate the
+ * character's Hips, root, pelvis or legs. The game itself owns orientation,
+ * motion, dodge and grounding. Only bounded upper-body deltas are imported.
+ */
+const UPPER_LIMITS_581 = Object.freeze({
+  leftshoulder:.28,rightshoulder:.28,
+  leftarm:1.02,rightarm:1.02,
+  leftforearm:.80,rightforearm:.80,
+  lefthand:.42,righthand:.42,
+  spine1:.16,spine2:.22,spine:.12
+});
+export function safeCombatBone581(name) {
+  return UPPER_LIMITS_581[canonicalBone58(name)] || null;
+}
+
+/** A short ease-out is used for attacks so animation returns to Idle/Run.
+ * A blocking clip holds its last guard frame instead.
+ */
+export function swordEnvelope581(time,duration,hold=false) {
+  const d=Number(duration);
+  if(!(d>0))return 0;
+  const t=Math.max(0,Math.min(d,Number(time)||0));
+  const edge=Math.min(.12,d*.24);
+  const enter=Math.min(1,t/Math.max(.001,edge));
+  const leave=hold?1:Math.min(1,(d-t)/Math.max(.001,edge));
+  return Math.max(0,Math.min(enter,leave));
+}

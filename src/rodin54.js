@@ -1,5 +1,5 @@
 /**
- * Astral Rift Alpha 5.8 — Rigged Rodin + retargeted Great Sword combat controller.
+ * Astral Rift Alpha 5.8.1 — Rigged Rodin + retargeted Great Sword combat controller.
  * The original user-supplied GLB provides Idle, Walk, Run and Wave clips.
  * Attacks, guard and dodge use small, time-bounded PROCEDURAL bone overlays:
  * they are not authored sword-animation clips or full IK.
@@ -195,7 +195,8 @@ export function createRodin54(THREE, gltf, holder) {
   function endCombatAction() {
     if (!combatAction) return;
     combatAction.fadeOut(.12);
-    // Return to locomotion; no need to reset the active clip's timeline.
+    // Additive imported arm-only action fades out while the normal
+    // Idle/Walk/Run layer keeps playing throughout.
     active.setEffectiveWeight(1).fadeIn(.12).play();
     combatAction=null;
     combatName='';
@@ -216,7 +217,13 @@ export function createRodin54(THREE, gltf, holder) {
     combatElapsed=0;
     combatHold=hold;
     combatReturning=false;
-    active.fadeOut(.09);
+    if(clip.blendMode===THREE.AdditiveAnimationBlendMode){
+      // Do NOT fade out Idle/Walk/Run for additive motion; that would expose
+      // the distorted foreign retarget bind pose and make the character tip.
+      active.setEffectiveWeight(1).play();
+    }else{
+      active.fadeOut(.09);
+    }
     a.reset().setLoop(THREE.LoopOnce,1)
       .setEffectiveWeight(1)
       .setEffectiveTimeScale(Math.max(.12,clip.duration / combatDuration))
@@ -279,8 +286,11 @@ export function createRodin54(THREE, gltf, holder) {
     mixer.update(dt);
 
     guardWeight+=(Number(blocking && attackElapsed>=10)-guardWeight)*(1-Math.exp(-dt*13));
-    if (guardWeight>.003 && combatName!=='Block') {
-      addPose({rightArm:[-.40,0,-.12],rightForeArm:[-.24,0,.06],leftArm:[-.22,0,.10],spine:[-.04,0,0]},guardWeight);
+    if (guardWeight>.003) {
+      // Even an imported Block clip can end in a neutral pose; retain a
+      // restrained visible guard without bending the whole character.
+      const guardFactor=combatName==='Block'?.35:1;
+      addPose({rightArm:[-.40,0,-.12],rightForeArm:[-.24,0,.06],leftArm:[-.22,0,.10],spine:[-.04,0,0]},guardWeight*guardFactor);
     }
     if (dodging) {
       addPose({spine:[-.16,0,.05*Math.sin(clock*16)],rightArm:[-.20,0,0],leftArm:[-.18,0,0]},1);
@@ -299,7 +309,7 @@ export function createRodin54(THREE, gltf, holder) {
   }
   holder.add(root);
   return {
-    version:'5.8',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
+    version:'5.8.1',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
     get combatMotions(){return [...combatClips.keys()];},
     get movementState(){return movementState;},
     get currentWeapon(){return equippedWeapon;},

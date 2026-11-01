@@ -1,10 +1,10 @@
-/** Astral Rift Alpha 5.8 — animation retarget for the supplied Great Sword Pack.
+/** Astral Rift Alpha 5.8.1 — safe additive animation retarget for the supplied Great Sword Pack.
  * No FBX avatar mesh is rendered: only animation clips are mapped onto the
  * user's existing 27-bone, rigged Rodin GLB. Unsupported clips fail safely.
  */
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { clone, retargetClip } from 'three/addons/utils/SkeletonUtils.js';
-import { GREAT_SWORD_MOTIONS58, greatSwordNames58 } from './greatSwordMap58.js';
+import { GREAT_SWORD_MOTIONS58, greatSwordNames58, safeCombatBone581, swordEnvelope581 } from './greatSwordMap58.js';
 
 const STATUS = Object.freeze({ready:'ready',partial:'partial',fallback:'fallback'});
 
@@ -51,18 +51,36 @@ export async function loadGreatSword58(THREE, rodin, {onProgress=()=>{}}={}) {
         names, hip:names.Hips, hipInfluence:new THREE.Vector3(0,0,0),
         preserveBonePositions:true, fps:24
       });
-      const fixedTracks=[];
+      // Important: a Mixamo full-body clip can roll the AnnoMotion Rodin
+      // pelvis by 90–180 degrees when their bind poses have different axes.
+      // Extract only relative arm/shoulder/upper-spine motion. Keeping
+      // locomotion active and layering these DELTAS prevents flips/floating.
+      const safeTracks=[];
+      const identity=new THREE.Quaternion();
       for(const track of converted.tracks) {
         const m=/^\.bones\[([^\]]+)\]\.(quaternion|position)$/.exec(track.name);
-        if(!m)continue;
-        // The game handles locomotion root motion. FBX Hips translation
-        // must never move the avatar inside the holder or sink its model.
-        if(m[2]==='position')continue;
-        track.name=m[1]+'.'+m[2];
-        fixedTracks.push(track);
+        if(!m || m[2]!=='quaternion')continue; // no FBX root translation
+        const limit=safeCombatBone581(m[1]);
+        if(!limit || track.values.length<8)continue; // hips, legs, root forbidden
+        const invFirst=new THREE.Quaternion().fromArray(track.values,0).normalize().invert();
+        const values=new Float32Array(track.values.length);
+        for(let j=0;j<track.times.length;j++){
+          const current=new THREE.Quaternion().fromArray(track.values,j*4).normalize();
+          const delta=invFirst.clone().multiply(current).normalize();
+          // Reject/cap extreme retargeted orientation, without discarding
+          // subtler sword motions. Values are delta quaternions, not absolute
+          // bind-pose quaternions, so they work as a safe additive animation.
+          const angle=identity.angleTo(delta);
+          const bound=Number.isFinite(angle)&&angle>.0001?Math.min(1,limit/angle):1;
+          const envelope=swordEnvelope581(track.times[j],converted.duration,item.key==='Block');
+          identity.clone().slerp(delta,bound*envelope).toArray(values,j*4);
+        }
+        safeTracks.push(new THREE.QuaternionKeyframeTrack(m[1]+'.quaternion',track.times,values));
       }
-      if(fixedTracks.length<12)throw new Error('Retarget produced insufficient bone tracks');
-      const actionClip=new THREE.AnimationClip('GreatSword58_'+item.key,converted.duration,fixedTracks);
+      const activeArms=safeTracks.filter(t=>/(LeftArm|RightArm|ForeArm)/.test(t.name)).length;
+      if(activeArms<3)throw new Error('Not enough safe arm tracks in retargeted clip');
+      const actionClip=new THREE.AnimationClip('GreatSword581_'+item.key,converted.duration,safeTracks);
+      actionClip.blendMode=THREE.AdditiveAnimationBlendMode;
       actionClip.optimize();
       rodin.installCombatAnimations({[item.key]:actionClip});
       success++;
