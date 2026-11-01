@@ -105,9 +105,24 @@ export function createRodin54(THREE, gltf, holder) {
   sword.scale.set(1.08,1.48,1.08); // longer two-handed blade silhouette
   joints.rightHand.add(sword);
 
-  // Alpha 5.9: light visual variants until real weapon GLBs are supplied.
+  // Alpha 5.9: procedural fallback variants; 5.9.1 can mount the real Katana GLB.
   // Rig, sword attachment and combat clips remain unchanged.
+  const proceduralSwordParts=[...sword.children];
+  let externalKatana=null;
+  let chosenStyle='iron';
+  function refreshSwordAppearance() {
+    const useRealKatana=chosenStyle==='katana' && !!externalKatana;
+    for(const part of proceduralSwordParts)part.visible=!useRealKatana;
+    if(externalKatana) externalKatana.visible=useRealKatana;
+  }
+  function setExternalSwordModel(model=null) {
+    if(externalKatana && externalKatana.parent===sword)sword.remove(externalKatana);
+    externalKatana=model;
+    if(model) sword.add(model);
+    refreshSwordAppearance();
+  }
   function setSwordStyle(visual='iron') {
+    chosenStyle=visual;
     const designs={
       iron:{scale:[1.08,1.48,1.08],color:0xd7e7f1},
       great:{scale:[1.22,1.76,1.20],color:0xa7b8c7},
@@ -116,6 +131,7 @@ export function createRodin54(THREE, gltf, holder) {
     const selected=designs[visual]||designs.iron;
     sword.scale.set(...selected.scale);
     if(steel.color?.setHex)steel.color.setHex(selected.color);
+    refreshSwordAppearance();
   }
   setSwordStyle('iron');
   const bow = new THREE.Group();
@@ -324,7 +340,7 @@ export function createRodin54(THREE, gltf, holder) {
   }
   holder.add(root);
   return {
-    version:'5.8.2',root,mixer,animations:[...clips.keys()],setWeapon,setSwordStyle,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
+    version:'5.8.2',root,mixer,animations:[...clips.keys()],setWeapon,setSwordStyle,setExternalSwordModel,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
     get combatMotions(){return [...combatClips.keys()];},
     get movementState(){return movementState;},
     get currentWeapon(){return equippedWeapon;},

@@ -1,3 +1,4 @@
+import { createEquipmentVisual591 } from './equipmentVisual591.js';
 import { createEquipment59 } from './equipment59.js';
 import { loadGreatSword58 } from './greatSword58.js';
 import { createRodin54 } from './rodin54.js';
@@ -6,7 +7,7 @@ import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 5.9 — Equipment System';
+document.title='Astral Rift Alpha 5.9.1 — 3D Equipment';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
@@ -138,6 +139,7 @@ const talentNames19=['⚔️ Илдний мастер','🏹 Мэргэн ха�
 let talents19=Array.isArray(saved.talents19)?[0,1,2,3].map(i=>Math.min(5,Math.max(0,Number(saved.talents19[i])||0))):[0,0,0,0];
 let talentPoints19=Math.max(0,Number(saved.talentPoints19)||0);
 const equipment59=createEquipment59(saved.equipment59);
+let equipmentVisual591=null;
 let battleLog18=[];
 function logBattle18(t){battleLog18.unshift(t);battleLog18=battleLog18.slice(0,8)}
 
@@ -171,6 +173,7 @@ function finishEquipment59(previousHpBonus){
   state.hp=Math.max(1,Math.min(state.max,state.hp+delta));
   if(typeof stamina25==='number')stamina25=Math.min(100+current.stamina,stamina25);
   rodin54?.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
+  void equipmentVisual591?.sync();
 }
 function showBag(){
   openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button>`);
@@ -338,7 +341,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.8.2 · COMBAT CONTROL';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.9.1 · 3D EQUIPMENT'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -371,6 +374,8 @@ modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
     if(rodin54.version!=='5.8.2')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
     rodin54.setWeapon(state.weapon);
     rodin54.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
+    equipmentVisual591=createEquipmentVisual591(THREE,modelLoader11,rodin54,equipment59);
+    void equipmentVisual591.sync();
     avatarStatus54.remove();
     console.info('Rodin Alpha 5.8.2 ready:',rodin54.animations.join(', '));
     // Load FBX animation-only files progressively; on failure keep playable

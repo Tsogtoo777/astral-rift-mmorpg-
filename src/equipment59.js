@@ -52,7 +52,7 @@ export function createEquipment59(previous={}) {
       const button=active?'<span class="eq59-owned">Өмссөн</span>':has?`<button type="button" data-equip59="${item.id}">Өмсөх</button>`:`<button type="button" data-buy59="${item.id}" ${gold<item.price?'disabled':''}>${item.price} 🪙 авах</button>`;
       return `<div class="eq59-item"><div>${fmt(item)}<small>${item.desc}<br>${stats||'Гоёл'}</small></div>${button}</div>`;
     }).join('');
-    return `<div class="eq59-root"><div class="eq59-summary">🪙 ${Math.max(0,Math.floor(gold))} · ⚔ +${b.attack} · 🛡 +${b.defense} · ❤️ +${b.hp} · ⚡ +${b.stamina}</div><h3>Өмссөн тоноглол</h3><div class="eq59-slots">${slots}</div><h3>Хувцас ба зэвсэг</h3><div class="eq59-items">${items}</div><p class="eq59-note">3D хувцасны файлууд иртэл armor-ын модель автоматаар өөрчлөгдөхгүй. Зэвсгийн дүрс, хэмжээний урьдчилсан хувилбар ажиллана.</p></div>`;
+    return `<div class="eq59-root"><div class="eq59-summary">🪙 ${Math.max(0,Math.floor(gold))} · ⚔ +${b.attack} · 🛡 +${b.defense} · ❤️ +${b.hp} · ⚡ +${b.stamina}</div><h3>Өмссөн тоноглол</h3><div class="eq59-slots">${slots}</div><h3>Хувцас ба зэвсэг</h3><div class="eq59-items">${items}</div><p class="eq59-note">3D: катана, нөмрөг, хөлийн хуягны туршилтын GLB харагдана. Нөмрөг/гутал нь ясанд хатуу бэхлэгдсэн, skinned cloth биш. Бусад тоноглол одоогоор stat-аар ажиллана.</p></div>`;
   }
   return {owned,equipped,get,snapshot,bonuses,equip,unequip,buy,render};
 }
