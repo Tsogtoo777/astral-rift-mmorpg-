@@ -1,6 +1,6 @@
 {
   "name": "astral-rift-alpha",
-  "version": "5.9.4-alpha",
+  "version": "5.9.5-alpha",
   "private": true,
   "type": "module",
   "scripts": {
