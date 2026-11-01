@@ -1,5 +1,5 @@
 /**
- * Astral Rift 5.9.2 — vertex-weighted equipment follows Rodin's EXISTING skeleton.
+ * Astral Rift 5.9.4 — independent cape visibility + vertex-weighted gear.
  *
  * The offline build transforms the supplied GLBs into Rodin's bind-space and
  * transfers skin influences (filtered by garment region) onto their vertices.
@@ -55,22 +55,33 @@ export function validateSkinnedGear592(THREE, source, rigSkeleton, expectedNames
 export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=()=>{}}={}) {
   if(!rodin?.root||!rodin?.setExternalSwordModel)throw new Error('Rodin equipment hooks missing');
   const root=rodin.root;
+  // New Rodin GLB (5.9.4) separates the original white cape into a SECOND
+  // SkinnedMesh with the same skeleton. Never hide it until teal gear actually
+  // loads successfully. If the replacement GLB fails, show original instead.
+  const originalCape=root.getObjectByName('RodinOriginalCape594');
+  if (!originalCape?.isSkinnedMesh) {
+    console.warn('[Equipment 5.9.4] Original cape is not independently switchable; replace rodin-rigged.glb with patched asset');
+  }
   let host=null;
   root.traverse(o=>{if(o.isSkinnedMesh&&!host)host=o;});
   if(!host?.skeleton?.bones?.length)throw new Error('Rodin skinned mesh missing');
   const loaded={};
-  const loadState={boots:'not-loaded',cloak:'not-loaded',katana:'not-loaded'};
   const pending=new Map();
   let disposed=false;
-  const report=(key,message)=>{loadState[key]=message;try{onStatus({key,message});}catch{}}
+  const report=(key,message)=>{try{onStatus({key,message});}catch{}}
   function configured(key){
     if(key==='boots')return equipment.get('boots')?.id==='wanderer-boots';
     if(key==='cloak')return equipment.get('cloak')?.id==='teal-cape';
     return equipment.get('weapon')?.id==='dark-katana';
   }
   function refresh(){
-    for(const key of ['boots','cloak'])for(const obj of loaded[key]||[])obj.visible=configured(key);
+    for (const key of ['boots','cloak']) {
+      for (const obj of loaded[key]||[]) obj.visible=configured(key);
+    }
+    const tealReady=Boolean(loaded.cloak?.length) && configured('cloak');
+    if (originalCape) originalCape.visible=!tealReady;
   }
+
   function bindSkinnedAsset(gltf,key) {
     const expected=gltf?.parser?.json?.extras?.rodinSkinOrder592;
     if(!expected)throw new Error('5.9.2 preprocessed GLB is missing skin order metadata');
@@ -146,7 +157,6 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
         report(key,'load-failed');resolve();
       });
     });
-    report(key,'loading');
     pending.set(key,task);
     void task.finally(()=>pending.delete(key));
     return task;
@@ -169,7 +179,8 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
       const mats=Array.isArray(item.material)?item.material:[item.material];
       for(const mat of mats)mat?.dispose?.();
     }
+    if(originalCape)originalCape.visible=true;
     if(loaded.katana?.length)rodin.setExternalSwordModel(null);
   }
-  return {sync,dispose,loaded,loadState,assets:ASSETS_592};
+  return {sync,dispose,loaded,assets:ASSETS_592,originalCape};
 }
