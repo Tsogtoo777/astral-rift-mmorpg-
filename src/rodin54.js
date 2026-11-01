@@ -23,11 +23,17 @@ export function createRodin54(THREE, gltf, holder) {
     // One untextured gray material is embedded in the supplied GLB. Respect
     // its geometry while giving the armor a more readable steel finish.
     if (obj.isSkinnedMesh && obj.material && !Array.isArray(obj.material)) {
-      const armor = obj.material.clone();
-      armor.color.setHex(0xb9c6d6);
-      armor.metalness = .28;
-      armor.roughness = .52;
-      obj.material = armor;
+      // 5.9.6: the Wanderer outfit has authored per-vertex colors in COLOR_0.
+      // Multiplying them by the old gray armor tint makes the outfit look white
+      // or muddy in-game. Preserve the glTF's neutral, vertex-color material.
+      // Keep legacy gray conversion only for an uncolored Rodin GLB.
+      if (!obj.geometry.getAttribute('color')) {
+        const armor = obj.material.clone();
+        armor.color.setHex(0xb9c6d6);
+        armor.metalness = .28;
+        armor.roughness = .52;
+        obj.material = armor;
+      }
     }
   });
   if (!skinnedCount) throw new Error('Rodin skeleton/skin олдсонгүй');
