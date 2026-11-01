@@ -1,139 +1,173 @@
 /**
- * Astral Rift Alpha 5.9.1 — lightweight user-provided GLB equipment previews.
- * Greaves and cape are STATIC, rigidly attached to animated bones (NOT skinned
- * or physically simulated). A failed/missing asset keeps the existing Rodin
- * avatar and procedural sword fully playable.
+ * Astral Rift 5.9.2 — vertex-weighted equipment follows Rodin's EXISTING skeleton.
  *
- * Original uploaded source GLBs stay unchanged outside the game bundle.
+ * The offline build transforms the supplied GLBs into Rodin's bind-space and
+ * transfers skin influences (filtered by garment region) onto their vertices.
+ * No new rig, manual marker placement, per-frame CPU vertex deformation, or
+ * second animation mixer is required. SkinnedMesh uses the existing GPU skinning.
+ * Katana is still a hard object attached via Rodin's hand grip socket.
+ * Cape is weighted clothing, not a cloth physics simulation.
  */
-const ASSETS_591 = Object.freeze({
-  boots:'/equipment/rodin-greaves-lite.glb',
-  cloak:'/equipment/rodin-teal-cape-lite.glb',
+const ASSETS_592 = Object.freeze({
+  boots:'/equipment/rodin-greaves-skinned.glb',
+  cloak:'/equipment/rodin-teal-cape-skinned.glb',
   katana:'/equipment/rodin-dark-katana.glb'
 });
 
-export function makeGearLoadPlan591(equipped = {}) {
-  const result=[];
-  if (equipped.boots === 'wanderer-boots') result.push('boots');
-  if (equipped.cloak === 'teal-cape') result.push('cloak');
-  if (equipped.weapon === 'dark-katana') result.push('katana');
-  return result;
+export function makeGearLoadPlan591(equipped={}) {
+  const items=[];
+  if(equipped.boots==='wanderer-boots')items.push('boots');
+  if(equipped.cloak==='teal-cape')items.push('cloak');
+  if(equipped.weapon==='dark-katana')items.push('katana');
+  return items;
 }
 
-export function createEquipmentVisual591(THREE, loader, rodin, equipment, {onStatus=()=>{}}={}) {
-  if (!rodin?.root || !rodin?.setExternalSwordModel) throw new Error('Rodin 5.9.1 visual hooks missing');
+export function validateSkinnedGear592(THREE, source, rigSkeleton, expectedNames) {
+  if(!source?.geometry?.attributes?.position)throw new Error('Gear mesh missing position');
+  const skinIndex=source.geometry.getAttribute('skinIndex');
+  const skinWeight=source.geometry.getAttribute('skinWeight');
+  if(!skinIndex||!skinWeight||skinIndex.itemSize!==4||skinWeight.itemSize!==4 ||
+      skinIndex.count!==source.geometry.getAttribute('position').count ||
+      skinWeight.count!==skinIndex.count){
+    throw new Error('Skin weights missing or wrong vertex count');
+  }
+  if(!Array.isArray(expectedNames)||expectedNames.length!==rigSkeleton.bones.length){
+    throw new Error('Bind skeleton metadata missing');
+  }
+  const actual=rigSkeleton.bones.map(b=>b.name);
+  const reorder=expectedNames.map(name=>actual.indexOf(name));
+  if(reorder.some(i=>i<0))throw new Error('Rodin bone names changed');
+  if(reorder.some((i,j)=>i!==j)){
+    // The processed GLBs store joints in the original 27-bone Rodin order.
+    // Map once if a later GLB loader changes bone array order.
+    const copy=skinIndex.clone();
+    for(let i=0;i<copy.count;i++)for(let c=0;c<4;c++){
+      const old=copy.getComponent(i,c);
+      if(old<0 || old>=reorder.length)throw new Error('Gear joint index out of range');
+      copy.setComponent(i,c,reorder[old]);
+    }
+    source.geometry=source.geometry.clone();
+    source.geometry.setAttribute('skinIndex',copy);
+  }
+  return true;
+}
+
+export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=()=>{}}={}) {
+  if(!rodin?.root||!rodin?.setExternalSwordModel)throw new Error('Rodin equipment hooks missing');
   const root=rodin.root;
-  const joint=name=>root.getObjectByName(name);
-  const leftLeg=joint('LeftLeg'),rightLeg=joint('RightLeg'),spine=joint('Spine2')||joint('Spine1');
+  let host=null;
+  root.traverse(o=>{if(o.isSkinnedMesh&&!host)host=o;});
+  if(!host?.skeleton?.bones?.length)throw new Error('Rodin skinned mesh missing');
   const loaded={};
   const pending=new Map();
   let disposed=false;
-  const report=(key,message)=>{try{onStatus({key,message});}catch{}};
-  function configured(key) {
-    if (key==='boots') return equipment.get('boots')?.id==='wanderer-boots';
-    if (key==='cloak') return equipment.get('cloak')?.id==='teal-cape';
-    if (key==='katana') return equipment.get('weapon')?.id==='dark-katana';
-    return false;
+  const report=(key,message)=>{try{onStatus({key,message});}catch{}}
+  function configured(key){
+    if(key==='boots')return equipment.get('boots')?.id==='wanderer-boots';
+    if(key==='cloak')return equipment.get('cloak')?.id==='teal-cape';
+    return equipment.get('weapon')?.id==='dark-katana';
   }
-  function enable(key){
-    if (key==='katana') return;
-    if (loaded[key]) loaded[key].forEach(obj=>{obj.visible=configured(key);});
+  function refresh(){
+    for(const key of ['boots','cloak'])for(const obj of loaded[key]||[])obj.visible=configured(key);
   }
-  function decorate(model) {
-    model.traverse(obj=>{
-      if(!obj.isMesh)return;
-      obj.castShadow=true;
-      obj.receiveShadow=false;
-      // The source cape is an extremely thin AI-created mesh.
-      if(obj.material){
-        const mats=Array.isArray(obj.material)?obj.material:[obj.material];
-        obj.material=mats.map(m=>{const copy=m.clone();copy.side=THREE.DoubleSide;return copy;});
-        if(!Array.isArray(obj.material)||obj.material.length===1)obj.material=obj.material[0];
-      }
-    });
-  }
-  function placeGreaves(scene) {
-    if (!leftLeg || !rightLeg) throw new Error('Rodin Leg bones unavailable');
-    const meshes={};
-    scene.traverse(obj=>{if(obj.isMesh)meshes[obj.name]=obj;});
-    const names=['LeftGreave','RightGreave'];
-    if(!names.every(n=>meshes[n]))throw new Error('Greaves need two separated meshes');
-    const items=[];
-    for(const [i,bone] of [leftLeg,rightLeg].entries()){
-      const mesh=meshes[names[i]];
-      // Source boots are 1 unit high. The player's knee-to-ground distance is
-      // about 0.5 rig units; set top of new mesh at the shin joint.
-      mesh.position.set(0,-.49,.016);
-      mesh.rotation.y=Math.PI/2; // original pair is arranged along source Z
-      mesh.scale.setScalar(.49);
-      bone.add(mesh);
-      items.push(mesh);
+  function bindSkinnedAsset(gltf,key) {
+    const expected=gltf?.parser?.json?.extras?.rodinSkinOrder592;
+    if(!expected)throw new Error('5.9.2 preprocessed GLB is missing skin order metadata');
+    const meshes=[];
+    gltf.scene.traverse(obj=>{if(obj.isMesh)meshes.push(obj);});
+    const expectedMeshNames=key==='boots'?['LeftGreave','RightGreave']:['TealCape'];
+    if(meshes.length!==expectedMeshNames.length ||
+       !expectedMeshNames.every(name=>meshes.some(m=>m.name===name))){
+      throw new Error('Equipment mesh parts missing');
     }
-    return items;
+    const created=[];
+    // The offline source vertices are fitted in Rodin MODEL bind coordinates.
+    // Mount in the same parent/transform space as Rodin's own skinned body.
+    host.updateWorldMatrix(true,false);
+    try {
+      for(const src of meshes){
+        validateSkinnedGear592(THREE,src,host.skeleton,expected);
+        const old=Array.isArray(src.material)?src.material:[src.material];
+        const mats=old.map(mat=>{
+          const copy=mat.clone();
+          if(key==='cloak')copy.side=THREE.DoubleSide;
+          return copy;
+        });
+        const item=new THREE.SkinnedMesh(src.geometry,mats.length===1?mats[0]:mats);
+        item.name='RodinWeightedGear592_'+src.name;
+        item.position.copy(host.position);
+        item.quaternion.copy(host.quaternion);
+        item.scale.copy(host.scale);
+        item.frustumCulled=false;
+        item.castShadow=true;
+        item.receiveShadow=false;
+        item.bindMode=host.bindMode;
+        host.parent.add(item);
+        // Use the original inverse-bind matrices, NOT another bind pose.
+        item.bind(host.skeleton,host.bindMatrix.clone());
+        item.visible=configured(key);
+        created.push(item);
+      }
+    }catch(e){
+      for(const item of created){item.removeFromParent();
+        const materials=Array.isArray(item.material)?item.material:[item.material];
+        for(const mat of materials)mat?.dispose?.();
+      }
+      throw e;
+    }
+    return created;
   }
-  function placeCape(scene) {
-    if(!spine)throw new Error('Rodin Spine2 bone unavailable');
-    const cape=scene;
-    // Cape source height 1; hang from upper back to mid-thigh. Rigid mount:
-    // it follows torso but cannot deform like a proper clothing skin.
-    cape.scale.setScalar(.73);
-    cape.position.set(0,-.63,-.26);
-    cape.rotation.set(.10,0,0);
-    spine.add(cape);
-    return [cape];
+  function placeKatana(gltf){
+    const model=gltf.scene;
+    model.traverse(obj=>{if(obj.isMesh)obj.castShadow=true;});
+    model.scale.setScalar(.79);
+    model.position.set(0,-.85,0);
+    model.rotation.set(0,0,0);
+    rodin.setExternalSwordModel(model);
+    return [model];
   }
-  function placeKatana(scene) {
-    // The katana image-to-3D model has handle at Y ~.86 and blade tip at Y ~0.
-    // Anchor its grip to the existing RightHand sword mount.
-    scene.scale.setScalar(.79);
-    scene.position.set(0,-.85,0);
-    scene.rotation.set(0,0,0);
-    rodin.setExternalSwordModel(scene);
-    return [scene];
-  }
-  function load(key) {
-    if(disposed||loaded[key]) return Promise.resolve();
-    if(pending.has(key)) return pending.get(key);
-    const promise = new Promise((resolve)=>{
-      loader.load(ASSETS_591[key], gltf=>{
+  function load(key){
+    if(disposed||loaded[key])return Promise.resolve();
+    if(pending.has(key))return pending.get(key);
+    const task=new Promise(resolve=>{
+      loader.load(ASSETS_592[key],gltf=>{
         if(disposed){resolve();return;}
         try{
-          const model=gltf.scene;
-          decorate(model);
-          const items=key==='boots'?placeGreaves(model):key==='cloak'?placeCape(model):placeKatana(model);
-          loaded[key]=items;
-          enable(key);
-          report(key,'loaded');
-        }catch(err){
+          loaded[key]=key==='katana'?placeKatana(gltf):bindSkinnedAsset(gltf,key);
+          refresh();report(key,'loaded');
+        }catch(e){
+          console.warn('[Equipment 5.9.2] '+key+' skin failed:',e);
           report(key,'mount-failed');
-          console.warn('[Equipment 5.9.1] '+key+' cannot mount:',err);
         }
         resolve();
-      },undefined,err=>{
-        report(key,'load-failed');
-        console.warn('[Equipment 5.9.1] '+key+' GLB unavailable:',err);
-        resolve();
+      },undefined,e=>{
+        console.warn('[Equipment 5.9.2] '+key+' asset unavailable:',e);
+        report(key,'load-failed');resolve();
       });
     });
-    pending.set(key,promise);
-    void promise.finally(()=>pending.delete(key));
-    return promise;
+    pending.set(key,task);
+    void task.finally(()=>pending.delete(key));
+    return task;
   }
-  async function sync() {
+  async function sync(){
     if(disposed)return;
-    // Hide previously loaded pieces immediately when an item is unequipped.
-    for(const key of ['boots','cloak'])enable(key);
+    refresh();
     const plan=makeGearLoadPlan591({
       boots:equipment.get('boots')?.id,
       cloak:equipment.get('cloak')?.id,
       weapon:equipment.get('weapon')?.id
     });
-    // Serial load avoids downloading both heavyweight meshes at once on phone.
-    for(const key of plan)await load(key);
-    // Weapon fallback/selection is controlled by the Rodin module itself.
+    for(const key of plan){if(disposed)break;await load(key);}
+    refresh();
   }
-  function dispose(){disposed=true;for(const key of ['boots','cloak']){
-    for(const mesh of loaded[key]||[])mesh.removeFromParent();
-  }}
-  return {sync,dispose,loaded,assets:ASSETS_591};
+  function dispose(){
+    disposed=true;
+    for(const key of ['boots','cloak'])for(const item of loaded[key]||[]){
+      item.removeFromParent();
+      const mats=Array.isArray(item.material)?item.material:[item.material];
+      for(const mat of mats)mat?.dispose?.();
+    }
+    if(loaded.katana?.length)rodin.setExternalSwordModel(null);
+  }
+  return {sync,dispose,loaded,assets:ASSETS_592};
 }
