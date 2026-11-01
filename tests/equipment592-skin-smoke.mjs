@@ -19,7 +19,7 @@ function attribute(count,kind='weight'){
 function geo(){const index=attribute(6),weight=attribute(6);for(let i=0;i<6;i++){index.setComponent(i,0,18);weight.setComponent(i,0,255)}
  const attributes={position:{count:6},skinIndex:index,skinWeight:weight};return {attributes,getAttribute(k){return attributes[k]},setAttribute(k,v){attributes[k]=v},clone(){return {...this,attributes:{...attributes}}}}
 }
-function material(){return {clone(){return material()},dispose(){this.disposed=true}}}
+function material(){return {color:{value:'original',set(value){this.value=value}},roughness:0.5,metalness:0.2,clone(){return material()},dispose(){this.disposed=true}}}
 class SkinnedMesh {
   constructor(geometry,mat){Object.assign(this,obj('skinnedGear'));this.isSkinnedMesh=true;this.geometry=geometry;this.material=mat}
   bind(skeleton,matrix){this.skeleton=skeleton;this.bindMatrix=matrix}
@@ -27,7 +27,7 @@ class SkinnedMesh {
 const parent=obj('RigParent'),host=obj('RodinBody',true);host.isSkinnedMesh=true;
 host.skeleton={bones:boneNames.map(name=>({name}))};host.bindMatrix={clone(){return {source:'bodyBind'}}};host.bindMode='attached';
 parent.add(host);
-const root=obj('RodinRoot');root.add(parent);const originalCape=obj('RodinOriginalCape594',true);originalCape.isSkinnedMesh=true;root.add(originalCape);
+const root=obj('RodinRoot');root.add(parent);const originalCape=obj('RodinOriginalCape594',true);originalCape.isSkinnedMesh=true;originalCape.material=material();root.add(originalCape);const baseCapeMaterial=originalCape.material;
 const rodin={root,setExternalSwordModel(v){this.sword=v}};
 const resources={};const urls=[];
 function mesh(name){const m=obj(name,true);m.geometry=geo();m.material=material();return m}
@@ -43,24 +43,26 @@ assert.deepEqual(makeGearLoadPlan591({boots:'wanderer-boots',cloak:'teal-cape',w
 const equip=createEquipment59();const visual=createEquipmentVisual591(THREE,loader,rodin,equip);
 await visual.sync();
 assert.equal(visual.loaded.boots.length,2);
-assert.equal(visual.loaded.cloak.length,1);
-assert.equal(originalCape.visible,false,'new teal cape hides the original cape only after successful load');
+assert.equal(visual.loaded.cloak,undefined,'custom external cape not rendered until it fits');
+assert.equal(originalCape.visible,true,'fitted original cape stays visible');
+assert.notEqual(originalCape.material,baseCapeMaterial,'original cape gets a separate material');
+assert.equal(originalCape.material.color.value,'#18aab3','cape is visibly recolored teal');
 assert.equal(host.children?.length||0,0,'does not mount static gear under existing bone or original body');
-assert.equal(parent.children.length,4,'body plus two skinned greaves and cape');
-for(const item of [...visual.loaded.boots,...visual.loaded.cloak]){
+assert.equal(parent.children.length,3,'body plus two skinned greaves, without floating cape');
+for(const item of visual.loaded.boots){
  assert(item.isSkinnedMesh);
  assert.equal(item.skeleton,host.skeleton,'uses live Rodin skeleton');
  assert.equal(item.bindMatrix.source,'bodyBind');
 }
 assert(urls.every(s=>s.includes('-skinned.glb')));
-equip.unequip('cloak');await visual.sync();assert.equal(visual.loaded.cloak[0].visible,false);assert.equal(originalCape.visible,true,'unequip restores original cape');
-equip.equip('teal-cape');await visual.sync();assert.equal(originalCape.visible,false,'re-equip hides original again');
+equip.unequip('cloak');await visual.sync();assert.equal(originalCape.material,baseCapeMaterial,'unequip restores original cape material');
+equip.equip('teal-cape');await visual.sync();assert.equal(originalCape.material.color.value,'#18aab3','re-equip restores teal tint');
 equip.buy('dark-katana',999);equip.equip('dark-katana');await visual.sync();
 assert(rodin.sword,'Katana retains hand socket, not a deforming skinned mesh');
 assert(urls.some(s=>s.endsWith('rodin-dark-katana.glb')));
-await visual.sync();assert.equal(urls.length,3,'cached');
-visual.dispose();assert.equal(parent.children.length,1);assert.equal(originalCape.visible,true,'cleanup restores original cape');
+await visual.sync();assert.equal(urls.length,2,'only greaves and katana are fetched');
+visual.dispose();assert.equal(parent.children.length,1);assert.equal(originalCape.visible,true,'cleanup restores original cape');assert.equal(originalCape.material,baseCapeMaterial);
 // The renamed existing file is intentionally kept for small patches.
 const code=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 assert(code.includes('createEquipmentVisual591'));
-console.log('PASS 5.9.2: weighted greaves/cape share live Rodin skeleton, enable/disable, katana hard socket, lazy load, cleanup');
+console.log('PASS 5.9.5: greaves skin, fitted original cape tint toggle, no floating external cape, katana socket, cleanup');
