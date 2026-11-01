@@ -2,14 +2,16 @@ import { createRodin54 } from './rodin54.js';
 import { createCombat56 } from './combat56.js';
 import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
-document.title='Astral Rift Alpha 5.6 — World & Combat';
+import { createEnemyAI57 } from './enemyAI57.js';
+import { createDodge57 } from './dodge57.js';
+document.title='Astral Rift Alpha 5.7 — Enemy AI & Dodge';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.6 · WORLD & COMBAT</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.7 · ENEMY AI & DODGE</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -308,7 +310,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.6 · WORLD & COMBAT';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.7 · ENEMY AI & DODGE';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -602,7 +604,19 @@ function attack(){
     state.cool=weapon?.48:.36;
   }
 }
-function dodge(){if(state.dodge>0)return;slashFx13(1);state.dodge=.42;msg('Бултлаа')}
+function dodge(){
+  if(state.dodge>0)return;
+  const inputX=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
+  const inputZ=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;
+  let dirX,dirZ;
+  if(Math.hypot(inputX,inputZ)>.12){
+    const len=Math.hypot(inputX,inputZ);
+    dirX=(-Math.cos(state.angle)*inputX+Math.sin(state.angle)*inputZ)/len;
+    dirZ=(Math.sin(state.angle)*inputX+Math.cos(state.angle)*inputZ)/len;
+  } else {dirX=Math.sin(player.rotation.y);dirZ=Math.cos(player.rotation.y);}
+  if(!dodge57.begin(dirX,dirZ))return;
+  slashFx13(1);state.dodge=.42;msg('↝ Булталт');
+}
 function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range)}
 window.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyX')swap();if(e.code==='Space')dodge();if(e.code==='Tab')lock();if(e.code==='Digit1')skill(0);if(e.code==='Digit2')skill(1);if(e.code==='Digit3')skill(2)});window.addEventListener('keyup',e=>keys.delete(e.code));
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)attack();lookPointer=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)});
@@ -814,7 +828,7 @@ const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 // The Alpha 5.6 camera guard replaces the old per-frame pre-lerp raycast.
 let previousCameraZone401=null;
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.6 · WORLD & COMBAT' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.7 · ENEMY AI & DODGE' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -948,6 +962,7 @@ lockMarker56.id='enemyLock56';
 lockMarker56.innerHTML='<span>◇ TARGET</span><div class="enemyTrack56"><div class="enemyFill56"></div></div>';
 app.appendChild(lockMarker56);
 const lockHP56=lockMarker56.querySelector('.enemyFill56');
+const lockLabel57=lockMarker56.querySelector('span');
 const lockScreen56=new THREE.Vector3();
 function updateTargetMarker56(){
   const target=state.target?.alive?state.target:null;
@@ -958,6 +973,7 @@ function updateTargetMarker56(){
     lockMarker56.style.display='none';return;
   }
   lockMarker56.style.display='block';
+  lockLabel57.textContent=target.windup57?'⚠ ЦОХИЛТ ИРНЭ':'◇ TARGET';
   lockMarker56.style.left=((lockScreen56.x*.5+.5)*100)+'%';
   lockMarker56.style.top=((-lockScreen56.y*.5+.5)*100)+'%';
   lockHP56.style.width=Math.max(0,Math.min(100,target.hp/target.max*100))+'%';
@@ -977,6 +993,51 @@ const combat56=createCombat56({
   onMiss:reason=>{if(reason==='obstructed')msg('Хана цаана байгаа бай руу онохгүй');
     else if(reason==='range')msg('Дайсан хэт хол байна');}
 });
+// Alpha 5.7: reusable enemy warning rings; one material instance per mob.
+// No dynamic canvas, HTML allocation, or shadow light per frame.
+const warningRingGeo57=new THREE.RingGeometry(.82,1.07,28);
+const warningIconGeo57=new THREE.OctahedronGeometry(.22,0);
+for(const e of enemies){
+  const mat=new THREE.MeshBasicMaterial({color:0xff643c,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});
+  const ring=new THREE.Mesh(warningRingGeo57,mat);
+  ring.rotation.x=-Math.PI/2;ring.position.y=.09;ring.visible=false;
+  const mark=new THREE.Mesh(warningIconGeo57,new THREE.MeshBasicMaterial({color:0xffd06e,depthTest:true}));
+  mark.position.y=e.boss?4.2:2.1;mark.visible=false;
+  e.g.add(ring,mark);e.warnRing57=ring;e.warnMark57=mark;
+}
+const enemyAI57=createEnemyAI57({
+  player,isBlocked:(x,z)=>blocked09(x,z),
+  isSafeZone:(enemy,p)=>Math.hypot(p.x,p.z)<=19||Math.hypot(enemy.g.position.x-npc.position.x,enemy.g.position.z-npc.position.z)<4,
+  onTelegraph:(enemy,active,t)=>{
+    enemy.warnRing57.visible=active;enemy.warnMark57.visible=active;
+    if(active){
+      enemy.warnRing57.material.opacity=.35+.58*t;
+      const scale=1+.18*t;
+      enemy.warnRing57.scale.setScalar(enemy.boss?2.1*scale:scale);
+      enemy.warnMark57.rotation.y+=.085;
+    }
+  },
+  onAttack:(enemy)=>{
+    if(state.dodge>0){msg('↝ Бултлаа!');return;}
+    if(blocking25&&parryWindow40>0){
+      parryWindow40=0;stamina25=Math.max(0,stamina25-9);
+      enemy.cool=1.8;combat56.react(enemy,30);
+      msg('✦ PARRY · Цохилтыг буцаалаа');return;
+    }
+    const raw=enemy.boss?(enemy.hp<enemy.max*.5?32:20):enemy.elite?17:enemy.fast?7:9;
+    const reduced=Math.max(1,raw-armorRank18*2)*(blocking25&&stamina25>0?.3:1);
+    state.hp=Math.max(0,state.hp-reduced);
+    if(state.hp===0){
+      msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;
+      player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0);
+    }
+  }
+});
+const dodge57=createDodge57({onMove:(dx,dz)=>{
+  moveSafely09(dx,dz);
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70);
+}});
 const cameraGuard56=createCameraGuard56(THREE,cameraObstacles24);
 const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
 let prev=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
@@ -991,14 +1052,31 @@ const sprint55=walking&&(keys.has('ShiftLeft')||keys.has('ShiftRight')||Math.hyp
 if(walking){
   x/=Math.max(1,len);z/=Math.max(1,len);
   const dir=new THREE.Vector3(-Math.cos(state.angle)*x+Math.sin(state.angle)*z,0,Math.sin(state.angle)*x+Math.cos(state.angle)*z);
-  const speed55=state.dodge>0?13:sprint55?7.3:5;
+  const speed55=state.dodge>0?0:sprint55?7.3:5;
   moveSafely09(dir.x*dt*speed55,dir.z*dt*speed55);
   player.rotation.y=Math.atan2(dir.x,dir.z);
   player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);
   player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70);
 }
+dodge57.update(dt);
 animateCharacters12(now,dt,walking);updateRodin54(now,dt,walking,sprint55);advancedFX50.update(dt,walking,state.attacking);
-shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07))continue;if(!e.alive){e.respawn-=dt;if(e.respawn<=0){e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.m.material.color.setHex(e.baseColor||0x963d42)}continue}e.cool-=dt;combat56.updateEnemy(e,dt);const diff=player.position.clone().sub(e.g.position);const d=diff.length();if(!(e.stun56>0)&&d<9&&d>1.7&&e.g.position.distanceTo(npc.position)>4){const step=diff.normalize().multiplyScalar(dt*(e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2));const nx=e.g.position.x+step.x,nz=e.g.position.z+step.z;if(!blocked09(nx,nz))e.g.position.set(nx,e.g.position.y,nz)};e.m.rotation.y+=dt*.5;if(!(e.stun56>0)&&d<(e.boss?3:1.9)&&e.cool<=0&&state.dodge<=0&&(e.boss||Math.hypot(player.position.x,player.position.z)>19)){if(blocking25&&parryWindow40>0){parryWindow40=0;stamina25=Math.max(0,stamina25-9);e.cool=1.8;msg('✦ PARRY · Цохилтыг буцаалаа')}else{state.hp=Math.max(0,state.hp-Math.max(1,(e.boss?(e.hp<e.max*.5?32:20):e.elite?17:e.fast?7:9)-armorRank18*2)*(blocking25&&stamina25>0?.3:1))}e.cool=e.boss&&e.hp<e.max*.5?.9:e.fast?1.05:1.5;if(state.hp===0){msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0)}}}
+shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){
+  // Keep outdoor mobs inactive in indoor/dungeon scenes and vice versa.
+  if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07)){
+    enemyAI57.hide(e);continue;
+  }
+  if(!e.alive){
+    enemyAI57.reset(e);
+    e.respawn-=dt;
+    if(e.respawn<=0){
+      e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;
+      e.m.material.color.setHex(e.baseColor||0x963d42);
+    }
+    continue;
+  }
+  combat56.updateEnemy(e,dt);
+  enemyAI57.update(e,dt);
+}
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
 const cameraDistance10=(inside09>=0||inCastle25)?3.15:3.95;
 const cameraHeight10=(inside09>=0||inCastle25)?.95:1.02;
