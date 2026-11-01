@@ -1,17 +1,18 @@
+import { loadGreatSword58 } from './greatSword58.js';
 import { createRodin54 } from './rodin54.js';
 import { createCombat56 } from './combat56.js';
 import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 5.7 — Enemy AI & Dodge';
+document.title='Astral Rift Alpha 5.8 — Great Sword Combat';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.7 · ENEMY AI & DODGE</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.8 · GREAT SWORD COMBAT</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -310,7 +311,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.7 · ENEMY AI & DODGE';
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.8 · GREAT SWORD COMBAT';
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -340,10 +341,22 @@ document.body.appendChild(avatarStatus54);
 modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
   try{
     rodin54=createRodin54(THREE,gltf,rodinHolder54);
-    if(rodin54.version!=='5.5')throw new Error('src/rodin54.js 5.5 хувилбар биш байна');
+    if(rodin54.version!=='5.8')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
     rodin54.setWeapon(state.weapon);
     avatarStatus54.remove();
-    console.info('Rodin Alpha 5.5 ready:',rodin54.animations.join(', '));
+    console.info('Rodin Alpha 5.8 ready:',rodin54.animations.join(', '));
+    // Load FBX animation-only files progressively; on failure keep playable
+    // 5.7 procedural attacks rather than leaving the avatar in a T-pose.
+    void loadGreatSword58(THREE,rodin54,{
+      onProgress:({key,loaded,total})=>console.info('Great Sword animation',loaded+'/'+total,key)
+    }).then(result=>{
+      console.info('Great Sword 5.8:',result);
+      if(result.loaded)msg('⚔ Илдний '+result.loaded+'/'+result.total+' хөдөлгөөн ачааллаа');
+      else msg('Илдний FBX ачаалагдсангүй — өмнөх хөдөлгөөн ажиллана');
+    }).catch(error=>{
+      console.warn('Great Sword fallback:',error);
+      msg('FBX animation алдаа — өмнөх хөдөлгөөн ажиллана');
+    });
   }catch(error){
     console.error('Rodin animation init failed:',error);
     avatarStatus54.textContent='Rodin animation алдаа: '+(error?.message || String(error));
@@ -617,7 +630,7 @@ function dodge(){
   if(!dodge57.begin(dirX,dirZ))return;
   slashFx13(1);state.dodge=.42;msg('↝ Булталт');
 }
-function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range)}
+function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range);if(state.weapon===0)rodin54?.triggerSpecial(i)}
 window.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyX')swap();if(e.code==='Space')dodge();if(e.code==='Tab')lock();if(e.code==='Digit1')skill(0);if(e.code==='Digit2')skill(1);if(e.code==='Digit3')skill(2)});window.addEventListener('keyup',e=>keys.delete(e.code));
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)attack();lookPointer=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer||!lastLook)return;state.angle-=(e.clientX-lastLook.x)*.006;state.pitch=THREE.MathUtils.clamp(state.pitch+(e.clientY-lastLook.y)*.004,-.2,.85);lastLook={x:e.clientX,y:e.clientY}});
@@ -828,7 +841,7 @@ const cameraObstacles24=[];
 for(const group of [city24,kingdom23])group.traverse(o=>{if(o.isMesh&&o.geometry?.type!=='PlaneGeometry')cameraObstacles24.push(o)});
 // The Alpha 5.6 camera guard replaces the old per-frame pre-lerp raycast.
 let previousCameraZone401=null;
-const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.7 · ENEMY AI & DODGE' ;app.appendChild(version24);
+const version24=document.createElement('div');version24.id='version24';version24.textContent='✦ ALPHA 5.8 · GREAT SWORD COMBAT' ;app.appendChild(version24);
 // Do not alter the hero's GLB, rig, limbs, weapon, or animation update code.
 
 
@@ -1027,6 +1040,7 @@ const enemyAI57=createEnemyAI57({
     const raw=enemy.boss?(enemy.hp<enemy.max*.5?32:20):enemy.elite?17:enemy.fast?7:9;
     const reduced=Math.max(1,raw-armorRank18*2)*(blocking25&&stamina25>0?.3:1);
     state.hp=Math.max(0,state.hp-reduced);
+    if(!blocking25 && reduced>0)rodin54?.triggerImpact();
     if(state.hp===0){
       msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;
       player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0);

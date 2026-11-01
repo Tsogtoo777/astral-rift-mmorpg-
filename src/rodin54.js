@@ -1,5 +1,5 @@
 /**
- * Astral Rift Alpha 5.5 — Rigged Rodin combat controller.
+ * Astral Rift Alpha 5.8 — Rigged Rodin + retargeted Great Sword combat controller.
  * The original user-supplied GLB provides Idle, Walk, Run and Wave clips.
  * Attacks, guard and dodge use small, time-bounded PROCEDURAL bone overlays:
  * they are not authored sword-animation clips or full IK.
@@ -69,6 +69,7 @@ export function createRodin54(THREE, gltf, holder) {
   active.reset().setEffectiveWeight(1).setEffectiveTimeScale(1).play();
   mixer.update(0);
   function transition(next) {
+    if (combatAction) return;
     if (next === movementState) return;
     const candidate = actions[next];
     if (!candidate) return;
@@ -101,6 +102,7 @@ export function createRodin54(THREE, gltf, holder) {
   tip.rotation.z = Math.PI;
   sword.position.set(-.015,-.07,.028);
   sword.rotation.set(-.34,.04,-.32);
+  sword.scale.set(1.08,1.48,1.08); // longer two-handed blade silhouette
   joints.rightHand.add(sword);
 
   const bow = new THREE.Group();
@@ -118,6 +120,7 @@ export function createRodin54(THREE, gltf, holder) {
   let equippedWeapon = 0;
   function setWeapon(next) {
     equippedWeapon = next ? 1 : 0;
+    if(equippedWeapon!==0 && combatAction)endCombatAction();
     sword.visible = equippedWeapon === 0;
     bow.visible = equippedWeapon === 1;
   }
@@ -170,12 +173,81 @@ export function createRodin54(THREE, gltf, holder) {
   let guardWeight=0;
   let clock=0;
   let currentSwing=0;
+  // Imported FBX animation actions reuse Rodin's existing mixer. This is
+  // animation retargeting rather than the old procedural sword overlay.
+  const combatClips = new Map();
+  const combatActions = new Map();
+  let combatAction = null;
+  let combatName = '';
+  let combatDuration = 0;
+  let combatElapsed = 0;
+  let combatHold = false;
+  let combatReturning = false;
+  function installCombatAnimations(newClips) {
+    for (const [name,clip] of Object.entries(newClips||{})) {
+      if (!clip?.tracks?.length || !Number.isFinite(clip.duration) || clip.duration<=0) continue;
+      const old=combatActions.get(name);
+      if(old){ old.stop(); mixer.uncacheAction(combatClips.get(name)); }
+      combatClips.set(name,clip);
+      combatActions.set(name,mixer.clipAction(clip));
+    }
+  }
+  function endCombatAction() {
+    if (!combatAction) return;
+    combatAction.fadeOut(.12);
+    // Return to locomotion; no need to reset the active clip's timeline.
+    active.setEffectiveWeight(1).fadeIn(.12).play();
+    combatAction=null;
+    combatName='';
+    combatReturning=false;
+    combatHold=false;
+  }
+  function playCombatAction(name,duration=.55,hold=false) {
+    if((equippedWeapon!==0 && name!=='Impact') || !combatActions.has(name))return false;
+    if(combatAction) {
+      if(combatName===name && hold)return true;
+      combatAction.fadeOut(.08);
+    }
+    const a=combatActions.get(name);
+    const clip=combatClips.get(name);
+    combatAction=a;
+    combatName=name;
+    combatDuration=Math.max(.16,duration);
+    combatElapsed=0;
+    combatHold=hold;
+    combatReturning=false;
+    active.fadeOut(.09);
+    a.reset().setLoop(THREE.LoopOnce,1)
+      .setEffectiveWeight(1)
+      .setEffectiveTimeScale(Math.max(.12,clip.duration / combatDuration))
+      .fadeIn(.09).play();
+    a.clampWhenFinished=hold;
+    return true;
+  }
+  function advanceCombatAction(dt,blocking) {
+    if(!combatAction)return;
+    if(combatHold && !blocking){endCombatAction();return;}
+    if(combatHold)return;
+    combatElapsed+=dt;
+    if(!combatReturning && combatElapsed >= combatDuration-.14) {
+      combatReturning=true;
+      combatAction.fadeOut(.14);
+      active.setEffectiveWeight(1).fadeIn(.14).play();
+    }
+    if(combatElapsed >= combatDuration) {
+      combatAction.stop();
+      combatAction=null;
+      combatName='';
+      combatReturning=false;
+    }
+  }
   function triggerAttack(nextWeapon=equippedWeapon) {
     attackWeapon=nextWeapon ? 1 : 0;
     if (comboWindow<=0 || attackWeapon===1) comboIndex=0;
     comboIndex=(comboIndex%3)+1;
     comboWindow=.86;
     attackElapsed=0;
+    if(attackWeapon===0)playCombatAction('Combo'+comboIndex,comboPoses[comboIndex-1].duration);
   }
   function applyAttack(dt) {
     if (attackElapsed>=10) return;
@@ -185,8 +257,10 @@ export function createRodin54(THREE, gltf, holder) {
     // Explicit wind-up and follow-through; both fade away by the end.
     const windWeight=p<.28?smooth(p/.28):p<.65?1-smooth((p-.28)/.37):0;
     const hitWeight=p<.28?0:p<.65?smooth((p-.28)/.37):1-smooth((p-.65)/.35);
-    addPose(pose.wind,windWeight);
-    addPose(pose.hit,hitWeight);
+    if (!(attackWeapon===0 && combatAction)) {
+      addPose(pose.wind,windWeight);
+      addPose(pose.hit,hitWeight);
+    }
     currentSwing=hitWeight;
     attackElapsed+=dt;
     if (attackElapsed>=duration) attackElapsed=10;
@@ -196,12 +270,16 @@ export function createRodin54(THREE, gltf, holder) {
     clock+=dt;
     comboWindow=Math.max(0,comboWindow-dt);
     if (nextWeapon!==equippedWeapon) setWeapon(nextWeapon);
+    advanceCombatAction(dt,blocking);
+    if (blocking && equippedWeapon===0 && combatActions.has('Block') && !combatAction && attackElapsed>=10) {
+      playCombatAction('Block',combatClips.get('Block').duration,true);
+    }
     transition(!moving?'Idle':sprinting?'Run':'Walk');
     active.setEffectiveTimeScale(movementState==='Walk'?.97:movementState==='Run'?1.04:1);
     mixer.update(dt);
 
     guardWeight+=(Number(blocking && attackElapsed>=10)-guardWeight)*(1-Math.exp(-dt*13));
-    if (guardWeight>.003) {
+    if (guardWeight>.003 && combatName!=='Block') {
       addPose({rightArm:[-.40,0,-.12],rightForeArm:[-.24,0,.06],leftArm:[-.22,0,.10],spine:[-.04,0,0]},guardWeight);
     }
     if (dodging) {
@@ -214,9 +292,15 @@ export function createRodin54(THREE, gltf, holder) {
     sword.rotation.set(-.34-currentSwing*.24,.04,-.32+currentSwing*.12);
   }
 
+  function triggerImpact() {return playCombatAction('Impact',.48);}
+  function triggerSpecial(index=0) {
+    const type=index===2?'SpinAttack':index===1?'JumpAttack':'Combo3';
+    return playCombatAction(type,index===2?1.0:index===1?.83:.7);
+  }
   holder.add(root);
   return {
-    version:'5.5',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,update,
+    version:'5.8',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
+    get combatMotions(){return [...combatClips.keys()];},
     get movementState(){return movementState;},
     get currentWeapon(){return equippedWeapon;},
     get comboStep(){return comboIndex;},
