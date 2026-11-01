@@ -1,14 +1,14 @@
 {
   "name": "astral-rift-alpha",
-  "version": "5.9.0-alpha",
+  "version": "5.9.2-alpha",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test:smoke": "node tests/alpha40-smoke.mjs && node tests/architecture42-smoke.mjs && node tests/rodin55-smoke.mjs && node tests/gameplay56-smoke.mjs && node tests/enemy57-smoke.mjs && node tests/greatSword58-smoke.mjs && node tests/greatSword581-safe-smoke.mjs && node tests/sword582-smoke.mjs && node tests/equipment59-smoke.mjs",
-    "test:assets": "python tests/validate-assets.py"
+    "test:smoke": "node tests/alpha40-smoke.mjs && node tests/architecture42-smoke.mjs && node tests/rodin55-smoke.mjs && node tests/gameplay56-smoke.mjs && node tests/enemy57-smoke.mjs && node tests/greatSword58-smoke.mjs && node tests/greatSword581-safe-smoke.mjs && node tests/sword582-smoke.mjs && node tests/equipment59-smoke.mjs && node tests/equipment592-skin-smoke.mjs",
+    "test:assets": "python tests/validate-assets.py && python tests/equipment591-assets.py && python tests/equipment592-assets.py"
   },
   "dependencies": {
     "three": "^0.170.0",
