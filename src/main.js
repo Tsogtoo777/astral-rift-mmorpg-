@@ -7,7 +7,7 @@ import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 5.9.4 — Cape Swap';
+document.title='Astral Rift Alpha 5.9.5 — Fitted Cape';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
@@ -341,7 +341,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.9.4 · CAPE SWAP'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.9.5 · FITTED CAPE'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -378,8 +378,8 @@ modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
       onStatus:({key,message})=>{
         if(key!=='cloak')return;
         if(message==='base-asset-missing')msg('⚠ Анхны Rodin GLB шинэчлэгдээгүй: нөмрөг салгах боломжгүй');
-        if(message==='mount-failed'||message==='load-failed')msg('⚠ Ногоон нөмрөг ачаалагдсангүй, анхны нөмрөг үлдэнэ');
-        if(message==='loaded')console.info('[Rodin cape swap] New cape loaded, original hidden while equipped');
+        if(message==='mount-failed'||message==='load-failed')msg('⚠ Нөмрөгийн шинэ модель харагдсангүй; анхны нөмрөг хэвээр');
+        if(message==='loaded')console.info('[Rodin cape 5.9.5] Original skinned cape recolored teal while equipped');
       }
     });
     void equipmentVisual591.sync();
