@@ -1,3 +1,4 @@
+import { createEquipment59 } from './equipment59.js';
 import { loadGreatSword58 } from './greatSword58.js';
 import { createRodin54 } from './rodin54.js';
 import { createCombat56, effectiveStrikeRange56 } from './combat56.js';
@@ -5,14 +6,14 @@ import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 5.8 — Great Sword Combat';
+document.title='Astral Rift Alpha 5.9 — Equipment System';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.8.2 · COMBAT CONTROL</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.9 · EQUIPMENT</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -136,21 +137,47 @@ let bounty18=Math.max(0,Number(saved.bounty18)||0),bountyClaims18=Math.max(0,Num
 const talentNames19=['⚔️ Илдний мастер','🏹 Мэргэн харваач','❤️ Тэсвэр','✨ Ур чадвар'];
 let talents19=Array.isArray(saved.talents19)?[0,1,2,3].map(i=>Math.min(5,Math.max(0,Number(saved.talents19[i])||0))):[0,0,0,0];
 let talentPoints19=Math.max(0,Number(saved.talentPoints19)||0);
+const equipment59=createEquipment59(saved.equipment59);
 let battleLog18=[];
 function logBattle18(t){battleLog18.unshift(t);battleLog18=battleLog18.slice(0,8)}
 
-function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills,bossWins07,potions16,questKills16,achievements17,ore18,crystal18,swordRank18,bowRank18,armorRank18,bounty18,bountyClaims18,talents19,talentPoints19}))}catch{}}
+function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills,bossWins07,potions16,questKills16,achievements17,ore18,crystal18,swordRank18,bowRank18,armorRank18,bounty18,bountyClaims18,talents19,talentPoints19,equipment59:equipment59.snapshot()}))}catch{}}
 function gainXp(amount){xp+=amount;while(xp>=level*80){xp-=level*80;level++;talentPoints19++;state.max+=10;state.hp=state.max;msg('LEVEL UP! '+level+' · +1 Skill Point')}saveGame()}
 
 const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button><button id="shopBtn16">🛒 Shop</button>';document.querySelector('#app').appendChild(panel);
 const win=document.createElement('div');win.id='window';document.querySelector('#app').appendChild(win);
 function closeWindow(){win.style.display='none'}
 function openWindow(title,content){win.innerHTML='<h2>'+title+'</h2>'+content+'<p><button id="closeWindow">Хаах</button></p>';win.style.display='block';document.querySelector('#closeWindow').onclick=closeWindow}
+function showEquipment59(){
+  openWindow('🛡 Equipment · Alpha 5.9', equipment59.render(gold));
+  const refresh=()=>{saveGame();showEquipment59();};
+  const oldHp=equipment59.bonuses().hp;
+  win.querySelectorAll('[data-equip59]').forEach(button=>button.onclick=()=>{
+    if(equipment59.equip(button.dataset.equip59)){finishEquipment59(oldHp);refresh();}
+  });
+  win.querySelectorAll('[data-unequip59]').forEach(button=>button.onclick=()=>{
+    if(equipment59.unequip(button.dataset.unequip59)){finishEquipment59(oldHp);refresh();}
+  });
+  win.querySelectorAll('[data-buy59]').forEach(button=>button.onclick=()=>{
+    const result=equipment59.buy(button.dataset.buy59,gold);
+    if(!result.ok){msg('Алт хүрэлцэхгүй эсвэл аль хэдийн авсан');return;}
+    gold-=result.price;msg('Тоноглол авлаа');refresh();
+  });
+}
+function finishEquipment59(previousHpBonus){
+  const current=equipment59.bonuses();
+  const delta=current.hp-previousHpBonus;
+  state.max=Math.max(1,state.max+delta);
+  state.hp=Math.max(1,Math.min(state.max,state.hp+delta));
+  if(typeof stamina25==='number')stamina25=Math.min(100+current.stamina,stamina25);
+  rodin54?.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
+}
 function showBag(){
-  openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button>`);
+  openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button>`);
   document.querySelector('#forgeFromBag18').onclick=showForge18;
   document.querySelector('#usePotion16').onclick=()=>{usePotion16();showBag()};
   document.querySelector('#swapWeapon16').onclick=()=>{swap();showBag()};
+  document.querySelector('#openEquipment59').onclick=showEquipment59;
 }
 function usePotion16(){
   if(!potions16){msg('Эм дууссан — Shop-оос аваарай');return}
@@ -343,6 +370,7 @@ modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
     rodin54=createRodin54(THREE,gltf,rodinHolder54);
     if(rodin54.version!=='5.8.2')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
     rodin54.setWeapon(state.weapon);
+    rodin54.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
     avatarStatus54.remove();
     console.info('Rodin Alpha 5.8.2 ready:',rodin54.animations.join(', '));
     // Load FBX animation-only files progressively; on failure keep playable
@@ -537,7 +565,7 @@ function updateFx13(dt){
       f.label.style.opacity=projected.z<1?String(k):'0';}
   }
 }
-const state={hp:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,max:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12,weapon:0,angle:0,pitch:.1,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
+const state={hp:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12+equipment59.bonuses().hp,max:100+Math.max(0,level-1)*10+armorRank18*8+talents19[2]*12+equipment59.bonuses().hp,weapon:0,angle:0,pitch:.1,target:null,attacking:0,cool:0,dodge:0,skillCool:[0,0,0]};const keys=new Set();let move={x:0,y:0},lookPointer=null,lastLook=null;
 // Alpha 1.7 — mobile quality-of-life: quick heal, quest journal, achievements, town return.
 const quick17=document.createElement('button');quick17.id='quickPotion17';quick17.textContent='❤️ Эм';
 document.querySelector('#app').appendChild(quick17);
@@ -603,7 +631,7 @@ function lock(){state.target=state.target?.alive?null:closest();msg(state.target
 function swap(){state.weapon=1-state.weapon;rodin54?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Rodin илд')}
 let queuedHitEnemy56=null;
 function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){
   if(state.cool>0||state.hp<=0||combat56.pending)return;
   const weapon=state.weapon;
@@ -749,7 +777,7 @@ for(let i=0;i<12;i++){
 for(const x of [-24,24])for(let z=-17;z<17;z+=5){k23(new THREE.CylinderGeometry(.42,.55,1.1,8),stone23,x,.55,z);k23(new THREE.SphereGeometry(.9,9,7),green23,x,1.5,z)}
 // Separate equipment overview (no mutation of hero model or animation).
 const equip23=document.createElement('button');equip23.id='equipment23';equip23.textContent='🛡 Тоноглол';panel.appendChild(equip23);
-equip23.onclick=()=>openWindow('🛡 Тоноглол',`<p>⚔ Илд: +${swordRank18} · 🏹 Нум: +${bowRank18}</p><p>🛡 Хуяг: +${armorRank18} · ❤️ ${state.hp}/${state.max} HP</p><p>✨ Ур чадварын оноо: ${talentPoints19}</p><p>⛏ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="goForge23">⚒ Дарханд сайжруулах</button>`);
+equip23.onclick=showEquipment59;
 document.addEventListener('click',e=>{if(e.target?.id==='goForge23')showForge18()});
 // Collapsible mobile menu, defaults closed on touch devices; preserves all existing button handlers.
 const menuToggle23=document.createElement('button');menuToggle23.id='menuToggle23';menuToggle23.textContent='☰ Цэс';menuToggle23.setAttribute('aria-expanded','false');app.appendChild(menuToggle23);
@@ -929,9 +957,10 @@ hit=function(damage=25,range=2.8){const e=activeEnemy56();const wasAlive=!!e?.al
 const prevBlocked25=blocked09;
 blocked09=function(x,z){if(inCastle25){return Math.abs(x-hallOrigin25.x)>7.35||Math.abs(z-hallOrigin25.z)>8.2}return prevBlocked25(x,z)};
 function update25(now,dt){
- stamina25=Math.max(0,Math.min(100,stamina25+(blocking25?-22:17)*dt));if(stamina25<1)setBlock25(false);
+ const staminaMax59=100+equipment59.bonuses().stamina;
+ stamina25=Math.max(0,Math.min(staminaMax59,stamina25+(blocking25?-22:17)*dt));if(stamina25<1)setBlock25(false);
  document.getElementById('stNum25').textContent=Math.floor(stamina25);
- document.getElementById('stFill25').style.width=stamina25+'%';
+ document.getElementById('stFill25').style.width=(stamina25/staminaMax59*100)+'%';
  portal25.rotation.z=now*.0004;
  if(inCastle25){castleHall25.visible=true;roomTitle09.style.display='block';roomTitle09.textContent='🏰 ХААНЫ ТАНХИМ · Гарах: ✦ Судлах'}else{castleHall25.visible=false;if(inside09<0)roomTitle09.style.display='none'}
 }
@@ -1038,7 +1067,7 @@ const enemyAI57=createEnemyAI57({
       msg('✦ PARRY · Цохилтыг буцаалаа');return;
     }
     const raw=enemy.boss?(enemy.hp<enemy.max*.5?32:20):enemy.elite?17:enemy.fast?7:9;
-    const reduced=Math.max(1,raw-armorRank18*2)*(blocking25&&stamina25>0?.3:1);
+    const reduced=Math.max(1,raw-armorRank18*2-equipment59.bonuses().defense)*(blocking25&&stamina25>0?.3:1);
     state.hp=Math.max(0,state.hp-reduced);
     if(!blocking25 && reduced>0)rodin54?.triggerImpact();
     if(state.hp===0){

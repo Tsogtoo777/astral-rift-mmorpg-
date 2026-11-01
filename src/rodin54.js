@@ -105,6 +105,19 @@ export function createRodin54(THREE, gltf, holder) {
   sword.scale.set(1.08,1.48,1.08); // longer two-handed blade silhouette
   joints.rightHand.add(sword);
 
+  // Alpha 5.9: light visual variants until real weapon GLBs are supplied.
+  // Rig, sword attachment and combat clips remain unchanged.
+  function setSwordStyle(visual='iron') {
+    const designs={
+      iron:{scale:[1.08,1.48,1.08],color:0xd7e7f1},
+      great:{scale:[1.22,1.76,1.20],color:0xa7b8c7},
+      katana:{scale:[.91,1.38,.89],color:0x9f87d7}
+    };
+    const selected=designs[visual]||designs.iron;
+    sword.scale.set(...selected.scale);
+    if(steel.color?.setHex)steel.color.setHex(selected.color);
+  }
+  setSwordStyle('iron');
   const bow = new THREE.Group();
   bow.name = 'RodinBow55';
   const wood = new THREE.MeshStandardMaterial({color:0x73503a,roughness:.78});
@@ -311,7 +324,7 @@ export function createRodin54(THREE, gltf, holder) {
   }
   holder.add(root);
   return {
-    version:'5.8.2',root,mixer,animations:[...clips.keys()],setWeapon,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
+    version:'5.8.2',root,mixer,animations:[...clips.keys()],setWeapon,setSwordStyle,triggerAttack,triggerImpact,triggerSpecial,installCombatAnimations,update,
     get combatMotions(){return [...combatClips.keys()];},
     get movementState(){return movementState;},
     get currentWeapon(){return equippedWeapon;},

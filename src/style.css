@@ -195,3 +195,19 @@
  #zone40{max-width:28vw;overflow:hidden;text-overflow:ellipsis;text-align:center}
  #status25{top:calc(55px + env(safe-area-inset-top))}
 }
+
+/* Alpha 5.9 — equipment interface: scrollable and mobile landscape friendly */
+.eq59-root{font-family:system-ui,sans-serif;font-size:13px;color:#eaf1f5}
+.eq59-root h3{font-size:14px;color:#edd5a0;margin:13px 0 7px;border-bottom:1px solid #d2ae764d;padding-bottom:5px}
+.eq59-summary{background:#0c2835;border:1px solid #3c7992;border-radius:9px;padding:10px;font-weight:650}
+.eq59-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.eq59-slot,.eq59-item{border:1px solid #5d7187;border-radius:9px;background:#0b1d2ebf;min-width:0}
+.eq59-slot{display:flex;flex-direction:column;gap:4px;padding:8px}
+.eq59-slot>span:first-child{font-size:11px;color:#b7c7d7}
+.eq59-name{font-weight:650}.eq59-name.common{color:#d5e2ea}.eq59-name.rare{color:#73c6fa}.eq59-name.epic{color:#d7a6ff}
+.eq59-empty{color:#8e9ba8;font-style:italic}.eq59-owned{color:#8fdfb6;font-size:11px}
+.eq59-item{display:flex;justify-content:space-between;align-items:center;padding:8px;gap:8px;margin-top:6px}
+.eq59-item small{display:block;color:#bbcbd4;font-size:10px;line-height:1.5;margin-top:4px}
+#window .eq59-root button{margin:0;padding:6px 8px;font-size:11px;min-height:32px;flex-shrink:0}
+.eq59-note{font-size:11px;color:#d0c2a6;line-height:1.5}
+@media(max-width:700px){.eq59-root{font-size:11px}.eq59-slots{gap:4px}.eq59-slot{padding:5px}.eq59-item{padding:5px}.eq59-item small{font-size:10px}#window .eq59-root button{padding:5px}}
