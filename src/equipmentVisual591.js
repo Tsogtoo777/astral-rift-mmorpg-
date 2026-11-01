@@ -59,9 +59,10 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
   root.traverse(o=>{if(o.isSkinnedMesh&&!host)host=o;});
   if(!host?.skeleton?.bones?.length)throw new Error('Rodin skinned mesh missing');
   const loaded={};
+  const loadState={boots:'not-loaded',cloak:'not-loaded',katana:'not-loaded'};
   const pending=new Map();
   let disposed=false;
-  const report=(key,message)=>{try{onStatus({key,message});}catch{}}
+  const report=(key,message)=>{loadState[key]=message;try{onStatus({key,message});}catch{}}
   function configured(key){
     if(key==='boots')return equipment.get('boots')?.id==='wanderer-boots';
     if(key==='cloak')return equipment.get('cloak')?.id==='teal-cape';
@@ -145,6 +146,7 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
         report(key,'load-failed');resolve();
       });
     });
+    report(key,'loading');
     pending.set(key,task);
     void task.finally(()=>pending.delete(key));
     return task;
@@ -169,5 +171,5 @@ export function createEquipmentVisual591(THREE,loader,rodin,equipment,{onStatus=
     }
     if(loaded.katana?.length)rodin.setExternalSwordModel(null);
   }
-  return {sync,dispose,loaded,assets:ASSETS_592};
+  return {sync,dispose,loaded,loadState,assets:ASSETS_592};
 }

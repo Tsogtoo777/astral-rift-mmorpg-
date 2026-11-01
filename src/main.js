@@ -140,6 +140,18 @@ let talents19=Array.isArray(saved.talents19)?[0,1,2,3].map(i=>Math.min(5,Math.ma
 let talentPoints19=Math.max(0,Number(saved.talentPoints19)||0);
 const equipment59=createEquipment59(saved.equipment59);
 let equipmentVisual591=null;
+const gearStatus593={boots:'not-loaded',cloak:'not-loaded',katana:'not-loaded'};
+function equipmentStatusText593(){
+  const names={boots:'Хөлийн хуяг',cloak:'Нөмрөг',katana:'Катана'};
+  const states={loaded:'3D ачаалагдсан',loading:'Ачаалж байна…','load-failed':'Файл олдсонгүй / уншигдсангүй','mount-failed':'Дүрийн ястай холбох алдаа','not-loaded':'Ачаалаагүй'};
+  const keys=['boots','cloak','katana'];
+  return '3D тоноглол: '+keys.map(k=>names[k]+' — '+(states[gearStatus593[k]]||gearStatus593[k])).join(' · ');
+}
+function refreshGearStatus593(){
+  const node=document.getElementById('gear-load-state593');
+  if(node)node.textContent=equipmentStatusText593();
+}
+
 let battleLog18=[];
 function logBattle18(t){battleLog18.unshift(t);battleLog18=battleLog18.slice(0,8)}
 
@@ -151,7 +163,8 @@ const win=document.createElement('div');win.id='window';document.querySelector('
 function closeWindow(){win.style.display='none'}
 function openWindow(title,content){win.innerHTML='<h2>'+title+'</h2>'+content+'<p><button id="closeWindow">Хаах</button></p>';win.style.display='block';document.querySelector('#closeWindow').onclick=closeWindow}
 function showEquipment59(){
-  openWindow('🛡 Equipment · Alpha 5.9', equipment59.render(gold));
+  openWindow('🛡 Equipment · Alpha 5.9.3', equipment59.render(gold)+'<p id="gear-load-state593" style="padding:9px;background:#193348;color:#d9f3ff;border-radius:9px;font-size:12px;line-height:1.6"></p>');
+  refreshGearStatus593();
   const refresh=()=>{saveGame();showEquipment59();};
   const oldHp=equipment59.bonuses().hp;
   win.querySelectorAll('[data-equip59]').forEach(button=>button.onclick=()=>{
@@ -374,7 +387,13 @@ modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
     if(rodin54.version!=='5.8.2')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
     rodin54.setWeapon(state.weapon);
     rodin54.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
-    equipmentVisual591=createEquipmentVisual591(THREE,modelLoader11,rodin54,equipment59);
+    equipmentVisual591=createEquipmentVisual591(THREE,modelLoader11,rodin54,equipment59,{
+      onStatus:({key,message})=>{
+        gearStatus593[key]=message;
+        refreshGearStatus593();
+        if(message==='mount-failed'||message==='load-failed')console.warn('Equipment 5.9.3 3D error:',key,message);
+      }
+    });
     void equipmentVisual591.sync();
     avatarStatus54.remove();
     console.info('Rodin Alpha 5.8.2 ready:',rodin54.animations.join(', '));
