@@ -1,10 +1,42 @@
-/** Astral Rift Alpha 5.9.7 — Meshy SmartRig playable character visual.
+/** Astral Rift Alpha 5.9.9 — Meshy SmartRig bone-name compatibility fix.
  * User-supplied GLB has ONE mesh, 62 skin joints, and TWO animations:
  * Walking (1.03s) and Running (0.63s). There is no Idle or sword animation.
  * A relaxed bind-pose Idle and lightweight procedural arm swings are fallback
  * visual behaviors, NOT authentic imported animation clips.
  * Meshy is the SOLE player visual and animation controller.
  */
+/**
+ * GLTFLoader sanitizes node names (notably ':' -> '_') while the input GLB
+ * uses labels like 'mixamorig:RightHand'. Resolve against ACTUAL loaded bones,
+ * including skeleton bones, without depending on GLTFLoader's punctuation.
+ * This is intentionally separated from the renderer so it can be regression-tested.
+ */
+export function resolveMeshyRigBones(root) {
+  const normalize = value => String(value || '')
+    .replace(/[^a-z0-9]/gi, '')
+    .toLowerCase()
+    .replace(/^mixamorig/, '')
+    .replace(/^armature/, '');
+  const named = new Map();
+  const add = bone => {
+    if (!bone || !bone.name) return;
+    const name = normalize(bone.name);
+    if (name && !named.has(name)) named.set(name, bone);
+  };
+  root.traverse(obj => {
+    if (obj.isBone) add(obj);
+    if (obj.isSkinnedMesh && obj.skeleton) {
+      for (const bone of obj.skeleton.bones || []) add(bone);
+    }
+  });
+  const get = name => named.get(normalize(name)) || null;
+  return {
+    RightArm: get('RightArm'), RightForeArm: get('RightForeArm'), RightHand: get('RightHand'),
+    LeftArm: get('LeftArm'), LeftForeArm: get('LeftForeArm'), LeftHand: get('LeftHand'),
+    Spine: get('Spine'), Spine1: get('Spine1')
+  };
+}
+
 export function createMeshy597(THREE, gltf, holder) {
   const root=gltf?.scene;
   if(!root)throw new Error('Meshy GLB scene дутуу');
@@ -18,13 +50,13 @@ export function createMeshy597(THREE, gltf, holder) {
     if(o.isSkinnedMesh){ meshCount++;o.frustumCulled=false; }
   });
   if(!meshCount)throw new Error('Meshy GLB skinned mesh / skeleton байхгүй');
-  const find=name=>root.getObjectByName('mixamorig:'+name);
-  const bones={
-    RightArm:find('RightArm'),RightForeArm:find('RightForeArm'),RightHand:find('RightHand'),
-    LeftArm:find('LeftArm'),LeftForeArm:find('LeftForeArm'),LeftHand:find('LeftHand'),
-    Spine:find('Spine'),Spine1:find('Spine1')
-  };
-  if(!bones.RightArm||!bones.RightHand||!bones.LeftArm)throw new Error('Meshy hand/arm bones mismatch');
+  const bones=resolveMeshyRigBones(root);
+  // A valid skinned character must still render if a hand bone gets renamed by
+  // an exporter. Use nearby bones for accessories; don't hide the whole avatar.
+  if(!bones.RightArm||!bones.RightHand||!bones.LeftArm){
+    console.warn('[Meshy 5.9.9] Some arm bones were not resolved; character animations remain enabled.',
+      Object.fromEntries(Object.entries(bones).map(([key,bone])=>[key,bone?.name||null])));
+  }
   const bounds=new THREE.Box3().setFromObject(root);
   const dimensions=bounds.getSize(new THREE.Vector3());
   if(!Number.isFinite(dimensions.y)||dimensions.y<.5)throw new Error('Meshy хэмжээг уншиж чадсангүй');
@@ -57,7 +89,9 @@ export function createMeshy597(THREE, gltf, holder) {
 
   const grip=new THREE.Group(); grip.name='MeshySwordGrip597';
   grip.position.set(-.008,-.035,.015); grip.rotation.set(-.24,0,-.20);
-  bones.RightHand.add(grip);
+  const gripAnchor=bones.RightHand||bones.RightForeArm||bones.RightArm||root;
+  if(!bones.RightHand)grip.position.set(.15,-.65,.22); // Emergency fallback only.
+  gripAnchor.add(grip);
   const fallbackSword=new THREE.Group();grip.add(fallbackSword);
   const steel=new THREE.MeshStandardMaterial({color:0xad97d8,metalness:.58,roughness:.31});
   const hilt=new THREE.MeshStandardMaterial({color:0x33303c,metalness:.22,roughness:.8});
@@ -95,7 +129,10 @@ export function createMeshy597(THREE, gltf, holder) {
   }
   const bow=new THREE.Group();bow.name='MeshyBow597';
   const bowArc=new THREE.Mesh(new THREE.TorusGeometry(.25,.016,6,20,Math.PI),hilt);
-  bowArc.rotation.y=Math.PI/2;bow.add(bowArc);bones.LeftHand?.add(bow);
+  bowArc.rotation.y=Math.PI/2;bow.add(bowArc);
+  const bowAnchor=bones.LeftHand||bones.LeftForeArm||bones.LeftArm||root;
+  if(!bones.LeftHand)bow.position.set(-.15,-.65,.2);
+  bowAnchor.add(bow);
   function setWeapon(w){weapon=w?1:0;grip.visible=!weapon;bow.visible=!!weapon;}
   setWeapon(0);
   function triggerAttack(w=weapon){weapon=w?1:0;combo=(combo%3)+1;swing=0;}
@@ -147,5 +184,5 @@ export function createMeshy597(THREE, gltf, holder) {
       swing+=dt;if(swing>=.58)swing=99;
     }
   }
-  return {version:'5.9.8',root,mixer,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
+  return {version:'5.9.9',root,mixer,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
 }
