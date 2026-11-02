@@ -81,7 +81,7 @@ assert.ok(Math.abs(roll(.016).z-3.1)<1e-5);
 assert.ok(Math.abs(roll(.05).z-3.1)<1e-5);
 assert.ok(Math.abs(roll(.016).z-roll(.05).z)<1e-6);
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
-assert.ok(main.includes('ALPHA 5.8 · GREAT SWORD COMBAT'));
+assert.ok(main.includes('ALPHA 5.8.2 · COMBAT CONTROL'));
 assert.ok(main.includes('enemyAI57.update(e,dt)'));
 assert.ok(main.includes('dodge57.update(dt)'));
 assert.ok(main.includes("const speed55=state.dodge>0?0"),'prevent joystick + dodge double movement');

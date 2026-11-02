@@ -68,7 +68,7 @@ assert.ok(Math.abs(cam.z-1.6)<.001,'camera radius remains on safe side of wall')
 const guardHidden=createCameraGuard56({Vector3:Vec3,Raycaster},[{visible:false}]);
 assert.equal(guardHidden.resolve(new Vec3(),new Vec3(0,0,4)),false);
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
-assert.ok(main.includes('ALPHA 5.8 · GREAT SWORD COMBAT'));
+assert.ok(main.includes('ALPHA 5.8.2 · COMBAT CONTROL'));
 assert.ok(main.includes('combat56.update(dt,state.weapon)'));
 assert.ok(main.includes('combat56.updateEnemy(e,dt)'));
 assert.ok(main.includes('cameraGuard56.resolve(camTarget,camera.position)'));

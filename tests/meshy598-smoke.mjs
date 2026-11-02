@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const m=fs.readFileSync('src/main.js','utf8');
+const c=fs.readFileSync('src/meshy597.js','utf8');
+assert.match(m,/createMeshy597\(THREE,gltf,meshyHolder598\)/);
+assert.match(m,/meshy-warrior-mobile\.glb/);
+assert.match(m,/updateMeshy598\(now,dt,walking,sprint55\)/);
+assert.match(m,/meshy597\?\.triggerAttack\(weapon\)/);
+assert.match(m,/meshy597\?\.setWeapon\(state\.weapon\)/);
+assert.match(m,/meshy597\?\.triggerSpecial\(i\)/);
+assert.match(c,/IdleGenerated598/);
+assert.match(c,/mixer\.update\(dt\)/);
+assert.match(c,/RightHand/);
+for(const bad of ['rodin-rigged.glb','createRodin54','meshMode597','meshButton597','mesh[y]?597\.root\.visible'])assert.equal(m.includes(bad),false,`Legacy player reference remains: ${bad}`);
+assert(!fs.existsSync('public/models/rodin-rigged.glb'));
+assert(fs.existsSync('public/models/meshy-warrior-mobile.glb'));
+assert(fs.existsSync('public/equipment/meshy-dark-katana.glb'));
+console.log('PASS Meshy 5.9.8 single-player replacement smoke');

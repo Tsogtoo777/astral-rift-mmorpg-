@@ -31,7 +31,7 @@ assert(html.includes('data-equip59'));
 assert(html.includes('data-buy59'));
 assert(html.includes('data-unequip59'));
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
-const rig=fs.readFileSync(new URL('../src/rodin54.js',import.meta.url),'utf8');
+const rig=fs.readFileSync(new URL('../src/meshy597.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
 assert(main.includes('equipment59:equipment59.snapshot()'),'save persists equipment');
 assert(main.includes('finishEquipment59(oldHp)'),'gear changes update hp/visual');
