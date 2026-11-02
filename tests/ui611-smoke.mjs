@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const main=fs.readFileSync('src/main.js','utf8');
+const viewer=fs.readFileSync('src/ui61.js','utf8');
+const body=main.slice(main.indexOf('function showEquipment59(){'),main.indexOf('function finishEquipment59('));
+assert.match(body,/const content=win\.querySelector\('\.arEquipLayout61 \.eq59-root'\)/);
+assert.match(body,/content\.outerHTML=equipment59\.render\(gold\)/);
+assert.match(body,/bindEquipmentActions\(\)/);
+assert.doesNotMatch(body,/const refresh=\(\)=>\{saveGame\(\);showEquipment59\(\)/);
+assert.match(viewer,/preview\.mount!==win\.querySelector\('#arViewer61'\)/);
+assert.match(viewer,/!mount\.isConnected/);
+assert.match(viewer,/disposePreview/);
+assert.equal(JSON.parse(fs.readFileSync('package.json')).version,'6.1.1-alpha');
+console.log('PASS 6.1.1: equipment updates preserve WebGL canvas, preview mount lifecycle guarded');
