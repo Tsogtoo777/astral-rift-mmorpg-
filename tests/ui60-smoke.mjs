@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const main=fs.readFileSync('src/main.js','utf8');
+const css=fs.readFileSync('src/ui60.css','utf8');
+const ui=fs.readFileSync('src/ui60.js','utf8');
+const packageFile=JSON.parse(fs.readFileSync('package.json','utf8'));
+assert.equal(packageFile.version,'6.0.0-alpha');
+assert.match(main,/installAstralUI60/);
+assert.match(main,/import '\.\/ui60\.css'/);
+assert.match(main,/updateAstralUI60\(now/);
+assert.match(main,/createMeshy597/);
+assert.match(main,/ALPHA 6\.0 · MESHY ONLY/);
+for(const key of ['#actions','#pad','#hud','#window','#arQuest60','#arSettings60','#arShortcuts60','#minimap'])assert(css.includes(key),`Missing visual rule ${key}`);
+for(const key of ['openBag','openEquipment','openJournal','openSkills','openMap','arScale60','arOpacity60','arCompact60','arModalNavigation60'])assert(ui.includes(key),`Missing UI action ${key}`);
+assert(!ui.includes('localStorage.clear('));
+assert(fs.existsSync('public/models/meshy-warrior-mobile.glb'));
+assert(fs.existsSync('public/equipment/meshy-dark-katana.glb'));
+console.log('PASS Alpha 6.0: HUD, touch control, modal tabs, preference storage and Meshy assets');
