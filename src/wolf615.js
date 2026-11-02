@@ -1,4 +1,4 @@
-/** Astral Rift 6.1.5 — standalone Forest Wolf, 27-bone GLB, 7 animation clips.
+/** Astral Rift 6.1.6 — stable-gait Forest Wolf, 27-bone GLB, 7 animation clips.
  * Intentional GLTF scene scale (.01) is NOT overwritten. All dimensions are
  * normalized on an OUTER wrapper to avoid corrupting the wolf skeleton.
  * Reuses the main game's enemy AI, collision, damage and loot lifecycle.
@@ -47,6 +47,7 @@ export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monst
   // Playing 1.15s at 2.0x keeps the physical contact within the telegraph.
   actions.Attack.setEffectiveTimeScale(2.0);
   let state='Idle',deathElapsed=0,deathFinished=false,hitRemaining=0;
+  let filteredSpeed616=0,runLatch616=false;
   actions.Idle.play();
   function change(next){
     if(!actions[next]||state===next)return;
@@ -63,7 +64,7 @@ export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monst
     root:container,mixer,clips,get state(){return state;},get deathFinished(){return deathFinished;},
     die(){if(state==='Dead')return;deathElapsed=0;hitRemaining=0;deathFinished=false;change('Dead');},
     hit(){if(state==='Dead'||hitRemaining>0)return;hitRemaining=Math.min(.5,clips.get('Hit').duration);change('Hit');},
-    revive(){deathElapsed=0;hitRemaining=0;deathFinished=false;Object.values(actions).forEach(a=>a.stop());state='Idle';actions.Idle.reset().play();container.visible=true;},
+    revive(){deathElapsed=0;hitRemaining=0;deathFinished=false;filteredSpeed616=0;runLatch616=false;Object.values(actions).forEach(a=>a.stop());state='Idle';actions.Idle.reset().play();container.visible=true;},
     update(dt,{alive,phase,distance}) {
       const step=Math.min(.06,Math.max(0,Number(dt)||0));
       if(!alive){
@@ -73,7 +74,14 @@ export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monst
         return;
       }
       container.visible=true;
-      let desired=chooseWolfMotion615({alive,phase,distance,dt:step});
+      // Phone joystick/pathfinding produces uneven per-frame displacement.
+      // Filter the measured speed and use separate Run enter/exit thresholds
+      // to avoid restarting the gait on alternate frames near an obstacle.
+      const rawSpeed=Math.min(12,Math.max(0,Number(distance)||0)/Math.max(.008,step));
+      filteredSpeed616+=(rawSpeed-filteredSpeed616)*(1-Math.exp(-7*step));
+      if(filteredSpeed616>1.65)runLatch616=true;
+      else if(filteredSpeed616<.98)runLatch616=false;
+      let desired=phase==='windup'?'Attack':runLatch616?'Run':filteredSpeed616>.18?'Walk':'Idle';
       if(hitRemaining>0){hitRemaining=Math.max(0,hitRemaining-step);desired='Hit';}
       // No forced restart at each AI recover tick: let the attack finish.
       if(state==='Attack'&&desired==='Idle'&&actions.Attack.time<clips.get('Attack').duration-.04)desired='Attack';

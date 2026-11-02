@@ -1,4 +1,4 @@
-/** Astral Rift Alpha 6.1.3 — no-cape option, stable locomotion & corrected katana grip.
+/** Astral Rift Alpha 6.1.6 — cape cleanup and stable katana grip.
  * User-supplied GLB has ONE mesh, 62 skin joints, and TWO animations:
  * Walking (1.03s) and Running (0.63s). There is no Idle or sword animation.
  * A relaxed bind-pose Idle and lightweight procedural arm swings are fallback
@@ -102,7 +102,7 @@ export function createMeshy597(THREE, gltf, holder) {
   if(!meshCount)throw new Error('Meshy GLB skinned mesh / skeleton байхгүй');
   // No-cape model was preprocessed offline; do not reassign remaining armor weights.
   const correctedCapeVertices=0;
-  console.info('[Meshy 6.1.3] experimental no-cape mesh, remaining cloth not simulated');
+  console.info('[Meshy 6.1.6] finger-driven dangling skirt removed from experimental no-cape mesh');
   const bones=resolveMeshyRigBones(root);
   // A valid skinned character must still render if a hand bone gets renamed by
   // an exporter. Use nearby bones for accessories; don't hide the whole avatar.
@@ -192,6 +192,26 @@ export function createMeshy597(THREE, gltf, holder) {
     const wanted=new THREE.Vector3(.16,-.40,.90).normalize().applyQuaternion(characterWorld);
     wanted.applyQuaternion(handWorld.invert());
     grip.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),wanted.normalize());
+  }
+  // In Idle/Walk/Run keep the blade pointing diagonally forward and down,
+  // even when the imported locomotion rotates the hand unexpectedly. While
+  // attacking, retain the last local grip so the blade follows the real arm
+  // through the authored procedural swing. The GLB itself is not re-rigged.
+  const bladeAxis616=new THREE.Vector3(0,1,0);
+  const intendedBlade616=new THREE.Vector3(.16,-.48,.86).normalize();
+  const swordHandWorld616=new THREE.Quaternion();
+  const swordHeroWorld616=new THREE.Quaternion();
+  const targetGrip616=new THREE.Quaternion();
+  function stabilizeSwordGrip616(dt){
+    if(!bones.RightHand||swing<.58||weapon)return;
+    root.updateMatrixWorld(true);
+    bones.RightHand.getWorldQuaternion(swordHandWorld616);
+    root.getWorldQuaternion(swordHeroWorld616);
+    const desired=intendedBlade616.clone().applyQuaternion(swordHeroWorld616)
+      .applyQuaternion(swordHandWorld616.invert()).normalize();
+    targetGrip616.setFromUnitVectors(bladeAxis616,desired);
+    // No instantaneous teleport/jolt when a walk or run blend starts.
+    grip.quaternion.slerp(targetGrip616,1-Math.exp(-15*dt));
   }
   const fallbackSword=new THREE.Group();fallbackSword.rotation.z=Math.PI;grip.add(fallbackSword);
   const steel=new THREE.MeshStandardMaterial({color:0xad97d8,metalness:.58,roughness:.31});
@@ -319,6 +339,7 @@ export function createMeshy597(THREE, gltf, holder) {
       overlay('Spine1',-.07*wind+.08*hit,-.10*sign*wind+.16*sign*hit,0);
       swing+=dt;if(swing>=.58)swing=99;
     }
+    stabilizeSwordGrip616(dt);
   }
-  return {version:'6.1.5',root,mixer,correctedCapeVertices,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
+  return {version:'6.1.6',root,mixer,correctedCapeVertices,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
 }
