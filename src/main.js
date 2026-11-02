@@ -1,20 +1,18 @@
-import { createEquipmentVisual591 } from './equipmentVisual591.js';
+import { createMeshy597 } from './meshy597.js';
 import { createEquipment59 } from './equipment59.js';
-import { loadGreatSword58 } from './greatSword58.js';
-import { createRodin54 } from './rodin54.js';
 import { createCombat56, effectiveStrikeRange56 } from './combat56.js';
 import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 5.9.6 — Wanderer Colors';
+document.title='Astral Rift Alpha 5.9.8 — Meshy Warrior';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.9 · EQUIPMENT</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 5.9.8 · MESHY</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -27,7 +25,7 @@ for(let i=0;i<65;i++){const a=i*2.399,r=24+(i%9)*4;trunk(Math.cos(a)*r,Math.sin(
 // Streets/market and the medieval buildings remain unchanged.
 
 const player=new THREE.Group();scene.add(player);
-// Alpha 5.5: one rigged Rodin player; no Samurai or LEGO avatar.
+// 5.9.8: Meshy SmartRig is the only playable character. No legacy avatar.
 // Preserve world material palette; do not allocate old LEGO body, sword, or bow.
 const steel=new THREE.MeshStandardMaterial({color:0x8e9dab,metalness:.8,roughness:.26});
 const trim=new THREE.MeshStandardMaterial({color:0x99784b,metalness:.65,roughness:.35});
@@ -92,7 +90,7 @@ saruulPart10(new THREE.BoxGeometry(.42,.09,.13),saruulWhite10,0,1.47,.3);
 const ink=new THREE.MeshStandardMaterial({color:0x202a40,roughness:.85});
 const cyanGlow=new THREE.MeshStandardMaterial({color:0x65e9ff,emissive:0x1e8cb5,emissiveIntensity:1.3,roughness:.3});
 function artMesh(parent,geometry,mat,x,y,z,rotY=0){const o=new THREE.Mesh(geometry,mat);o.position.set(x,y,z);o.rotation.y=rotY;o.castShadow=true;parent.add(o);return o}
-// Player appearance is entirely provided by the rigged Rodin GLB.
+// Player appearance is entirely provided by the Meshy GLB.
 // Building detail: timber frames, glowing windows, flower boxes, tiled roofs.
 const timber=new THREE.MeshStandardMaterial({color:0x624431,roughness:.95});
 const plaster=new THREE.MeshStandardMaterial({color:0xd6c3a1,roughness:1});
@@ -139,7 +137,7 @@ const talentNames19=['⚔️ Илдний мастер','🏹 Мэргэн ха�
 let talents19=Array.isArray(saved.talents19)?[0,1,2,3].map(i=>Math.min(5,Math.max(0,Number(saved.talents19[i])||0))):[0,0,0,0];
 let talentPoints19=Math.max(0,Number(saved.talentPoints19)||0);
 const equipment59=createEquipment59(saved.equipment59);
-let equipmentVisual591=null;
+
 let battleLog18=[];
 function logBattle18(t){battleLog18.unshift(t);battleLog18=battleLog18.slice(0,8)}
 
@@ -172,8 +170,7 @@ function finishEquipment59(previousHpBonus){
   state.max=Math.max(1,state.max+delta);
   state.hp=Math.max(1,Math.min(state.max,state.hp+delta));
   if(typeof stamina25==='number')stamina25=Math.min(100+current.stamina,stamina25);
-  rodin54?.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
-  void equipmentVisual591?.sync();
+  meshy597?.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
 }
 function showBag(){
   openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button>`);
@@ -330,7 +327,7 @@ for(let i=0;i<8;i++){
  visual08(new THREE.SphereGeometry(.19,8,6),gold08,2+Math.sin(a)*2.1,.72,4+Math.cos(a)*2.1);
 }
 visual08(new THREE.OctahedronGeometry(.55),glow08,2,3.08,4);
-// Rigged Rodin replaces the old Samurai and procedural LEGO meshes.
+// Meshy SmartRig replaces all former playable avatar meshes.
 // Dungeon arches and glowing floor sigils, deliberately lightweight.
 for(let i=0;i<8;i++){
  const a=i*Math.PI/4,x=48+Math.sin(a)*12,z=-48+Math.cos(a)*12;
@@ -341,73 +338,52 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.9.6 · WANDERER COLORS'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 5.9.8 · MESHY ONLY'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
-// Alpha 5.5 — Rodin sword combat overlays on authentic Idle/Walk/Run clips.
-// Old Samurai visual/controller and all fallback LEGO player meshes are removed.
+// Alpha 5.9.8 — SINGLE playable Meshy rig. Legacy Rodin is not loaded or displayed.
+// Original city, combat, saves, inventory, NPCs and controls stay intact.
 const modelLoader11=new GLTFLoader();
 let saruulModel11=null;
-let rodin54=null;
-const rodinHolder54=new THREE.Group();
-rodinHolder54.name='RodinPlayer54';
-player.add(rodinHolder54);
+let meshy597=null;
+const meshyHolder598=new THREE.Group();
+meshyHolder598.name='MeshyMainCharacter598';
+player.add(meshyHolder598);
 modelLoader11.load('/models/saruul.glb',gltf=>{
   const model=gltf.scene;
   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
-  for(const child of [...npc.children]) child.visible=false;
-  saruulModel11=model;
-  npc.add(model);
-  setupJoints12(model);
+  for(const child of [...npc.children])child.visible=false;
+  saruulModel11=model; npc.add(model); setupJoints12(model);
 },undefined,error=>console.warn('Saruul NPC asset unavailable:',error));
 
-const avatarStatus54=document.createElement('div');
-avatarStatus54.id='avatar-status-54';
-avatarStatus54.setAttribute('role','status');
-avatarStatus54.textContent='Rodin 3D дүр ачаалж байна…';
-Object.assign(avatarStatus54.style,{position:'fixed',left:'50%',bottom:'12%',transform:'translateX(-50%)',zIndex:'1000',padding:'8px 14px',border:'1px solid #80a7c7',borderRadius:'12px',background:'rgba(12,27,42,.9)',color:'#fff',fontSize:'13px',maxWidth:'80vw',textAlign:'center',pointerEvents:'none'});
-document.body.appendChild(avatarStatus54);
-modelLoader11.load('/models/rodin-rigged.glb',gltf=>{
+const avatarStatus598=document.createElement('div');
+avatarStatus598.id='avatar-status-598';
+avatarStatus598.setAttribute('role','status');
+avatarStatus598.textContent='Шинэ Meshy дүр ачаалж байна…';
+Object.assign(avatarStatus598.style,{position:'fixed',left:'50%',bottom:'12%',transform:'translateX(-50%)',zIndex:'1000',padding:'8px 14px',border:'1px solid #80a7c7',borderRadius:'12px',background:'rgba(12,27,42,.9)',color:'#fff',fontSize:'13px',maxWidth:'80vw',textAlign:'center',pointerEvents:'none'});
+document.body.appendChild(avatarStatus598);
+modelLoader11.load('/models/meshy-warrior-mobile.glb',gltf=>{
   try{
-    rodin54=createRodin54(THREE,gltf,rodinHolder54);
-    if(rodin54.version!=='5.8.2')throw new Error('src/rodin54.js Alpha 5.8 хувилбар биш байна');
-    rodin54.setWeapon(state.weapon);
-    rodin54.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
-    equipmentVisual591=createEquipmentVisual591(THREE,modelLoader11,rodin54,equipment59,{
-      onStatus:({key,message})=>{
-        if(key!=='cloak')return;
-        if(message==='base-asset-missing')msg('⚠ Анхны Rodin GLB шинэчлэгдээгүй: нөмрөг салгах боломжгүй');
-        if(message==='mount-failed'||message==='load-failed')msg('⚠ Нөмрөгийн шинэ модель харагдсангүй; анхны нөмрөг хэвээр');
-        if(message==='loaded')console.info('[Rodin cape 5.9.5] Original skinned cape recolored teal while equipped');
-      }
-    });
-    void equipmentVisual591.sync();
-    avatarStatus54.remove();
-    console.info('Rodin Alpha 5.8.2 ready:',rodin54.animations.join(', '));
-    // Load FBX animation-only files progressively; on failure keep playable
-    // 5.7 procedural attacks rather than leaving the avatar in a T-pose.
-    void loadGreatSword58(THREE,rodin54,{
-      onProgress:({key,loaded,total})=>console.info('Great Sword animation',loaded+'/'+total,key)
-    }).then(result=>{
-      console.info('Great Sword 5.8:',result);
-      if(result.loaded)msg('⚔ Илдний '+result.loaded+'/'+result.total+' хөдөлгөөн ачааллаа');
-      else msg('Илдний FBX ачаалагдсангүй — өмнөх хөдөлгөөн ажиллана');
-    }).catch(error=>{
-      console.warn('Great Sword fallback:',error);
-      msg('FBX animation алдаа — өмнөх хөдөлгөөн ажиллана');
-    });
+    meshy597=createMeshy597(THREE,gltf,meshyHolder598);
+    meshy597.setWeapon(state.weapon);
+    meshy597.setSwordStyle(equipment59.get('weapon')?.visual || 'iron');
+    avatarStatus598.remove();
+    console.info('[Meshy only 5.9.8] rigged character ready:',meshy597.animations.join(', '));
+    modelLoader11.load('/equipment/meshy-dark-katana.glb',sword=>{
+      meshy597?.setSwordModel(sword.scene);
+      meshy597?.setSwordStyle(equipment59.get('weapon')?.visual || 'iron');
+    },undefined,error=>console.warn('[Meshy only 5.9.8] sword GLB unavailable, using procedural fallback:',error));
   }catch(error){
-    console.error('Rodin animation init failed:',error);
-    avatarStatus54.textContent='Rodin animation алдаа: '+(error?.message || String(error));
+    console.error('Meshy rig failed:',error);
+    avatarStatus598.textContent='Meshy дүрийн алдаа: '+(error?.message||String(error));
   }
 },undefined,error=>{
-  console.error('Rodin GLB failed to load:',error);
-  avatarStatus54.textContent='Rodin GLB ачаалсангүй — /models/rodin-rigged.glb шалгана уу';
+  console.error('Meshy GLB load failed:',error);
+  avatarStatus598.textContent='Meshy GLB ачаалсангүй — /models/meshy-warrior-mobile.glb шалгана уу';
 });
-function updateRodin54(now,dt,walking,sprint){
-  if(!rodin54)return;
-  rodin54.update({dt,moving:walking,sprinting:sprint,blocking:blocking25,dodging:state.dodge>0,weapon:state.weapon});
+function updateMeshy598(now,dt,walking,sprint){
+  meshy597?.update({dt,moving:walking,sprinting:sprint,blocking:blocking25,dodging:state.dodge>0,weapon:state.weapon});
 }
 
 // Alpha 1.3 — lightweight procedural joints for existing local GLB assets.
@@ -640,10 +616,10 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyG')show
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
-function swap(){state.weapon=1-state.weapon;rodin54?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Rodin илд')}
+function swap(){state.weapon=1-state.weapon;meshy597?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Илд')}
 let queuedHitEnemy56=null;
 function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)rodin54?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)meshy597?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=false;e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
 function attack(){
   if(state.cool>0||state.hp<=0||combat56.pending)return;
   const weapon=state.weapon;
@@ -653,7 +629,7 @@ function attack(){
   }
   // The damage is resolved at the release frame, not when the button is pressed.
   if(combat56.queue({weapon,target:enemy,damage:weapon?18:28,range:weapon?17:3})){
-    rodin54?.triggerAttack(weapon);
+    meshy597?.triggerAttack(weapon);
     state.cool=weapon?.48:.36;
   }
 }
@@ -670,7 +646,7 @@ function dodge(){
   if(!dodge57.begin(dirX,dirZ))return;
   slashFx13(1);state.dodge=.42;msg('↝ Булталт');
 }
-function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range);if(state.weapon===0)rodin54?.triggerSpecial(i)}
+function skill(i){if(state.skillCool[i]>0)return;state.skillCool[i]=[3,6,10][i];slashFx13(1);const dmg=[35,48,70][i]+talents19[3]*6;const range=state.weapon?17:4;hit(dmg,range);if(state.weapon===0)meshy597?.triggerSpecial(i)}
 window.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyX')swap();if(e.code==='Space')dodge();if(e.code==='Tab')lock();if(e.code==='Digit1')skill(0);if(e.code==='Digit2')skill(1);if(e.code==='Digit3')skill(2)});window.addEventListener('keyup',e=>keys.delete(e.code));
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)attack();lookPointer=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer||!lastLook)return;state.angle-=(e.clientX-lastLook.x)*.006;state.pitch=THREE.MathUtils.clamp(state.pitch+(e.clientY-lastLook.y)*.004,-.2,.85);lastLook={x:e.clientX,y:e.clientY}});
@@ -1081,7 +1057,7 @@ const enemyAI57=createEnemyAI57({
     const raw=enemy.boss?(enemy.hp<enemy.max*.5?32:20):enemy.elite?17:enemy.fast?7:9;
     const reduced=Math.max(1,raw-armorRank18*2-equipment59.bonuses().defense)*(blocking25&&stamina25>0?.3:1);
     state.hp=Math.max(0,state.hp-reduced);
-    if(!blocking25 && reduced>0)rodin54?.triggerImpact();
+    if(!blocking25 && reduced>0)meshy597?.triggerImpact?.();
     if(state.hp===0){
       msg('Та ялагдлаа — дахин эхэлж байна');state.hp=state.max;
       player.position.set(inDungeon07?48:0,0,inDungeon07?-38:0);
@@ -1114,7 +1090,7 @@ if(walking){
   player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70);
 }
 dodge57.update(dt);
-animateCharacters12(now,dt,walking);updateRodin54(now,dt,walking,sprint55);advancedFX50.update(dt,walking,state.attacking);
+animateCharacters12(now,dt,walking);updateMeshy598(now,dt,walking,sprint55);advancedFX50.update(dt,walking,state.attacking);
 shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){
   // Keep outdoor mobs inactive in indoor/dungeon scenes and vice versa.
   if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07)){
