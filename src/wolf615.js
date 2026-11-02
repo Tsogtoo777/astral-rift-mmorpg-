@@ -12,13 +12,31 @@ export function chooseWolfMotion615({alive=true,phase='idle',distance=0,dt=.016}
   return 'Idle';
 }
 
-export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monsters/forest_wolf.glb'}) {
+export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monsters/forest_wolf.glb', motionOverrides=null}) {
   if(!enemy?.g)throw Error('Wolf enemy group missing');
   const gltf=await new GLTFLoader().loadAsync(assetUrl),root=gltf.scene;
   if(!root)throw Error('Wolf scene missing');
   const clipNames=['Idle','Walk','Run','Attack','Hit','Dead','Howl'];
   const clips=new Map((gltf.animations||[]).map(c=>[c.name,c]));
   for(const name of clipNames)if(!clips.has(name))throw Error(`Wolf clip missing: ${name}`);
+  // Optional retargeted Walk/Run tracks on this SAME Meshy GLB skeleton.
+  // Any incompatible external animation must never prevent the original wolf loading.
+  let motionSource='Meshy-original';
+  if (motionOverrides) {
+    try {
+      const overrides=await motionOverrides(root, THREE);
+      for(const name of ['Walk','Run']) {
+        const clip=overrides?.[name];
+        if (!clip || !(clip.duration>0) || !Array.isArray(clip.tracks) || clip.tracks.length<8) {
+          throw Error(`Retargeted ${name} invalid`);
+        }
+      }
+      for(const name of ['Walk','Run'])clips.set(name,overrides[name]);
+      motionSource='FBX-motion-on-Meshy-rig';
+    } catch(err) {
+      console.warn('[Astral 6.1.8] FBX motion retarget unavailable; keep original Meshy animation:',err);
+    }
+  }
   let skinned=0;
   root.traverse(obj=>{if(obj.isSkinnedMesh){skinned++;obj.frustumCulled=false;obj.castShadow=true;obj.receiveShadow=false;}});
   if(!skinned)throw Error('Wolf skin/skeleton missing');
@@ -61,7 +79,7 @@ export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monst
     state=next;
   }
   return {
-    root:container,mixer,clips,get state(){return state;},get deathFinished(){return deathFinished;},
+    root:container,mixer,clips,get state(){return state;},get deathFinished(){return deathFinished;},get source(){return motionSource;},
     die(){if(state==='Dead')return;deathElapsed=0;hitRemaining=0;deathFinished=false;change('Dead');},
     hit(){if(state==='Dead'||hitRemaining>0)return;hitRemaining=Math.min(.5,clips.get('Hit').duration);change('Hit');},
     revive(){deathElapsed=0;hitRemaining=0;deathFinished=false;filteredSpeed616=0;runLatch616=false;Object.values(actions).forEach(a=>a.stop());state='Idle';actions.Idle.reset().play();container.visible=true;},
