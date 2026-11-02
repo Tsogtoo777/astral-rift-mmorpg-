@@ -5,7 +5,7 @@ import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 6.1 — Meshy Warrior';
+document.title='Astral Rift Alpha 6.1.1 — Meshy Warrior';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
@@ -16,7 +16,7 @@ import { installAstralUI60 } from './ui60.js';
 import { installAstralUI61 } from './ui61.js';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.1 · MESHY</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.1.1 · MESHY</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -154,19 +154,34 @@ function closeWindow(){win.style.display='none'}
 function openWindow(title,content){win.innerHTML='<div id="arDialogHeader61"><strong>ASTRAL RIFT • CHARACTER & WORLD</strong><button type="button" id="closeWindowTop61" aria-label="Цонх хаах">✕</button></div><h2>'+title+'</h2>'+content+'<p><button id="closeWindow">Хаах</button></p>';win.style.display='block';document.querySelector('#closeWindow').onclick=closeWindow;document.querySelector('#closeWindowTop61').onclick=closeWindow}
 function showEquipment59(){
   openWindow('🛡 Дүр ба тоноглол', `<div class="arEquipLayout61"><aside class="arHeroPreview61"><div class="arHeroTitle61">MESHY · WARRIOR</div><div class="arHeroSubtitle61">Гол дүр • Хуягт дайчин</div><div id="arViewer61">3D дүрийг харах товчийг дарна уу</div><button id="arStartViewer61" type="button">◉ 3D дүр харах</button><small>Хуруугаар эргүүлж харж болно. Хувцас Meshy загварт нэгтгэсэн.</small></aside>${equipment59.render(gold)}</div>`);
-  const refresh=()=>{saveGame();showEquipment59();};
-  const oldHp=equipment59.bonuses().hp;
-  win.querySelectorAll('[data-equip59]').forEach(button=>button.onclick=()=>{
-    if(equipment59.equip(button.dataset.equip59)){finishEquipment59(oldHp);refresh();}
-  });
-  win.querySelectorAll('[data-unequip59]').forEach(button=>button.onclick=()=>{
-    if(equipment59.unequip(button.dataset.unequip59)){finishEquipment59(oldHp);refresh();}
-  });
-  win.querySelectorAll('[data-buy59]').forEach(button=>button.onclick=()=>{
-    const result=equipment59.buy(button.dataset.buy59,gold);
-    if(!result.ok){msg('Алт хүрэлцэхгүй эсвэл аль хэдийн авсан');return;}
-    gold-=result.price;msg('Тоноглол авлаа');refresh();
-  });
+  // Alpha 6.1.1: changing equipment must NOT rebuild the whole window.
+  // Rebuilding used to destroy #arViewer61 and its live WebGL canvas, causing
+  // the 3D character to disappear after every equip/unequip/purchase action.
+  const refresh=()=>{
+    saveGame();
+    const content=win.querySelector('.arEquipLayout61 .eq59-root');
+    if(!content)return;
+    const savedScroll=win.scrollTop;
+    content.outerHTML=equipment59.render(gold); // preserve 3D viewport and camera angle
+    bindEquipmentActions();
+    win.scrollTop=savedScroll;
+  };
+  function bindEquipmentActions(){
+    win.querySelectorAll('[data-equip59]').forEach(button=>button.onclick=()=>{
+      const oldHp=equipment59.bonuses().hp;
+      if(equipment59.equip(button.dataset.equip59)){finishEquipment59(oldHp);refresh();}
+    });
+    win.querySelectorAll('[data-unequip59]').forEach(button=>button.onclick=()=>{
+      const oldHp=equipment59.bonuses().hp;
+      if(equipment59.unequip(button.dataset.unequip59)){finishEquipment59(oldHp);refresh();}
+    });
+    win.querySelectorAll('[data-buy59]').forEach(button=>button.onclick=()=>{
+      const result=equipment59.buy(button.dataset.buy59,gold);
+      if(!result.ok){msg('Алт хүрэлцэхгүй эсвэл аль хэдийн авсан');return;}
+      gold-=result.price;msg('Тоноглол авлаа');refresh();
+    });
+  }
+  bindEquipmentActions();
 }
 function finishEquipment59(previousHpBonus){
   const current=equipment59.bonuses();
@@ -342,7 +357,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 6.1 · MESHY ONLY'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 6.1.1 · MESHY ONLY'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 

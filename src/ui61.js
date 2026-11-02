@@ -1,4 +1,4 @@
-/** Astral Rift Alpha 6.1 — optional character viewport + mobile modal UX.
+/** Astral Rift Alpha 6.1.1 — persistent character viewport + mobile modal UX.
  * Keeps every item ID, quest action, keyboard binding and save file compatible.
  * 3D preview shares mesh/texture GPU resources with the in-game character;
  * the separate tiny WebGL context only exists while the player asks for preview.
@@ -61,7 +61,7 @@ export function installAstralUI61({app,win,panel,getMeshy}) {
     renderer.domElement.addEventListener('pointerup',onUp);
     renderer.domElement.addEventListener('pointercancel',onUp);
     function animate(t){
-      if(!preview||!win.querySelector('#arViewer61')||getComputedStyle(win).display==='none'){disposePreview();return;}
+      if(!preview||win.querySelector('#arViewer61')!==mount||!mount.isConnected||getComputedStyle(win).display==='none'){disposePreview();return;}
       rafId=requestAnimationFrame(animate);
       if(t-lastFrame<50)return;lastFrame=t;
       if(!dragging)rotation+=.003;
@@ -74,7 +74,9 @@ export function installAstralUI61({app,win,panel,getMeshy}) {
   function syncDialog(){
     const visible=getComputedStyle(win).display!=='none';
     const equipment=!!win.querySelector('.arEquipLayout61');
-    if(!visible||!equipment){if(preview)disposePreview();}
+    // Dispose an orphaned context if another dialog replaced its DOM.
+    // Re-rendering only .eq59-root keeps the live model/canvas intact.
+    if(preview && (!visible || !equipment || preview.mount!==win.querySelector('#arViewer61') || !preview.mount.isConnected))disposePreview();
     const title=win.querySelector('h2')?.textContent||'';
     const tab=equipment?'equip':/Inventory|Хэрэгсэл/.test(title)?'bag':/Skill|Чадвар/.test(title)?'skill':/Даалгавар/.test(title)?'quest':'';
     activeDialog=tab;win.querySelectorAll('[data-ar-tab]').forEach(b=>{b.classList.toggle('ar-tab-active61',b.dataset.arTab===tab);b.setAttribute('aria-current',String(b.dataset.arTab===tab));});
@@ -101,7 +103,7 @@ export function installAstralUI61({app,win,panel,getMeshy}) {
   // Optional preference, separate from the 6.0 settings to preserve saved values.
   const settingCard=document.querySelector('#arSettings60 .ar-settings-card60');
   if(settingCard){
-    settingCard.querySelector('header small').textContent='ASTRAL RIFT • ALPHA 6.1';
+    settingCard.querySelector('header small').textContent='ASTRAL RIFT • ALPHA 6.1.1';
     const opt=document.createElement('label');
     opt.className='ar-check-row60 ar-quest-toggle61';
     opt.innerHTML='<input type="checkbox" id="arHideQuest61"/> Даалгаврын самбарыг нуух';
