@@ -1,4 +1,4 @@
-/** Astral Rift Alpha 6.1.2 — Meshy neutral idle + leg/cape deformations.
+/** Astral Rift Alpha 6.1.3 — no-cape option, stable locomotion & corrected katana grip.
  * User-supplied GLB has ONE mesh, 62 skin joints, and TWO animations:
  * Walking (1.03s) and Running (0.63s). There is no Idle or sword animation.
  * A relaxed bind-pose Idle and lightweight procedural arm swings are fallback
@@ -100,8 +100,9 @@ export function createMeshy597(THREE, gltf, holder) {
     if(o.isSkinnedMesh){ meshCount++;o.frustumCulled=false; }
   });
   if(!meshCount)throw new Error('Meshy GLB skinned mesh / skeleton байхгүй');
-  const correctedCapeVertices=stabilizeMeshyCapeWeights(root);
-  console.info('[Meshy 6.1.2] cape weight correction, vertices:',correctedCapeVertices);
+  // No-cape model was preprocessed offline; do not reassign remaining armor weights.
+  const correctedCapeVertices=0;
+  console.info('[Meshy 6.1.3] experimental no-cape mesh, remaining cloth not simulated');
   const bones=resolveMeshyRigBones(root);
   // A valid skinned character must still render if a hand bone gets renamed by
   // an exporter. Use nearby bones for accessories; don't hide the whole avatar.
@@ -154,12 +155,12 @@ export function createMeshy597(THREE, gltf, holder) {
   let movement='Idle';
   // Save the neutral knee/hip orientations for a very gentle animation limiter.
   const legRest=new Map();
-  const capeRest=[];
+  const capeRest=[]; // Empty for cape-free asset; no extra simulated cloth tails
   root.traverse(obj=>{
     if(!obj.isBone)return;
     const name=obj.name.replace(/[^a-z0-9]/gi,'').toLowerCase();
     if(/(?:left|right)(?:upleg|leg)$/.test(name))legRest.set(obj,{q:obj.quaternion.clone(),isKnee:name.endsWith('leg')&&!name.endsWith('upleg')});
-    const match=obj.name.match(/^Bone_0(2[6-9]|3[0-9]|4[0-3])$/);
+    const match=null; // Cape bones retained in skin hierarchy for animation compatibility.
     if(match){
       const n=Number(match[1]);
       // 3 chains attached to Spine2: 26..31, 32..37, 38..43
@@ -177,11 +178,22 @@ export function createMeshy597(THREE, gltf, holder) {
   let swing=99,combo=0,clock=0,weapon=0,blockWeight=0;
 
   const grip=new THREE.Group(); grip.name='MeshySwordGrip597';
-  grip.position.set(-.008,-.035,.015); grip.rotation.set(-.24,0,-.20);
+  grip.position.set(0,.075,-.012); grip.rotation.set(0,0,0);
   const gripAnchor=bones.RightHand||bones.RightForeArm||bones.RightArm||root;
   if(!bones.RightHand)grip.position.set(.15,-.65,.22); // Emergency fallback only.
   gripAnchor.add(grip);
-  const fallbackSword=new THREE.Group();grip.add(fallbackSword);
+  // The character's bind-pose hand +Y aims downward/backward in world space.
+  // Calibrate the blade axis ONCE against character-forward while preserving
+  // hand parenting. Imported sword blades then follow actual animation bones.
+  if(bones.RightHand){
+    root.updateMatrixWorld(true);
+    const handWorld=bones.RightHand.getWorldQuaternion(new THREE.Quaternion());
+    const characterWorld=root.getWorldQuaternion(new THREE.Quaternion());
+    const wanted=new THREE.Vector3(.16,-.40,.90).normalize().applyQuaternion(characterWorld);
+    wanted.applyQuaternion(handWorld.invert());
+    grip.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),wanted.normalize());
+  }
+  const fallbackSword=new THREE.Group();fallbackSword.rotation.z=Math.PI;grip.add(fallbackSword);
   const steel=new THREE.MeshStandardMaterial({color:0xad97d8,metalness:.58,roughness:.31});
   const hilt=new THREE.MeshStandardMaterial({color:0x33303c,metalness:.22,roughness:.8});
   const gripPart=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.18,8),hilt);
@@ -197,7 +209,10 @@ export function createMeshy597(THREE, gltf, holder) {
     if(importedSword)importedSword.removeFromParent();
     importedSword=model||null;
     if(model){
-      model.position.set(0,-.83,0);model.rotation.set(0,0,0);model.scale.setScalar(.83);
+      // Meshy hand local +Y points toward the fingers/ground; GLB katana
+      // has blade tip at Y=0 and handle near Y=.85. Flip 180 degrees
+      // then place the hilt center at the calibrated palm anchor.
+      model.position.set(0,.70,0);model.rotation.set(0,0,Math.PI);model.scale.setScalar(.82);
       model.traverse(o=>{if(o.isMesh)o.castShadow=true;});
       grip.add(model);
     }
@@ -208,7 +223,8 @@ export function createMeshy597(THREE, gltf, holder) {
     const [color,size]=options[style]||options.iron;
     steel.color.setHex(color);fallbackSword.scale.setScalar(size);
     if(importedSword){
-      importedSword.scale.setScalar(.83*size);
+      importedSword.scale.setScalar(.82*size);
+      importedSword.position.y=.70*size;
       importedSword.traverse(o=>{if(o.isMesh&&o.material){
         // Preserve custom katana textures; only tint common flat materials.
         const all=Array.isArray(o.material)?o.material:[o.material];
@@ -239,10 +255,19 @@ export function createMeshy597(THREE, gltf, holder) {
   }
   function switchMotion(next){
     if(next===movement && active)return;
-    active?.fadeOut(.16);
-    movement=next;
+    const old=active;
     const a=actions[next];
-    if(a){a.reset().setEffectiveWeight(1).fadeIn(.16).play();}
+    const transferPhase=old && a && movement!=='Idle' && next!=='Idle';
+    const phase=transferPhase ? ((old.time/old.getClip().duration)%1+1)%1 : 0;
+    old?.fadeOut(.27);
+    movement=next;
+    if(a){
+      a.reset();
+      // Keep feet on roughly the same stride phase instead of restarting at
+      // frame zero every time the mobile sprint threshold is crossed.
+      if(transferPhase)a.time=phase*a.getClip().duration;
+      a.setEffectiveWeight(1).fadeIn(.27).play();
+    }
     active=a||null;
   }
   function update({dt=0,moving=false,sprinting=false,blocking=false,dodging=false,weapon:next=0}={}){
@@ -295,5 +320,5 @@ export function createMeshy597(THREE, gltf, holder) {
       swing+=dt;if(swing>=.58)swing=99;
     }
   }
-  return {version:'6.1.2',root,mixer,correctedCapeVertices,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
+  return {version:'6.1.5',root,mixer,correctedCapeVertices,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
 }

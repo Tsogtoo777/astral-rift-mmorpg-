@@ -5,8 +5,10 @@ import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import { loadGoblin614 } from './goblin614.js';
+import { loadForestWolf615 } from './wolf615.js';
+import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 6.1.4 — Goblin Raider';
+document.title='Astral Rift Alpha 6.1.5 — Wolf & Goblin';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
@@ -17,7 +19,7 @@ import { installAstralUI60 } from './ui60.js';
 import { installAstralUI61 } from './ui61.js';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.1.4 · GOBLIN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.1.5 · WOLF & GOBLIN</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -237,7 +239,51 @@ goblinEnemy614.hp=140;goblinEnemy614.max=140;goblinEnemy614.kind614='goblin';
 loadGoblin614({THREE,GLTFLoader,enemy:goblinEnemy614}).then(controller=>{
   goblinEnemy614.visual614=controller;
   console.info('[Astral 6.1.4] Goblin Raider ready: Idle/Walk/Run/Attack/Dead');
-}).catch(error=>console.warn('[Astral 6.1.4] Goblin GLB load failed; placeholder remains:',error));
+}).catch(error=>{console.warn('[Astral 6.1.5] Goblin GLB load failed; placeholder remains:',error);msg('Goblin GLB ачаалсангүй — /monsters/goblin_raider.glb шалгана уу');});
+// Alpha 6.1.5: one rigged forest wolf, sharing the existing server-ready
+// enemy entity/HP/loot/AI lifecycle. Other enemies remain untouched.
+const wolfEnemy615=spawn(-30,-23);
+wolfEnemy615.hp=110; wolfEnemy615.max=110; wolfEnemy615.kind615='wolf';
+wolfEnemy615.fast=true; // Wolf moves faster than ordinary Goblin.
+loadForestWolf615({THREE,GLTFLoader,enemy:wolfEnemy615}).then(controller=>{
+  wolfEnemy615.visual615=controller;
+  console.info('[Astral 6.1.5] Forest Wolf ready: 7 clips');
+}).catch(error=>{console.warn('[Astral 6.1.5] Wolf GLB unavailable; placeholder remains:',error);msg('Wolf GLB ачаалсангүй — /monsters/forest_wolf.glb шалгана уу');});
+// Lightweight on-screen enemy names/HP — 2 elements, not a new renderer.
+const namedEnemies615=[{enemy:goblinEnemy614,name:'Goblin Raider',level:5,height:1.7},{enemy:wolfEnemy615,name:'Forest Wolf',level:7,height:1.25}];
+const enemyHud615=document.createElement('div');enemyHud615.id='enemyHud615';document.body.append(enemyHud615);
+for(const entry of namedEnemies615){
+  const tag=document.createElement('div');tag.className='monsterTag615';
+  const label=document.createElement('div');label.textContent=`${entry.name} · Lv.${entry.level}`;
+  const bar=document.createElement('div');bar.className='monsterHealth615';
+  const fill=document.createElement('div');fill.className='monsterHealthFill615';bar.append(fill);tag.append(label,bar);enemyHud615.append(tag);
+  entry.tag=tag;entry.fill=fill;
+}
+const labelPoint615=new THREE.Vector3();
+function screenOfEnemy615(enemy,height){
+  labelPoint615.copy(enemy.g.position);labelPoint615.y+=height;labelPoint615.project(camera);
+  if(labelPoint615.z<-1||labelPoint615.z>1)return null;
+  return {x:(labelPoint615.x*.5+.5)*innerWidth,y:(-.5*labelPoint615.y+.5)*innerHeight};
+}
+function updateMonsterTags615(){
+  for(const entry of namedEnemies615){
+    const {enemy,tag,fill}=entry;
+    if(!enemy.alive||!enemy.g.visible||!((enemy.visual614||enemy.visual615))||
+       player.position.distanceTo(enemy.g.position)>14||inDungeon07||inside09>=0){tag.style.display='none';continue;}
+    const screen=screenOfEnemy615(enemy,entry.height);
+    if(!screen||screen.x<0||screen.x>innerWidth||screen.y<0||screen.y>innerHeight){tag.style.display='none';continue;}
+    tag.style.display='block';tag.style.left=`${screen.x}px`;tag.style.top=`${screen.y}px`;
+    fill.style.width=`${Math.round(100*Math.max(0,enemy.hp)/enemy.max)}%`;
+  }
+}
+function showDamage615(enemy,damage){
+  if(!(enemy.visual614||enemy.visual615))return;
+  const screen=screenOfEnemy615(enemy,enemy.visual614?1.52:1.1);if(!screen)return;
+  const number=document.createElement('span');number.className='monsterDamage615';number.textContent=`−${Math.round(damage)}`;
+  number.style.left=`${screen.x}px`;number.style.top=`${screen.y}px`;
+  enemyHud615.append(number);setTimeout(()=>number.remove(),750);
+}
+
 // Improved enemy silhouette while keeping their original hitboxes.
 const hornMat=new THREE.MeshStandardMaterial({color:0xe9d2b0,roughness:.8});
 for(const e of enemies){for(const side of [-1,1]){const horn=artMesh(e.g,new THREE.ConeGeometry(.18,.52,5),hornMat,side*.43,1.65,.02);horn.rotation.z=-side*.42;artMesh(e.g,new THREE.SphereGeometry(.095,7,6),cyanGlow,side*.24,1.05,.68)}artMesh(e.g,new THREE.BoxGeometry(.7,.14,.2),ink,0,.48,.48)}
@@ -367,7 +413,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 6.1.4 · GOBLIN ONLY'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 6.1.5 · WOLF & GOBLIN'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -648,7 +694,7 @@ function lock(){state.target=state.target?.alive?null:closest();msg(state.target
 function swap(){state.weapon=1-state.weapon;meshy597?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Илд')}
 let queuedHitEnemy56=null;
 function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)meshy597?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);e.hp=Math.max(0,e.hp-damage);if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=!!e.visual614;e.visual614?.die();e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18('⚔️ Дайсан: +10 алт, +35 EXP, +хүдэр');questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();msg('Дайсныг яллаа! +10 алт · +35 EXP')}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)meshy597?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);showDamage615(e,damage);e.hp=Math.max(0,e.hp-damage);e.visual615?.hit?.();if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=!!(e.visual614||e.visual615);e.visual614?.die();e.visual615?.die();e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18(`⚔️ ${e.kind615==='wolf'?'Wolf':e.kind614==='goblin'?'Goblin':'Дайсан'}: +${e.elite?45:e.fast?15:10} алт, +${e.elite?90:e.fast?45:35} EXP, +хүдэр`);questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();if(e.visual614||e.visual615)setTimeout(()=>msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`),650);else msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`)}}else msg(`-${damage} HP`)}
 function attack(){
   if(state.cool>0||state.hp<=0||combat56.pending)return;
   const weapon=state.weapon;
@@ -1136,19 +1182,19 @@ shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002
     enemyAI57.hide(e);continue;
   }
   if(!e.alive){
-    e.visual614?.update(dt,{alive:false,phase:'idle',distance:0});
+    e.visual614?.update(dt,{alive:false,phase:'idle',distance:0});e.visual615?.update(dt,{alive:false,phase:'idle',distance:0});
     enemyAI57.reset(e);
     e.respawn-=dt;
     if(e.respawn<=0){
-      e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.visual614?.revive();
+      e.alive=true;e.hp=e.max;e.g.position.copy(e.home);e.g.visible=true;e.visual614?.revive();e.visual615?.revive();
       e.m.material.color.setHex(e.baseColor||0x963d42);
     }
     continue;
   }
-  const beforeGoblin614=e.visual614?e.g.position.clone():null;
+  const beforeRigged615=(e.visual614||e.visual615)?e.g.position.clone():null;
   combat56.updateEnemy(e,dt);
   enemyAI57.update(e,dt);
-  if(e.visual614){const d=e.g.position.distanceTo(beforeGoblin614);e.visual614.update(dt,{alive:true,phase:enemyAI57.phase(e),distance:d});}
+  if(beforeRigged615){const d=e.g.position.distanceTo(beforeRigged615);const motion={alive:true,phase:enemyAI57.phase(e),distance:d};e.visual614?.update(dt,motion);e.visual615?.update(dt,motion);}
 }
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
 const cameraDistance10=(inside09>=0||inCastle25)?3.15:3.95;
@@ -1184,6 +1230,7 @@ if(inside09>=0){
 }
 if(inCastle25){camera.position.x=THREE.MathUtils.clamp(camera.position.x,hallOrigin25.x-6.8,hallOrigin25.x+6.8);camera.position.z=THREE.MathUtils.clamp(camera.position.z,hallOrigin25.z-8,hallOrigin25.z+8);camera.position.y=THREE.MathUtils.clamp(camera.position.y,1.45,5.65)}
 camera.lookAt(camTarget);
+updateMonsterTags615();
 updateTargetMarker56();
 bossHud07.style.display=(inDungeon07&&boss07.alive)?'block':'none';document.querySelector('#bossFill07').style.width=`${Math.max(0,boss07.hp/boss07.max*100)}%`;document.querySelector('#bossText07').textContent=boss07.alive?`${boss07.hp} / ${boss07.max} HP · ${boss07.hp<boss07.max*.5?'II үе: Уур хилэн':'I үе'}`:'BOSS ЯЛАГДСАН';document.querySelector('#hpbar').style.width=`${state.hp/state.max*100}%`;document.querySelector('#expfill').style.width=`${xp/(level*80)*100}%`;document.querySelector('#questtext').textContent=!questAccepted?'Саруултай ярилцах':questComplete?'Даалгавар биелсэн — Саруул дээр оч':`Ойн мангас устгах (${Math.min(questKills16,3)}/3)`;document.querySelector('#maparrow').style.transform=`translate(-50%,-50%) rotate(${player.rotation.y}rad)`;document.querySelector('#stats').textContent=`HP ${state.hp}/${state.max} · Lv.${level} (${xp}/${level*80} EXP) · 🪙 ${gold} · ❤️ ${potions16} · ⛏️ ${ore18} · ${state.weapon?'Нум':'Илд'} +${state.weapon?bowRank18:swordRank18}`;document.querySelector('#target').textContent=state.target?.alive?`Бай: ${state.target.hp}/${state.target.max} HP`:'Бай: байхгүй';updateAstralUI60(now,{hp:state.hp,maxHp:state.max,xp,xpMax:level*80,level,gold,potions:potions16,bow:!!state.weapon,target:state.target?.alive});if(now>toastUntil)toast.style.opacity=0;renderer.render(scene,camera)}requestAnimationFrame(loop);
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});

@@ -50,7 +50,7 @@ export async function loadGoblin614({THREE, GLTFLoader, enemy, assetUrl='/monste
   function transition(next){
     if(!actions[next]||next===state)return;
     const old=actions[state],neu=actions[next];
-    neu.reset();neu.enabled=true;neu.setEffectiveWeight(1);
+    neu.reset();neu.enabled=true;neu.setEffectiveWeight(next==='Attack'?.72:1);
     if(next==='Attack')neu.setEffectiveTimeScale(clips.get('Attack').duration/.67);
     else neu.setEffectiveTimeScale(1);
     neu.play();

@@ -103,7 +103,7 @@ export function installAstralUI61({app,win,panel,getMeshy}) {
   // Optional preference, separate from the 6.0 settings to preserve saved values.
   const settingCard=document.querySelector('#arSettings60 .ar-settings-card60');
   if(settingCard){
-    settingCard.querySelector('header small').textContent='ASTRAL RIFT • ALPHA 6.1.4';
+    settingCard.querySelector('header small').textContent='ASTRAL RIFT • ALPHA 6.1.5';
     const opt=document.createElement('label');
     opt.className='ar-check-row60 ar-quest-toggle61';
     opt.innerHTML='<input type="checkbox" id="arHideQuest61"/> Даалгаврын самбарыг нуух';
