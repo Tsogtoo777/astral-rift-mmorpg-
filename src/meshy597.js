@@ -1,4 +1,4 @@
-/** Astral Rift Alpha 5.9.9 — Meshy SmartRig bone-name compatibility fix.
+/** Astral Rift Alpha 6.1.2 — Meshy neutral idle + leg/cape deformations.
  * User-supplied GLB has ONE mesh, 62 skin joints, and TWO animations:
  * Walking (1.03s) and Running (0.63s). There is no Idle or sword animation.
  * A relaxed bind-pose Idle and lightweight procedural arm swings are fallback
@@ -37,6 +37,56 @@ export function resolveMeshyRigBones(root) {
   };
 }
 
+/**
+ * Meshy SmartRig's single mesh contains cloak-tail vertices that are influenced
+ * by hand and leg bones, despite also having dedicated spine-parented cloth bones.
+ * Restore most of that leaked weight to a nearby existing cape joint.  No new
+ * geometry / draw calls / render-loop vertices: a one-time vertex buffer edit.
+ * Vertices without convincing cape weights are intentionally left untouched.
+ */
+export function stabilizeMeshyCapeWeights(root) {
+  let fixed=0;
+  const capeName=/^Bone_0(?:2[6-9]|3[0-9]|4[0-3])$/;
+  const badFollow=/^(?:mixamorig[:_])?(?:Left|Right)(?:UpLeg|Leg|Foot|ToeBase|Toe_End|Hand(?:Middle[1-4]|Thumb[1-4])?|ForeArm)$/i;
+  root.traverse(obj=>{
+    if(!obj.isSkinnedMesh||!obj.skeleton||!obj.geometry)return;
+    const {skinIndex,skinWeight,position}=obj.geometry.attributes;
+    if(!skinIndex||!skinWeight||!position||obj.geometry.userData?.meshyCape612)return;
+    const capeIds=new Set(),badIds=new Set();
+    obj.skeleton.bones.forEach((b,i)=>{
+      if(capeName.test(b.name))capeIds.add(i);
+      if(badFollow.test(b.name))badIds.add(i);
+    });
+    if(!capeIds.size)return;
+    const ids=[0,0,0,0],wt=[0,0,0,0];
+    for(let i=0;i<skinIndex.count;i++){
+      const y=position.getY(i);
+      if(y<.24||y>1.12)continue;
+      let capeTotal=0,best=-1,bestWeight=0,leak=0;
+      for(let k=0;k<4;k++){
+        ids[k]=Math.round(skinIndex.getComponent(i,k));
+        wt[k]=skinWeight.getComponent(i,k);
+        if(capeIds.has(ids[k])){capeTotal+=wt[k];if(wt[k]>bestWeight){best=k;bestWeight=wt[k];}}
+        if(badIds.has(ids[k]))leak+=wt[k];
+      }
+      if(best<0||capeTotal<.36||leak<.06)continue;
+      let moved=0;
+      for(let k=0;k<4;k++){
+        if(!badIds.has(ids[k]))continue;
+        const part=wt[k]*.78;
+        wt[k]-=part;moved+=part;
+      }
+      if(moved<.001)continue;
+      wt[best]+=moved;
+      for(let k=0;k<4;k++)skinWeight.setComponent(i,k,wt[k]);
+      fixed++;
+    }
+    skinWeight.needsUpdate=true;
+    obj.geometry.userData.meshyCape612=true;
+  });
+  return fixed;
+}
+
 export function createMeshy597(THREE, gltf, holder) {
   const root=gltf?.scene;
   if(!root)throw new Error('Meshy GLB scene дутуу');
@@ -50,6 +100,8 @@ export function createMeshy597(THREE, gltf, holder) {
     if(o.isSkinnedMesh){ meshCount++;o.frustumCulled=false; }
   });
   if(!meshCount)throw new Error('Meshy GLB skinned mesh / skeleton байхгүй');
+  const correctedCapeVertices=stabilizeMeshyCapeWeights(root);
+  console.info('[Meshy 6.1.2] cape weight correction, vertices:',correctedCapeVertices);
   const bones=resolveMeshyRigBones(root);
   // A valid skinned character must still render if a hand bone gets renamed by
   // an exporter. Use nearby bones for accessories; don't hide the whole avatar.
@@ -65,22 +117,59 @@ export function createMeshy597(THREE, gltf, holder) {
   root.scale.setScalar(scale);
   root.name='MeshyRiggedPlayer597';
   holder.add(root);
+  // Subtle grounded contact cue, especially useful when the night sun is dim.
+  // 24 triangles, no extra light, no physics, and never attached to a foot bone.
+  const contactShadow=new THREE.Mesh(
+    new THREE.CircleGeometry(.31,24),
+    new THREE.MeshBasicMaterial({color:0x101820,transparent:true,opacity:.16,depthWrite:false})
+  );
+  contactShadow.name='MeshyContactShadow612';
+  contactShadow.rotation.x=-Math.PI/2;
+  contactShadow.position.y=.018;
+  contactShadow.renderOrder=1;
+  holder.add(contactShadow);
 
   const mixer=new THREE.AnimationMixer(root);
-  // Build a relaxed STILL Idle from a sampled frame of the supplied Walking clip.
-  // This is a static pose generated from real animation tracks, NOT a supplied Idle clip.
-  function stillPoseClip(source){
-    const at=Math.min(source.duration*.49,source.duration*.5);
+  // The previous Idle was a frozen sample from the MIDDLE of Walking,
+  // leaving one knee lifted after stopping. Preserve the original neutral
+  // GLB bind/rest pose for *every* animated joint instead.
+  function neutralIdleClip(source){
+    const nodes=new Map();root.traverse(obj=>{if(obj.name)nodes.set(obj.name,obj);});
     const tracks=source.tracks.map(track=>{
-      const sample=Array.from(track.createInterpolant().evaluate(at));
-      return new track.constructor(track.name,[0,1],[...sample,...sample]);
+      const dot=track.name.lastIndexOf('.');
+      const node=nodes.get(track.name.slice(0,dot));
+      const property=track.name.slice(dot+1);
+      const value=property==='position'?node?.position?.toArray():
+        property==='quaternion'?node?.quaternion?.toArray():
+        property==='scale'?node?.scale?.toArray():null;
+      // Preserve unrecognized tracks without throwing on future Meshy exports.
+      const v=value||Array.from(track.createInterpolant().evaluate(0));
+      return new track.constructor(track.name,[0,1],[...v,...v]);
     });
-    return new THREE.AnimationClip('IdleGenerated598',1,tracks);
+    return new THREE.AnimationClip('IdleNeutral612',1,tracks);
   }
-  const actions={Idle:mixer.clipAction(stillPoseClip(clips.get('Walking'))),Walk:mixer.clipAction(clips.get('Walking')),Run:mixer.clipAction(clips.get('Running'))};
+  const actions={Idle:mixer.clipAction(neutralIdleClip(clips.get('Walking'))),Walk:mixer.clipAction(clips.get('Walking')),Run:mixer.clipAction(clips.get('Running'))};
   Object.values(actions).forEach(a=>{a.setLoop(THREE.LoopRepeat,Infinity);a.enabled=true;});
   let active=null;
   let movement='Idle';
+  // Save the neutral knee/hip orientations for a very gentle animation limiter.
+  const legRest=new Map();
+  const capeRest=[];
+  root.traverse(obj=>{
+    if(!obj.isBone)return;
+    const name=obj.name.replace(/[^a-z0-9]/gi,'').toLowerCase();
+    if(/(?:left|right)(?:upleg|leg)$/.test(name))legRest.set(obj,{q:obj.quaternion.clone(),isKnee:name.endsWith('leg')&&!name.endsWith('upleg')});
+    const match=obj.name.match(/^Bone_0(2[6-9]|3[0-9]|4[0-3])$/);
+    if(match){
+      const n=Number(match[1]);
+      // 3 chains attached to Spine2: 26..31, 32..37, 38..43
+      const chain=n<=31?0:n<=37?1:2;
+      const depth=(n<=31?n-26:n<=37?n-32:n-38);
+      capeRest.push({bone:obj,q:obj.quaternion.clone(),chain,depth});
+    }
+  });
+  let capeMotion=0;
+
   const lastOverlay=new Map();
   const euler=new THREE.Euler(),q=new THREE.Quaternion();
   const clamp=x=>Math.max(0,Math.min(1,x));
@@ -149,7 +238,7 @@ export function createMeshy597(THREE, gltf, holder) {
     if(previous)previous.multiply(q).normalize();else lastOverlay.set(b,q.clone());
   }
   function switchMotion(next){
-    if(next===movement)return;
+    if(next===movement && active)return;
     active?.fadeOut(.16);
     movement=next;
     const a=actions[next];
@@ -162,6 +251,28 @@ export function createMeshy597(THREE, gltf, holder) {
     undoOverlay();
     switchMotion(!moving?'Idle':sprinting?'Run':'Walk');
     mixer.update(dt);
+    // Soften extreme knee flex on autogenerated Meshy locomotion clips,
+    // while leaving the original motion and movement speed intact.
+    if(movement!=='Idle'){
+      const run=movement==='Run';
+      for(const [bone,rest] of legRest){
+        const correction=rest.isKnee?(run?.19:.10):(run?.085:.05);
+        bone.quaternion.slerp(rest.q,correction).normalize();
+      }
+    }
+    // Spine-attached cape chains only; subtle trailing motion, no physics sim.
+    // Pose is recalculated from its original local bind rotation every frame,
+    // so it never accumulates rotation or drags the knees.
+    const desiredCape=moving?(sprinting?1:.65):.09;
+    capeMotion+=(desiredCape-capeMotion)*(1-Math.exp(-6*dt));
+    for(const {bone,q:base,chain,depth} of capeRest){
+      const amount=capeMotion*(.012+.003*depth);
+      const wave=Math.sin(clock*(sprinting?7.1:4.1)-depth*.5+chain*1.8);
+      const side=chain===0?-1:chain===2?1:0;
+      q.setFromEuler(euler.set(amount*(.42+.40*wave),0,side*amount*.45,'XYZ'));
+      bone.quaternion.copy(base).multiply(q).normalize();
+    }
+
     const desiredBlock=blocking?1:0;
     blockWeight+=(desiredBlock-blockWeight)*(1-Math.exp(-12*dt));
     if(movement==='Idle')overlay('Spine1', .009*Math.sin(clock*1.8), 0,0);
@@ -184,5 +295,5 @@ export function createMeshy597(THREE, gltf, holder) {
       swing+=dt;if(swing>=.58)swing=99;
     }
   }
-  return {version:'5.9.9',root,mixer,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
+  return {version:'6.1.2',root,mixer,correctedCapeVertices,animations:[...clips.keys()],setWeapon,setSwordStyle,setSwordModel,triggerAttack,triggerSpecial,update};
 }
