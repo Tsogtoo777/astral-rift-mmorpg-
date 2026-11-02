@@ -1,0 +1,95 @@
+/* Astral Rift 6.1 — fit, touch safety and Meshy equipment viewer.
+   Overrides only the existing 6.0 skin, never the game state or controls. */
+#app{--ar-modal-edge61:clamp(8px,2.7vw,20px)}
+/* A small HUD still exposes the live combat tracks and numeric stats. */
+#hud{width:min(344px,31vw)!important;box-shadow:0 7px 24px #020c17a0!important}
+#hud>strong{letter-spacing:.7px!important}
+#arQuest60{max-width:min(325px,29vw);min-width:0!important}
+#arShortcuts60{gap:4px!important}
+#arShortcuts60 button{min-width:34px;min-height:34px}
+#menuToggle23{min-height:33px!important}
+/* Scrollable, compact menu: does not take over the world. */
+#panel{width:min(265px,32vw)!important;max-width:min(265px,32vw)!important;max-height:min(48dvh,300px)!important;overflow:auto!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;scrollbar-width:thin!important}
+#panel button{font-size:clamp(9px,1.6vh,11px)!important;padding:7px 4px!important;min-height:36px!important;line-height:1.2}
+/* Main dialog: header, tabs and content can scroll independently of phone height. */
+#window{width:min(850px,87vw)!important;max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;max-width:calc(100vw - 2*var(--ar-modal-edge61))!important;padding:0 13px 12px!important;overflow-y:auto!important;scrollbar-width:thin;overscroll-behavior:contain;box-shadow:0 12px 48px #000c!important}
+#window:before{display:none!important}
+#arDialogHeader61{position:sticky;top:0;z-index:7;background:linear-gradient(120deg,#0c1b2afc,#182b40fc);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 9px;border-bottom:1px solid #b9a47765;margin-bottom:4px}
+#arDialogHeader61 strong{color:#9dd5d9;font:750 9px system-ui;letter-spacing:1.5px}
+#window #closeWindowTop61{margin:0!important;min-width:38px;min-height:34px!important;padding:5px 8px!important;background:#283b50!important;border:1px solid #c9b488!important;font-size:18px!important}
+#window>h2{font:700 clamp(15px,2.6vh,21px) Georgia,serif!important;margin:8px 0!important}
+#window #arModalNavigation60{position:sticky;top:53px;z-index:6;background:#122237fc;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding:5px 0 9px!important;gap:4px}
+#window #arModalNavigation60 button{min-height:34px!important;border-radius:9px!important;padding:5px 9px!important;flex:0 0 auto}
+#window #arModalNavigation60 button.ar-tab-active61{background:linear-gradient(120deg,#29556b,#294358)!important;border-color:#efc982!important;color:#ffe7b6!important}
+#window>p:last-child:has(#closeWindow){display:none}
+/* New equipment character screen: preview column and scroll-friendly slot grid. */
+#window .arEquipLayout61{display:grid;grid-template-columns:minmax(145px,30%) minmax(0,1fr);gap:13px;align-items:start}
+.arHeroPreview61{border:1px solid #ad9973a1;background:radial-gradient(ellipse at 50% 40%,#344456,#101923 80%);border-radius:13px;min-width:0;overflow:hidden;text-align:center;position:sticky;top:112px;padding:10px 7px 12px}
+.arHeroPreview61 .arHeroTitle61{font:700 12px Georgia,serif;color:#e9d3ac}
+.arHeroPreview61 .arHeroSubtitle61{font:9px system-ui;color:#acc4cb;margin:4px 0 7px}
+#arViewer61{min-height:133px;height:min(34vh,265px);display:flex;align-items:center;justify-content:center;color:#c2cbd4;font:10px system-ui;line-height:1.6}
+#arViewer61 canvas{width:100%;height:100%;max-width:220px;object-fit:contain;touch-action:pan-y}
+#window #arStartViewer61{display:block;margin:5px auto!important;font:700 10px system-ui;min-height:32px!important}
+.arHeroPreview61 small{display:block;font-size:9px;line-height:1.35;color:#bbc4c7;margin-top:5px}
+#window .eq59-root{min-width:0;font-size:12px}
+#window .eq59-summary{padding:8px 9px;font-size:11px;line-height:1.4}
+#window .eq59-slots{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px}
+#window .eq59-slot{padding:8px;min-height:64px}
+#window .eq59-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#window .eq59-item{margin:0;min-width:0;display:flex;align-items:flex-start;flex-wrap:wrap}
+#window .eq59-name{overflow-wrap:anywhere}
+#window .eq59-item small{font-size:9px}
+/* Smaller settings modal; footer button stays reachable at a short landscape height. */
+#arSettings60{padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))!important}
+.ar-settings-card60{width:min(550px,88vw)!important;max-height:calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;padding:12px 18px!important;overflow-y:auto!important;scrollbar-width:thin;overscroll-behavior:contain}
+.ar-settings-card60 header{position:sticky;top:-12px;z-index:2;background:#14283bf9;margin:0 0 9px!important;padding:8px 0 9px!important}
+.ar-settings-card60 h2{font-size:clamp(16px,3.5vh,23px)!important}
+.ar-settings-card60 label{font-size:clamp(11px,2.1vh,13px)!important;margin:8px 0!important}
+.ar-settings-card60 input[type=range]{margin:6px 0 0!important;min-height:20px}
+.ar-settings-card60 p{font-size:10px!important;line-height:1.4!important;margin:8px 0!important}
+.ar-settings-card60 #arReset60{margin-bottom:3px}
+.ar-settings-card60 .ar-check-row60{min-height:21px}
+/* Light feedback without extra textures or particles. */
+#actions button{transition:transform .1s ease,filter .14s ease}
+#actions button:focus-visible,#arShortcuts60 button:focus-visible,#window button:focus-visible{outline:2px solid #e8c78b;outline-offset:2px}
+#arQuest60:focus-visible,#menuToggle23:focus-visible{outline:2px solid #e8c78b;outline-offset:2px}
+#app.ar-hide-quest61 #arQuest60{display:none!important}
+/* Main map — frame stays visible even on a 390px-tall device. */
+#worldMap40{inset:var(--ar-modal-edge61)!important;padding:9px 12px!important;max-height:calc(100dvh - 2*var(--ar-modal-edge61))}
+#worldMap40 .mapTop40{font-size:clamp(11px,2.3vh,15px)!important}
+#worldMap40 .mapBottom40{font-size:10px!important}
+@media (orientation:landscape) and (pointer:coarse){
+ #hud{width:min(330px,30vw)!important}
+ #window{width:min(820px,88vw)!important}
+ #arQuest60{width:min(315px,29vw)}
+ .arHeroPreview61{top:97px}
+ #window .arEquipLayout61{grid-template-columns:minmax(125px,27%) minmax(0,1fr);gap:9px}
+ #window .eq59-items{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (orientation:landscape) and (max-height:440px){
+ #hud{max-height:116px}
+ #arQuest60{top:calc(127px + env(safe-area-inset-top));padding:4px 7px!important}
+ #window{max-height:calc(100dvh - 12px)!important;padding:0 11px 7px!important}
+ #arDialogHeader61{padding:5px 0!important}
+ #window #arModalNavigation60{top:42px;padding:2px 0 6px!important}
+ #window>h2{font-size:14px!important;margin:6px 0!important}
+ #window .arEquipLayout61{grid-template-columns:minmax(115px,27%) minmax(0,1fr)}
+ .arHeroPreview61{position:sticky;top:84px;padding:6px}
+ #arViewer61{height:130px;min-height:100px}
+ .ar-settings-card60{padding:7px 13px!important;max-height:calc(100dvh - 10px)!important}
+ .ar-settings-card60 header{top:-7px;padding:3px 0 7px!important}
+ .ar-settings-card60 h2{font-size:17px!important}
+ .ar-settings-card60 label{margin:5px 0!important}
+ .ar-settings-card60 input[type=range]{min-height:18px;margin-top:4px!important}
+ .ar-settings-card60 p{font-size:9px!important;margin:4px 0!important}
+ #panel{max-height:min(44dvh,185px)!important}
+ #actions{--ar-small60:calc(clamp(38px,10.5vh,48px)*var(--ar-control-scale60))!important}
+}
+@media(max-width:650px){
+ #window .arEquipLayout61{grid-template-columns:1fr}
+ .arHeroPreview61{position:relative;top:auto}
+ #arViewer61{height:140px}
+ #window .eq59-slots{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #window .eq59-items{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){#actions button{transition:none}}

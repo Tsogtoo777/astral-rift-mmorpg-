@@ -63,7 +63,7 @@ export function installAstralUI60({ app, panel, win, openBag, openEquipment, ope
   const nav=document.createElement('div');nav.id='arModalNavigation60';
   nav.innerHTML='<button type="button" data-ar-tab="bag">▣ Хэрэгсэл</button><button type="button" data-ar-tab="equip">◈ Тоноглол</button><button type="button" data-ar-tab="skill">✧ Чадвар</button><button type="button" data-ar-tab="quest">♧ Даалгавар</button>';
   const overlayWindow=()=>{
-    if(win.style.display!=='none' && !win.querySelector('#arModalNavigation60')) win.prepend(nav);
+    if(win.style.display!=='none' && !win.querySelector('#arModalNavigation60')) {const header=win.querySelector('#arDialogHeader61');if(header)header.after(nav);else win.prepend(nav);}
   };
   // Dialog content is re-rendered from the existing code. Observe only direct content replacement.
   const observer=new MutationObserver(overlayWindow);

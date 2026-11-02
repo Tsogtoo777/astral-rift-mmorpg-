@@ -4,14 +4,14 @@
  */
 export const EQUIPMENT_59 = Object.freeze([
   {id:'iron-longsword',slot:'weapon',name:'Iron Longsword',icon:'⚔️',rarity:'Common',price:0,attack:4,visual:'iron',desc:'Тэнцвэртэй нэг гарын илд'},
-  {id:'wanderer-greatsword',slot:'weapon',name:'Wanderer Great Sword',icon:'🗡️',rarity:'Rare',price:400,attack:16,visual:'great',desc:'Хүчтэй хоёр гарын илд'},
+  {id:'wanderer-greatsword',slot:'weapon',name:'Astral Great Sword',icon:'🗡️',rarity:'Rare',price:400,attack:16,visual:'great',desc:'Хүчтэй хоёр гарын илд'},
   {id:'dark-katana',slot:'weapon',name:'Dark Katana',icon:'🌙',rarity:'Epic',price:600,attack:12,stamina:10,visual:'katana',desc:'Хурдан, хөнгөн харанхуйн катана'},
-  {id:'wanderer-hood',slot:'head',name:'Wanderer Hood',icon:'🪖',rarity:'Common',price:120,defense:2,desc:'Аялагчийн малгай'},
-  {id:'wanderer-coat',slot:'chest',name:'Wanderer Coat',icon:'🥋',rarity:'Rare',price:0,defense:6,hp:12,desc:'Хөнгөн ган хуяг бүхий цамц'},
-  {id:'wanderer-gloves',slot:'gloves',name:'Wanderer Gloves',icon:'🧤',rarity:'Common',price:0,defense:2,desc:'Гарын хамгаалалт'},
-  {id:'wanderer-pants',slot:'legs',name:'Wanderer Pants',icon:'👖',rarity:'Common',price:0,defense:2,desc:'Хөдөлгөөнд саадгүй өмд'},
-  {id:'wanderer-boots',slot:'boots',name:'Wanderer Boots',icon:'🥾',rarity:'Common',price:0,defense:2,stamina:10,desc:'Хөнгөн хамгаалалттай гутал'},
-  {id:'teal-cape',slot:'cloak',name:'Astral Teal Cape',icon:'🧥',rarity:'Rare',price:0,defense:2,hp:8,desc:'Салхинд элэгдсэн нөмрөг'},
+  {id:'wanderer-hood',slot:'head',name:'Meshy Shadow Hood',icon:'🪖',rarity:'Common',price:120,defense:2,desc:'Аялагчийн малгай'},
+  {id:'wanderer-coat',slot:'chest',name:'Meshy Battle Coat',icon:'🥋',rarity:'Rare',price:0,defense:6,hp:12,desc:'Хөнгөн ган хуяг бүхий цамц'},
+  {id:'wanderer-gloves',slot:'gloves',name:'Meshy Gauntlets',icon:'🧤',rarity:'Common',price:0,defense:2,desc:'Гарын хамгаалалт'},
+  {id:'wanderer-pants',slot:'legs',name:'Meshy Battle Trousers',icon:'👖',rarity:'Common',price:0,defense:2,desc:'Хөдөлгөөнд саадгүй өмд'},
+  {id:'wanderer-boots',slot:'boots',name:'Meshy Greaves',icon:'🥾',rarity:'Common',price:0,defense:2,stamina:10,desc:'Хөнгөн хамгаалалттай гутал'},
+  {id:'teal-cape',slot:'cloak',name:'Meshy Crimson Cape',icon:'🧥',rarity:'Rare',price:0,defense:2,hp:8,desc:'Салхинд элэгдсэн нөмрөг'},
   {id:'astral-amulet',slot:'accessory',name:'Astral Amulet',icon:'💎',rarity:'Epic',price:350,hp:20,stamina:15,desc:'Энерги нэмдэг сахиус'}
 ]);
 export const SLOTS_59=Object.freeze([
@@ -52,7 +52,7 @@ export function createEquipment59(previous={}) {
       const button=active?'<span class="eq59-owned">Өмссөн</span>':has?`<button type="button" data-equip59="${item.id}">Өмсөх</button>`:`<button type="button" data-buy59="${item.id}" ${gold<item.price?'disabled':''}>${item.price} 🪙 авах</button>`;
       return `<div class="eq59-item"><div>${fmt(item)}<small>${item.desc}<br>${stats||'Гоёл'}</small></div>${button}</div>`;
     }).join('');
-    return `<div class="eq59-root"><div class="eq59-summary">🪙 ${Math.max(0,Math.floor(gold))} · ⚔ +${b.attack} · 🛡 +${b.defense} · ❤️ +${b.hp} · ⚡ +${b.stamina}</div><h3>Өмссөн тоноглол</h3><div class="eq59-slots">${slots}</div><h3>Хувцас ба зэвсэг</h3><div class="eq59-items">${items}</div><p class="eq59-note">3D: Үндсэн дүр бол Meshy хуягтай загвар. Зэвсгийн модель харагдана. Одоо байгаа хувцас, нөмрөг нь нэг mesh-д нэгтгэсэн тул тусдаа тоноглолын статистик ажиллах боловч 3D хувцас солигдохгүй.</p></div>`;
+    return `<div class="eq59-root"><div class="eq59-summary">🪙 ${Math.max(0,Math.floor(gold))} · ⚔ +${b.attack} · 🛡 +${b.defense} · ❤️ +${b.hp} · ⚡ +${b.stamina}</div><h3>Өмссөн тоноглол</h3><div class="eq59-slots">${slots}</div><h3>Хувцас ба зэвсэг</h3><div class="eq59-items">${items}</div><p class="eq59-note">3D: Үндсэн дүр бол Meshy хуягтай загвар. Зэвсгийн модель харагдана. Одоогийн Meshy хуяг, нөмрөг нэг mesh-д нэгтгэсэн тул тусдаа тоноглолын статистик ажиллах боловч 3D хувцас солигдохгүй.</p></div>`;
   }
   return {owned,equipped,get,snapshot,bonuses,equip,unequip,buy,render};
 }
