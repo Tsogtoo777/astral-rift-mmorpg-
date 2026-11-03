@@ -60,27 +60,68 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   const talkA=talk&&talk!==idle?mixer.clipAction(talk):null;
   return {mixer,idleA,walkA,talkA,active:idleA};
  };
+ // 6.2.6: imported GLBs have wildly different authoring scales and may
+ // contain weapons extending well above the body. Measure only the visible
+ // *body* meshes in world space, including their actual bind/skinned poses.
+ function bodyBounds626(m,kind){
+  m.updateMatrixWorld(true);
+  const out=new THREE.Box3();
+  let count=0;
+  const b=new THREE.Box3();
+  m.traverse(o=>{
+   if(!o.isMesh)return;
+   if(kind==='female' && /weapon|sword|bow|arrow|shield/i.test(o.name)){
+     o.visible=false; // Nomin is a merchant, not an armed archer.
+     return;
+   }
+   const geo=o.geometry;
+   if(!geo)return;
+   if(o.isSkinnedMesh){
+    o.computeBoundingBox();
+    b.copy(o.boundingBox);
+   }else{
+    if(!geo.boundingBox)geo.computeBoundingBox();
+    b.copy(geo.boundingBox);
+   }
+   if(!b.isEmpty()){
+    b.applyMatrix4(o.matrixWorld);
+    if(Number.isFinite(b.min.y)&&Number.isFinite(b.max.y)){out.union(b);count++;}
+   }
+  });
+  if(!count||out.isEmpty())throw Error('NPC body geometry unavailable: '+kind);
+  return out;
+ }
  function placeModel(e,gltf){
-  const m=cloneSkeleton(gltf.scene);m.name=`NPC623_${e.name}`;
+  const kind=typeFor(e);
+  const m=cloneSkeleton(gltf.scene);m.name=`NPC626_${e.name}`;
   m.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
-  const bounds=new THREE.Box3().setFromObject(m),size=new THREE.Vector3();bounds.getSize(size);
-  if(!(size.y>.4&&Number.isFinite(size.y)))throw Error('NPC size is invalid: '+e.name);
-  const isGuard=e.kind==='guard';const height=isGuard?1.95:1.78;
-  const scale=Math.min(100,Math.max(.01,height/size.y));
+  const bounds=bodyBounds626(m,kind),size=new THREE.Vector3();bounds.getSize(size);
+  // Some FBX exports use a 0.01 scale on the root: valid heights can be 0.019m.
+  // The old 0.4m minimum wrongly rejected Captain and Inquisitor even though
+  // they contain actual rigged geometry.
+  if(!(size.y>.0001&&Number.isFinite(size.y)))throw Error('NPC size invalid: '+e.name);
+  const height=e.kind==='guard'?1.9:kind==='female'?1.7:kind==='blacksmith'?1.8:1.78;
+  const scale=height/size.y;
+  if(!Number.isFinite(scale)||scale<.001||scale>1500)throw Error('NPC scale unsafe: '+e.name+' '+scale);
   m.scale.setScalar(scale);
   m.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
   m.rotation.y=0;
+  // Re-check after normalization so an upside-down/sideways export cannot
+  // silently replace the placeholder (Witch is normalized separately).
   e.group.add(m);
-  // Don't hide marker nor unrelated scene objects; hide only the primitive/Saruul
-  // stand-ins. Repeated imports and rapid area switching are handled by visibility.
+  m.updateMatrixWorld(true);
+  const check=bodyBounds626(m,kind),dims=new THREE.Vector3();check.getSize(dims);
+  if(!(dims.y>1.4&&dims.y<2.5)){
+    e.group.remove(m);throw Error('NPC normalized height invalid: '+e.name+' '+dims.y);
+  }
   for(const old of [...e.group.children])if(old!==e.label&&old!==m)old.visible=false;
-  // Alpha 6.2.4: previous world code hides old primitive guard groups.
-  // Unhide ONLY after an actual GLB (bundled Captain V2, or fallback) has loaded.
-  if(isGuard)e.group.visible=true;
+  if(e.kind==='guard')e.group.visible=true;
   e.model=m;e.motions=animationsFor(gltf,m);e.lastPos=e.group.position.clone();
   e.label.position.y=height+.32;
-  if(isGuard)stats.guards++;else stats.citizens++;
+  console.info('[NPC626] Ready',e.name, 'source=',kind,'height=',dims.y.toFixed(2));
+  if(e.kind==='guard')stats.guards++;else stats.citizens++;
  }
+
  function modelFor(e){
   const kind=typeFor(e),src=NPC_SOURCES623[kind];
   if(mode==='old')return {key:'fallback_'+e.kind,url:fallback[e.kind]};

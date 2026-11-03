@@ -480,26 +480,28 @@ player.add(meshyHolder598);
 // Keep her original quest/store interaction anchored at the same npc group.
 function installSaruul625(gltf,legacy=false){
   const model=gltf.scene;
-  // Uploaded Witch Girl exports lying along -Z (Z-up). Rotate it upright before sizing.
-  if(!legacy)model.rotation.x=Math.PI/2;
+  // 6.2.6: upright is baked at the source GLB scene root; do NOT apply a
+  // second 90-degree rotation to its skin. Legacy Saruul is also Y-up.
+  model.updateMatrixWorld(true);
   const bounds=new THREE.Box3().setFromObject(model);
   const dims=new THREE.Vector3();bounds.getSize(dims);
-  if(!(dims.y>0.01&&Number.isFinite(dims.y)))throw new Error('Invalid Saruul rig bounds');
+  if(!(dims.y>0.1 && Number.isFinite(dims.y) && dims.y>dims.z*1.15))
+    throw new Error('Saruul model is not upright: '+dims.toArray().join(','));
   const scale=1.82/dims.y;
   model.scale.multiplyScalar(scale);
   model.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
   model.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
+  // Only remove earlier model after a valid, upright replacement exists.
   for(const child of [...npc.children])child.visible=false;
   saruulModel11=model;npc.add(model);
   if(legacy)setupJoints12(model);
-  console.info('[NPC625] Saruul actual 3D model loaded:',legacy?'legacy fallback':'witch-girl.glb');
+  console.info('[NPC626] Saruul upright model loaded:',legacy?'legacy':'witch-girl-upright.glb');
 }
-modelLoader11.load('/models/npc625/witch-girl.glb',
-  gltf=>{try{installSaruul625(gltf);}catch(err){console.error('Saruul witch model invalid:',err);}},
+modelLoader11.load('/models/npc625/witch-girl-upright.glb',
+  gltf=>{try{installSaruul625(gltf);}catch(err){console.error('[NPC626] Upright Witch model invalid:',err);modelLoader11.load('/models/saruul.glb',g=>installSaruul625(g,true));}},
   undefined,
-  error=>{
-    console.warn('[NPC625] Witch model unavailable, trying original Saruul:',error);
-    modelLoader11.load('/models/saruul.glb',gltf=>installSaruul625(gltf,true),undefined,err=>console.warn('Saruul NPC unavailable:',err));
+  error=>{console.warn('[NPC626] Witch unavailable; loading verified local Saruul:',error);
+    modelLoader11.load('/models/saruul.glb',g=>installSaruul625(g,true),undefined,err=>console.warn('Saruul fallback unavailable:',err));
   });
 
 const avatarStatus598=document.createElement('div');
@@ -818,8 +820,8 @@ const wood22=mat22(0x6e4932),stone22=mat22(0x77847c),leaf22=mat22(0x327e60),magi
 function piece22(parent,geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 // Mobile-friendly moving townsfolk; do not modify hero rig or animation.
 const citizens22=[
- {name:'Болд · Дархан',x:-8,z:4,color:0xa67a58,axis:0,range:3},
- {name:'Номин · Худалдаачин',x:8,z:6,color:0x6d9eb9,axis:1,range:3},
+ {name:'Болд · Дархан',x:-6.2,z:3.8,color:0xa67a58,axis:0,range:3},
+ {name:'Номин · Худалдаачин',x:7.3,z:5.2,color:0x6d9eb9,axis:1,range:3},
  {name:'Тэмүүлэн · Судлаач',x:0,z:-6,color:0x9a83c8,axis:0,range:5},
  {name:'Энхээ · Аялагч',x:12,z:-8,color:0xb5a064,axis:1,range:4}
 ].map((c,i)=>{const g=new THREE.Group();g.position.set(c.x,0,c.z);living22.add(g);piece22(g,new THREE.CylinderGeometry(.32,.42,1.15,8),mat22(c.color),0,.85,0);piece22(g,new THREE.SphereGeometry(.29,10,8),mat22(0xe9c5a6),0,1.65,0);piece22(g,new THREE.ConeGeometry(.4,.33,8),mat22(0x443d43),0,1.98,0);return {...c,g,phase:i*1.8};});
@@ -1240,8 +1242,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.5 · REAL NPC MODELS';
-document.title='Astral Rift Alpha 6.2.5 — Real NPC Models';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.6 · NPC PLACEMENT FIX';
+document.title='Astral Rift Alpha 6.2.6 — NPC Placement Fix';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
