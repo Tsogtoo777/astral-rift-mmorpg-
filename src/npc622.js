@@ -53,7 +53,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   const find=(rx)=>gltf.animations.find(a=>rx.test(a.name))||null;
   const idle=find(/(^|_)idle|stand.*idle/i)||gltf.animations[0];
   const walk=find(/walk|stroll|run_forward/i);
-  const talk=find(/talk|hand.*hip|gesture|wave|agree/i);
+  const talk=find(/talk/i)||find(/hand.*hip|gesture|wave|agree/i);
   const idleA=mixer.clipAction(idle);idleA.play();
   const walkA=walk&&walk!==idle?mixer.clipAction(walk):null;
   const talkA=talk&&talk!==idle?mixer.clipAction(talk):null;
@@ -73,6 +73,9 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   // Don't hide marker nor unrelated scene objects; hide only the primitive/Saruul
   // stand-ins. Repeated imports and rapid area switching are handled by visibility.
   for(const old of [...e.group.children])if(old!==e.label&&old!==m)old.visible=false;
+  // Alpha 6.2.4: previous world code hides old primitive guard groups.
+  // Unhide ONLY after an actual GLB (bundled Captain V2, or fallback) has loaded.
+  if(isGuard)e.group.visible=true;
   e.model=m;e.motions=animationsFor(gltf,m);e.lastPos=e.group.position.clone();
   e.label.position.y=height+.42;
   if(isGuard)stats.guards++;else stats.citizens++;

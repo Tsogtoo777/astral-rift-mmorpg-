@@ -1221,8 +1221,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.3 · FANTASY NPC';
-document.title='Astral Rift Alpha 6.2.3 — Fantasy NPCs';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.4 · CAPTAIN GUARD';
+document.title='Astral Rift Alpha 6.2.4 — Captain Guard';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
