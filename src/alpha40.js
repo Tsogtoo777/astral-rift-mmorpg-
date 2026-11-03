@@ -244,8 +244,8 @@ export function createAlpha40(api) {
       if(name!==lastZone){lastZone=name;zone.textContent='✦ '+name}
     }
     if(now-lastUi>250){lastUi=now;quest.textContent=['⚔ Гильдээс даалгавар ав',`⚔ Дайсан ${Math.min(3,state.kills)}/3`,'✧ Балгасын тэмдгийг ол','⚔ Гильд рүү буц','✓ Гильдийн даалгавар биелсэн'][state.stage];if(mapUI.classList.contains('open40'))drawLargeMap()}
-    qualityClock+=dt;qualityFrames++;
-    if(qualityClock>6){const fps=qualityFrames/qualityClock;qualityClock=0;qualityFrames=0;if(fps<37&&!lowQuality){lowQuality=true;renderer.setPixelRatio(Math.min(devicePixelRatio,.95));renderer.shadowMap.enabled=false;renderer.setSize(innerWidth,innerHeight);msg('⚙ FPS хамгаалах горим идэвхжив')}}
+    if(!api.graphicsManaged){qualityClock+=dt;qualityFrames++;}
+    if(!api.graphicsManaged&&qualityClock>6){const fps=qualityFrames/qualityClock;qualityClock=0;qualityFrames=0;if(fps<37&&!lowQuality){lowQuality=true;renderer.setPixelRatio(Math.min(devicePixelRatio,.95));renderer.shadowMap.enabled=false;renderer.setSize(innerWidth,innerHeight);msg('⚙ FPS хамгаалах горим идэвхжив')}}
   }
   return {update,interact,recordKill,blocked,cameraCollision,showMap,hideMap,
     hideLegacyGuards:()=>guards.forEach(obj=>{obj.g.visible=false}),

@@ -12,6 +12,7 @@ import { installWorld621 } from './world621.js';
 import { installForest622 } from './forest622.js';
 import { installNPC622 } from './npc622.js';
 import {idlePose629,easeAngle629,facingAngle629} from './npc629.js';
+import {installGraphics6210} from './graphics6210.js';
 import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
@@ -30,7 +31,8 @@ const app=document.querySelector('#app');
 app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.2 · WORLD EXPANSION · 6.2.1 ASSETS</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.0065);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,360);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
+const graphics6210=installGraphics6210({renderer});
 scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-36;sun.shadow.camera.right=36;sun.shadow.camera.top=36;sun.shadow.camera.bottom=-36;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
@@ -1127,7 +1129,7 @@ function update25(now,dt){
 town.visible=false;
 guards24.forEach(g=>g.visible=false);
 const world40=createAlpha40({
-  scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,city24,houses09,
+  scene,player,renderer,camera,castleHall25,hallOrigin25,interior09,rooms22,city24,houses09,graphicsManaged:true,
   openWindow,closeWindow,msg,saveGame,gainXp,teleport25,app,panel,
   isCastle:()=>inCastle25,isInterior:()=>inside09>=0,isDungeon:()=>inDungeon07,
   getHour:()=>time23.hour,
@@ -1261,9 +1263,9 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.9 · NPC INTERACTION POLISH';
-document.title='Astral Rift Alpha 6.2.9 — NPC Interaction Polish';
-let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.10 · GRAPHICS QUALITY';
+document.title='Astral Rift Alpha 6.2.10 — Graphics Quality';
+let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);graphics6210.update(now);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
  if(saruulModel11){
    const talking629=now<saruulTalkUntil629;
    const pose629=idlePose629(now,talking629,1.4);
@@ -1415,4 +1417,5 @@ questTracker251.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){
 
 // Alpha 6.0 visual HUD, preserving all previous gameplay handlers.
 const updateAstralUI60=installAstralUI60({app,panel,win,openBag:showBag,openEquipment:showEquipment59,openJournal:showJournal17,openSkills:showSkillTree19,openMap:()=>document.getElementById('worldMapButton40')?.click()});
+graphics6210.mountSettings();
 installAstralUI61({app,win,panel,getMeshy:()=>meshy597});

@@ -48,7 +48,7 @@ export function createAdvancedFX50(scene, player, camera, renderer) {
     geometry.attributes.position.needsUpdate=true;geometry.attributes.color.needsUpdate=true;
     cloud.visible=alive>0;
   }
-  function setQuality(next){quality=next;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,next==='high'?1.75:1.15));}
+  function setQuality(next){quality=next;} // Renderer resolution is owned by graphics6210.
   setQuality((navigator.hardwareConcurrency||4)<=4?'low':'high');
   return {update,setQuality,dispose(){geometry.dispose();material.dispose();slash.geometry.dispose();slashMaterial.dispose();scene.remove(cloud,slash);}};
 }
