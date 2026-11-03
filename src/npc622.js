@@ -39,14 +39,15 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  const qs=typeof location!=='undefined'?new URLSearchParams(location.search):new URLSearchParams();
  const mode=qs.get('npcmodels')||'local';
  const NPC_SOURCES623={
-  peasant:{local:'/models/saruul.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
+  peasant:{local:'/models/npc625/inquisitor-v2.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
+  traveler:{local:'/models/npc625/inquisitor-v2.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
   blacksmith:{local:'/models/npc625/blacksmith-mobile.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
   scholar:{local:'/models/npc625/inquisitor-v2.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
   guard:{local:'/models/npc623/guard-captain.glb',remote:'https://vibeassets.io/download/9h7odik5fl'},
-  female:{local:'/models/npc625/merchant-witch.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
+  female:{local:'/models/npc625/merchant-witch-static628.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
  };
  const fallback={citizen:'/models/saruul.glb',guard:'/models/meshy-warrior-nocape.glb'};
- const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':e.name==='Болд'?'blacksmith':'peasant';
+ const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':e.name==='Болд'?'blacksmith':e.name==='Энхээ'?'traveler':'peasant';
  const debugEnabled=qs.get('npcdebug')==='1';
  const statuses=new Map();
  const debugEl=debugEnabled?document.createElement('div'):null;
@@ -98,8 +99,15 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  }
  function placeModel(e,gltf){
   const kind=typeFor(e);
-  const m=cloneSkeleton(gltf.scene);m.name=`NPC626_${e.name}`;
-  m.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
+  const m=cloneSkeleton(gltf.scene);m.name=`NPC628_${e.name}`;
+  if(kind==='female'&&m.getObjectByProperty('isSkinnedMesh',true))throw Error('Merchant must use static628 non-skinned GLB');
+  m.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;
+   if(kind==='traveler' && o.material){
+    // Make Enkhee's outfit warmer than Temuulen without changing the cached source.
+    const tint=mat=>{const c=mat.clone();if(c.color)c.color.multiply(new THREE.Color(1.15,.91,.76));return c;};
+    o.material=Array.isArray(o.material)?o.material.map(tint):tint(o.material);
+   }
+  }});
   const bounds=bodyBounds626(m,kind),size=new THREE.Vector3();bounds.getSize(size);
   // Some FBX exports use a 0.01 scale on the root: valid heights can be 0.019m.
   // The old 0.4m minimum wrongly rejected Captain and Inquisitor even though
