@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const read=p=>fs.readFileSync(p,'utf8');
 const main=read('src/main.js'),module=read('src/ui61.js'),css=read('src/ui61.css'),skin=read('src/ui60.js'),equipment=read('src/equipment59.js');
 const pkg=JSON.parse(read('package.json'));
-assert.equal(pkg.version,'6.2.0-alpha');
+assert.equal(pkg.version,'6.2.2-alpha');
 assert.match(main,/installAstralUI61\(\{app,win,panel,getMeshy:\(\)=>meshy597\}\)/);
 assert.match(main,/import '\.\/ui61.css'/);
 assert.match(main,/arDialogHeader61/);
