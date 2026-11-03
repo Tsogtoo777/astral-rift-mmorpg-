@@ -1,10 +1,11 @@
-/** Alpha 6.2.5 build gate: no CDN downloads; verifies 5 NPC 3D models. */
+/** Alpha 6.2.5 build gate: no CDN downloads; verifies 6 NPC 3D models including upright Witch. */
 import {readFile} from 'node:fs/promises';
 const checks=[
  ['public/models/npc623/guard-captain.glb',24,10],
  ['public/models/npc625/blacksmith-mobile.glb',0,0],
  ['public/models/npc625/inquisitor-v2.glb',24,10],
  ['public/models/npc625/witch-girl.glb',83,0],
+ ['public/models/npc625/witch-girl-upright.glb',83,0],
  ['public/models/npc625/elf-woman-mobile.glb',117,0],
 ];
 for(const [path,minimumBones,minimumClips] of checks){
