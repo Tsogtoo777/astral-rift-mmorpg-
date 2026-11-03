@@ -12,5 +12,5 @@ assert.match(w,/filteredSpeed616>1\.65/);
 assert.match(m,/ALPHA 6\.2 · WORLD EXPANSION/);
 assert.match(m,/meshy-warrior-nocape\.glb/);
 assert.match(m,/forest_wolf\.glb|loadForestWolf615/);
-assert.equal(JSON.parse(fs.readFileSync('package.json')).version,'6.2.9-alpha');
+assert.equal(JSON.parse(fs.readFileSync('package.json')).version,'6.2.10-alpha');
 console.log('PASS 6.1.6: hand-aligned katana when not attacking, stabilized wolf locomotion thresholds, player+wolf integration');

@@ -4,7 +4,7 @@ const main=fs.readFileSync('src/main.js','utf8');
 const css=fs.readFileSync('src/ui60.css','utf8');
 const ui=fs.readFileSync('src/ui60.js','utf8');
 const packageFile=JSON.parse(fs.readFileSync('package.json','utf8'));
-assert.equal(packageFile.version,'6.2.9-alpha');
+assert.equal(packageFile.version,'6.2.10-alpha');
 assert.match(main,/installAstralUI60/);
 assert.match(main,/import '\.\/ui60\.css'/);
 assert.match(main,/updateAstralUI60\(now/);
