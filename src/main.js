@@ -11,6 +11,7 @@ import { createWorld62, SPAWN_SITES62, ZONES62, WORLD62_RADIUS, zoneAt62 } from 
 import { installWorld621 } from './world621.js';
 import { installForest622 } from './forest622.js';
 import { installNPC622 } from './npc622.js';
+import {idlePose629,easeAngle629,facingAngle629} from './npc629.js';
 import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
@@ -496,7 +497,7 @@ function installSaruul628(gltf){
  model.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
  model.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
  for(const child of [...npc.children])child.visible=false;
- npc.add(model);saruulModel11=model;
+ npc.add(model);saruulModel11=model;model.userData.anchorY629=model.position.y;
  console.info('[NPC628] Saruul static READY; no skin; dimensions',size.toArray());
  if(location.search.includes('npcdebug=1')){
   const d=document.getElementById('saruul628-debug')||document.createElement('div');
@@ -837,7 +838,7 @@ function piece22(parent,geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.positio
 // Mobile-friendly moving townsfolk; do not modify hero rig or animation.
 const citizens22=[
  {name:'Болд · Дархан',x:-6.2,z:3.8,color:0xa67a58,axis:0,range:3},
- {name:'Номин · Худалдаачин',x:7.3,z:5.2,color:0x6d9eb9,axis:1,range:3},
+ {name:'Номин · Худалдаачин',x:6.7,z:3.3,color:0x6d9eb9,axis:1,range:3},
  {name:'Тэмүүлэн · Судлаач',x:0,z:-6,color:0x9a83c8,axis:0,range:5},
  {name:'Энхээ · Аялагч',x:12,z:-8,color:0xb5a064,axis:1,range:4}
 ].map((c,i)=>{const g=new THREE.Group();g.position.set(c.x,0,c.z);living22.add(g);piece22(g,new THREE.CylinderGeometry(.32,.42,1.15,8),mat22(c.color),0,.85,0);piece22(g,new THREE.SphereGeometry(.29,10,8),mat22(0xe9c5a6),0,1.65,0);piece22(g,new THREE.ConeGeometry(.4,.33,8),mat22(0x443d43),0,1.98,0);return {...c,g,phase:i*1.8};});
@@ -1241,6 +1242,7 @@ const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
 const forest622=installForest622({scene,ground,legacyTrees621,world62});
 // Keep the old magic grove altar, but remove its conspicuous cone-tree placeholders.
 for(const node of grove22.children)if(node.geometry?.type==='ConeGeometry'||(node.geometry?.type==='CylinderGeometry'&&node.position.y>1.3))node.visible=false;
+let saruulTalkUntil629=0;
 const npc622=installNPC622({GLTFLoader,scene,citizens22,guards24,player,openWindow,showForge18,saveGame,msg,
  onGuardModelReady:()=>world40.hideLegacyGuards(),
  potionPurchase:()=>{if(gold<30){msg('Алт хүрэлцэхгүй');return}gold-=30;potions16++;saveGame();msg('❤️ Эм авлаа')},
@@ -1250,7 +1252,7 @@ interactWorld06=function(){
  if(inside09<0&&!inDungeon07&&!inCastle25){
   const dS=Math.hypot(player.position.x-npc.position.x,player.position.z-npc.position.z);
   const near=npc622.nearest();const dOther=near?Math.hypot(player.position.x-near.group.position.x,player.position.z-near.group.position.z):Infinity;
-  if(dS<3.6&&dS<=dOther){talk();return;}
+  if(dS<3.6&&dS<=dOther){saruulTalkUntil629=performance.now()+3800;talk();return;}
   if(npc622.dialogue())return;
  }
  priorWorldInteract622();
@@ -1259,9 +1261,18 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.8 · NPC STATIC MODEL FIX';
-document.title='Astral Rift Alpha 6.2.8 — NPC Static Model Fix';
-let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.9 · NPC INTERACTION POLISH';
+document.title='Astral Rift Alpha 6.2.9 — NPC Interaction Polish';
+let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
+ if(saruulModel11){
+   const talking629=now<saruulTalkUntil629;
+   const pose629=idlePose629(now,talking629,1.4);
+   saruulModel11.position.y=(saruulModel11.userData.anchorY629??saruulModel11.position.y)+pose629.lift;
+   saruulModel11.rotation.x=pose629.nod;
+   saruulModel11.rotation.z=pose629.lean;
+   const face629=talking629?facingAngle629(npc.position.x,npc.position.z,player.position.x,player.position.z,npc.rotation.y):0;
+   saruulModel11.rotation.y=easeAngle629(saruulModel11.rotation.y,face629,dt);
+ }updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
@@ -1330,7 +1341,9 @@ for(const e of enemies){
   if(beforeRigged615){const d=e.g.position.distanceTo(beforeRigged615);const motion={alive:true,phase:enemyAI57.phase(e),distance:d};e.visual614?.update(dt,motion);e.visual615?.update(dt,motion);}
 }
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
-const cameraDistance10=(inside09>=0||inCastle25)?3.15:3.95;
+const npcFocus629=now<saruulTalkUntil629?npc.position.clone().add(new THREE.Vector3(0,1.5,0)):npc622.focus(now);
+if(npcFocus629&&!walking)camTarget.lerp(npcFocus629,.2);
+const cameraDistance10=(inside09>=0||inCastle25)?3.15:(npcFocus629&&!walking?3.3:3.95);
 const cameraHeight10=(inside09>=0||inCastle25)?.95:1.02;
 const desiredCamera10=camTarget.clone().add(new THREE.Vector3(
   -Math.sin(state.angle)*cameraDistance10,

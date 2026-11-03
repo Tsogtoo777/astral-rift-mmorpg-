@@ -3,6 +3,7 @@
  * downloader. Older NPCs remain visible if a new model is absent or invalid.
  */
 import * as THREE from 'three';
+import {TALK_DURATION_629,easeAngle629,facingAngle629,idlePose629,bestClip629,labelVisible629} from './npc629.js';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
 const NPC_ROLES622={
  'Болд':{role:'Дархан',coat:0x785846,face:0xefc09b,icon:'⚒'},
@@ -18,7 +19,7 @@ function titleTexture(text){
  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;return tex;
 }
 function addName(group,name){
- const geo=new THREE.PlaneGeometry(1.40,.27);
+ const geo=new THREE.PlaneGeometry(1.25,.245);
  const mat=new THREE.MeshBasicMaterial({map:titleTexture(name),transparent:true,depthWrite:false,side:THREE.DoubleSide});
  const label=new THREE.Mesh(geo,mat);label.position.set(0,2.4,0);label.renderOrder=8;group.add(label);return label;
 }
@@ -58,7 +59,8 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   if(!gltf.animations?.length)return null;
   const mixer=new THREE.AnimationMixer(m);
   const find=(rx)=>gltf.animations.find(a=>rx.test(a.name))||null;
-  const idle=find(/(^|_)idle|stand.*idle/i)||gltf.animations[0];
+  const idle=bestClip629(gltf.animations,/(^|_)idle|stand.*idle/i);
+  if(!idle)return null;
   const walk=find(/walk|stroll|run_forward/i);
   const talk=find(/talk/i)||find(/hand.*hip|gesture|wave|agree/i);
   const idleA=mixer.clipAction(idle);idleA.play();
@@ -130,6 +132,8 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   for(const old of [...e.group.children])if(old!==e.label&&old!==m)old.visible=false;
   if(e.kind==='guard')e.group.visible=true;
   e.model=m;e.motions=animationsFor(gltf,m);e.lastPos=e.group.position.clone();
+  e.baseY629=m.position.y;e.restYaw629=m.rotation.y;e.talkUntil=0;
+  e.lastTick=undefined;e.pulse629=entries.indexOf(e)*2.4;
   e.label.position.y=height+.32;
   console.info('[NPC626] Ready',e.name, 'source=',kind,'height=',dims.y.toFixed(2));
   if(e.kind==='guard'){stats.guards++;onGuardModelReady?.();}else stats.citizens++;
@@ -163,7 +167,8 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  }
  function dialogue(){
   const e=nearest();if(!e)return false;
-  if(e.motions?.talkA)e.talkUntil=performance.now()+3600;
+  e.talkUntil=performance.now()+TALK_DURATION_629;
+  activeDialogue629=e;
   const text=e.kind==='guard'?'<p>Хотоос гадна чоно, гоблин олширсон. Даалгаврын самбараа үзээрэй.</p><button id="npc622Board">📜 Даалгаврын самбар</button>':
   e.name==='Болд'?'<p>Би хуяг, илдийг чинь сайжруулж өгнө. Хүдэр болон алт цуглуулсан уу?</p><button id="npc622Forge">⚒ Дархны цэс</button>':
   e.name==='Номин'?'<p>Аянд гарахын өмнө эдгээх эм аваарай.</p><button id="npc622Buy">❤️ Эдгээх эм · 30 алт</button><button id="npc622Bag">🎒 Цүнх</button>':
@@ -177,16 +182,51 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   if(byId('npc622Board'))byId('npc622Board').onclick=()=>{closeWindow();msg('📜 Хотын самбар нь төв замын хажууд бий');};
   return true;
  }
- function update(camera,now){for(const e of entries){
-  const d=Math.hypot(e.group.position.x-player.position.x,e.group.position.z-player.position.z);
-  e.label.visible=d<5.8;e.label.quaternion.copy(camera.quaternion);
-  if(e.motions&&e.lastPos){
-   const delta=e.group.position.distanceToSquared(e.lastPos);e.lastPos.copy(e.group.position);
-   const desired=e.talkUntil>now&&e.motions.talkA?e.motions.talkA:(e.motions.walkA&&delta>.000006?e.motions.walkA:e.motions.idleA);
-   if(desired!==e.motions.active){e.motions.active.fadeOut(.22);desired.reset().fadeIn(.22).play();e.motions.active=desired;}
-   if(d<27&&e.lastTick!==undefined)e.motions.mixer.update(Math.min(.05,(now-e.lastTick)*.001));
+ let activeDialogue629=null;
+ function focus(now){
+   if(!activeDialogue629||now>=activeDialogue629.talkUntil)return null;
+   const e=activeDialogue629;
+   return e.group.position.clone().add(new THREE.Vector3(0,1.45,0));
+ }
+ function update(camera,now){
+  for(const e of entries){
+   const dx=player.position.x-e.group.position.x;
+   const dz=player.position.z-e.group.position.z;
+   const d=Math.hypot(dx,dz);
+   const talking=e.talkUntil>now;
+   e.label.visible=labelVisible629(d,talking);
+   // Rotation lives in the citizen's world group; compensate so the name
+   // remains facing the camera even when the citizen turns.
+   e.group.updateWorldMatrix(true,false);
+   const worldQuat=e.group.getWorldQuaternion(new THREE.Quaternion());
+   e.label.quaternion.copy(worldQuat.invert().multiply(camera.quaternion));
+   const last=e.lastTick??now;
+   const dt=Math.min(.05,Math.max(0,(now-last)*.001));
    e.lastTick=now;
+   if(!e.model||d>28)continue;
+   const base=e.restYaw629??0;
+   const desired=talking
+     ?facingAngle629(e.group.position.x,e.group.position.z,player.position.x,player.position.z,e.group.rotation.y)
+     :base;
+   e.model.rotation.y=easeAngle629(e.model.rotation.y,desired,dt,6.5);
+   const pose=idlePose629(now,talking,e.pulse629||0);
+   // Static authoring has no animation clips: subtle breathing/nod only;
+   // do not pretend these models have real Walk/Talk animations.
+   if(!e.motions){
+     e.model.position.y=e.baseY629+pose.lift;
+     e.model.rotation.z=pose.lean;
+     e.model.rotation.x=pose.nod;
+   }else{
+     const delta=e.group.position.distanceToSquared(e.lastPos);e.lastPos.copy(e.group.position);
+     const desiredAction=talking&&e.motions.talkA?e.motions.talkA
+       :(e.motions.walkA&&delta>.000006?e.motions.walkA:e.motions.idleA);
+     if(desiredAction!==e.motions.active){
+       e.motions.active.fadeOut(.22);
+       desiredAction.reset().fadeIn(.22).play();e.motions.active=desiredAction;
+     }
+     e.motions.mixer.update(dt);
+   }
   }
- }}
- return {dialogue,update,stats,nearest,entries};
+ }
+ return {dialogue,update,focus,stats,nearest,entries};
 }
