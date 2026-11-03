@@ -9,7 +9,7 @@ assert.equal(assetUrl621('oak',true),'/world621/oak.glb');
 const geo=layout621();assert.ok(geo.plants.length>=45 && geo.boulders.length>=20);
 assert.ok(geo.plants.every(p=>p.scale>.35 && Number.isFinite(p.x)));
 const main=fs.readFileSync('src/main.js','utf8');
-assert.match(main,/installWorld621\(\{THREE,GLTFLoader,scene,world62,legacyTownBuildings621,legacyTrees621,detail622:true\}\)/);
+assert.ok(main.includes('detail622:true,onPlaced:c=>worldCollision6211.add(c)'), 'world colliders registered for successfully loaded CDN props');
 assert.match(main,/ALPHA 6\.2 · WORLD EXPANSION · 6\.2\.1 ASSETS/);
 assert.match(fs.readFileSync('src/world62.js','utf8'),/legacyVegetation/);
 class Group{constructor(){this.children=[];this.position={set:(...x)=>this.pos=x};this.rotation={y:0};this.scale={setScalar:(v)=>this.s=v};this.visible=true;}add(x){this.children.push(x)}clone(){return new Group()}traverse(fn){} }
@@ -18,9 +18,9 @@ const oldTown=Array.from({length:8},()=>({visible:true}));const oldTrees=Array.f
 const beforeDoc=globalThis.document;globalThis.document=undefined;
 try{
 const x=await installWorld621({THREE:{Group},GLTFLoader,scene,world62:{legacyVegetation:oldForest},legacyTownBuildings621:oldTown,legacyTrees621:oldTrees});
-assert.equal(x.failed,0);assert.equal(x.loaded,11);assert.ok(x.placements>=70);assert.equal(x.houses,8);assert.ok(x.trees>=35);
-assert.equal(GLTFLoader.reads,11,'single request per unique GLB');
-assert.ok(oldTown.every(x=>!x.visible));assert.ok(oldTrees.every(x=>!x.visible));assert.equal(oldForest.trees[0].visible,false);
+assert.equal(x.failed,0);assert.equal(x.loaded,6);assert.ok(x.placements>=60);assert.equal(x.houses,0);assert.ok(x.trees>=35);
+assert.equal(GLTFLoader.reads,6,'single request per unique GLB');
+assert.ok(oldTown.every(x=>x.visible),'CDN house overlay must not replace locally bundled 4.2 houses');assert.ok(oldTrees.every(x=>!x.visible));assert.equal(oldForest.trees[0].visible,false);
 }finally{globalThis.document=beforeDoc}
 class OfflineLoader{loadAsync(){return Promise.reject(new Error('Network blocked'))}}
 const originals=Array.from({length:8},()=>({visible:true}));

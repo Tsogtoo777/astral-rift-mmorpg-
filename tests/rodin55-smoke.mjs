@@ -56,7 +56,7 @@ const holder=new Group('Holder');
 const ctl=createRodin54(THREE,{scene:root,animations:clips},holder);
 assert.equal(holder.children.length,1);
 assert.equal(ctl.movementState,'Idle');
-assert.equal(ctl.version,'5.8');
+assert.equal(ctl.version,'5.8.2');
 assert.equal(root.getObjectByName('RodinSword55').visible,true);
 assert.equal(root.getObjectByName('RodinBow55').visible,false);
 ctl.update({dt:1/60,moving:true,weapon:0});
@@ -65,7 +65,7 @@ ctl.update({dt:1/60,moving:true,sprinting:true,weapon:0});
 assert.equal(ctl.movementState,'Run');
 ctl.update({dt:1/60,moving:false,weapon:0});
 assert.equal(ctl.movementState,'Idle');
-assert.equal(ctl.version,'5.8');
+assert.equal(ctl.version,'5.8.2');
 ctl.triggerAttack();
 ctl.update({dt:1/60,weapon:0});
 ctl.update({dt:1/60,weapon:0});
@@ -95,7 +95,7 @@ for(const missing of ['Idle','Walk','Run']) {
 console.log('PASS: real GLB metadata 27 bones, 5 clips, skinned mesh; movement fades, attached weapons, attack, missing-clip safeguards');
 
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
-assert.ok(main.includes('ALPHA 5.8 · GREAT SWORD COMBAT'));
+assert.ok(main.includes('ALPHA 5.8.2 · COMBAT CONTROL'));
 assert.ok(main.includes('Math.hypot(move.x,move.y)>.88'),'mobile full joystick must activate sprint');
 assert.ok(main.includes('rodin54?.triggerAttack(state.weapon)'),'bow and sword attacks must differ');
 assert.ok(!main.includes('/models/samurai-player.glb'));

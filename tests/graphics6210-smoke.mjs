@@ -18,7 +18,7 @@ assert.ok(main.includes('graphics6210.mountSettings()'));
 assert.ok(main.includes('graphicsManaged:true'));
 assert.ok(old.includes('if(!api.graphicsManaged&&qualityClock>6)'));
 assert.ok(!fx.includes('renderer.setPixelRatio'),'Advanced FX must not override graphics settings');
-assert.equal(JSON.parse(readFileSync('package.json','utf8')).version,'6.2.12-alpha');
+assert.equal(JSON.parse(readFileSync('package.json','utf8')).version,'6.2.13-alpha');
 // Renderer stub allows verifying UI changes without WebGL or browser.
 const events=[]; const storage=new Map();
 const prevWindow=globalThis.window;

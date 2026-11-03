@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const c=fs.readFileSync('src/meshy597.js','utf8'),m=fs.readFileSync('src/main.js','utf8');
+assert.match(m,/meshy-warrior-nocape\.glb/);
+assert.match(m,/sprintActive613\?\.72:\.94/);
+assert.match(m,/moveSpeed613\+=/);
+assert.match(c,/const transferPhase=/);
+assert.match(c,/a\.time=phase\*a\.getClip\(\)\.duration/);
+assert.match(c,/model\.rotation\.set\(0,0,Math\.PI\)/);
+assert.match(c,/model\.position\.set\(0,\.70,0\)/);
+assert.match(c,/const capeRest=\[\];/);
+assert.match(c,/version:'6\.1\.6'/);
+assert(!m.includes('rodin-rigged.glb'));
+console.log('PASS 6.1.3: stable sprint hysteresis, gait phase crossfade, no-cape avatar & hand sword inversion');
