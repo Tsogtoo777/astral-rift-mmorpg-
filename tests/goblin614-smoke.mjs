@@ -40,5 +40,5 @@ assert.match(main,/e\.visual614\?\.die\(\)/);
 assert.match(main,/e\.visual614\?\.revive\(\)/);
 assert.match(main,/enemyAI57\.phase\(e\)/);
 assert.match(main,/e\.visual614\?\.update\(dt,\{alive:false/);
-assert.match(main,/ALPHA 6\.1\.4 · GOBLIN/);
+assert.match(main,/ALPHA 6\.2 · WORLD EXPANSION/);
 console.log('PASS 6.1.4: one rigged Goblin, state transitions, attack/death/revive, existing AI and loot wiring');

@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const p=fs.readFileSync('src/meshy597.js','utf8');
+const w=fs.readFileSync('src/wolf615.js','utf8');
+const m=fs.readFileSync('src/main.js','utf8');
+assert.match(p,/stabilizeSwordGrip616\(dt\)/);
+assert.match(p,/swordHandWorld616\.invert\(\)/);
+assert.match(p,/if\(!bones\.RightHand\|\|swing<\.58\|\|weapon\)return/);
+assert.match(w,/filteredSpeed616/);
+assert.match(w,/runLatch616/);
+assert.match(w,/filteredSpeed616>1\.65/);
+assert.match(m,/ALPHA 6\.2 · WORLD EXPANSION/);
+assert.match(m,/meshy-warrior-nocape\.glb/);
+assert.match(m,/forest_wolf\.glb|loadForestWolf615/);
+assert.equal(JSON.parse(fs.readFileSync('package.json')).version,'6.2.0-alpha');
+console.log('PASS 6.1.6: hand-aligned katana when not attacking, stabilized wolf locomotion thresholds, player+wolf integration');

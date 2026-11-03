@@ -31,6 +31,6 @@ const controller=fs.readFileSync('src/meshy597.js','utf8');
 const main=fs.readFileSync('src/main.js','utf8');
 assert(!controller.includes("throw new Error('Meshy hand/arm bones mismatch')"));
 assert.match(controller,/gripAnchor\.add\(grip\)/);
-assert.match(main,/ALPHA 6\.1\.1 · MESHY ONLY/);
+assert.match(main,/ALPHA 6\.2 · WORLD EXPANSION/);
 assert(!main.includes("rodin-rigged.glb"));
 console.log('PASS Meshy 6.0: 62-joint GLB, name variants, skeleton fallback, no invisible-avatar exception');
