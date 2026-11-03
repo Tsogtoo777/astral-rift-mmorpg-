@@ -1,0 +1,20 @@
+ASTRAL RIFT ALPHA 6.2.2 — СУУЛГАХ ЗААВАР
+
+1. Одоо байгаа 6.2.1 дээр PATCH ZIP-ийг задлаад GitHub root-д ижил замаар байрлуулна.
+2. src/main.js, src/world621.js файлыг солино.
+3. src/forest622.js, src/npc622.js хоёрыг шинээр нэмнэ.
+4. package.json, index.html файлыг солино.
+5. Vercel deploy дууссаны дараа тоглоомыг дахин нээнэ.
+6. Гарчиг дээр ALPHA 6.2.2 · NATURAL FOREST + NPC гэж харагдана.
+7. Нэг NPC-д ойртоод утсан дээр 🗣 NPC / F, компьютерт F эсвэл E дарна.
+
+НЭМЭЛТ МОДЕЛЬ ТАТАХ ШААРДЛАГАГҮЙ:
+public/models/saruul.glb, public/models/meshy-warrior-nocape.glb аль хэдийн 6.2.1 FULL-д бий.
+Эдгээр байхгүй бол FULL ZIP-ийг ашиглана.
+
+Хуучин модтой харьцуулах: ?forest=old
+Татагддаг 6.2.1 барилгын CDN-г унтраах: ?worldassets=off
+
+Анхаар: шинэ мод нь тусдаа навч/мөчиртэй procedural geometry. Бодит скан GLB
+файлуудыг интернет хязгаарлалтын улмаас татаж оруулаагүй.
+RedMagic 9 Pro дээрх FPS болон тулааныг хэрэглэгчийн тестээр дахин баталгаажуулна.
