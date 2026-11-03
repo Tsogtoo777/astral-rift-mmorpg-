@@ -1,0 +1,12 @@
+ALPHA 6.2.3 — NPC ШИНЭЧЛЭЛТ
+
+6.2.2 дээр PATCH-ийг задлаад, GitHub дээр ижил хавтас замаар хуучин файлуудыг солино.
+- src/npc622.js, src/main.js, index.html, package.json — солих
+- tools/download-npc623.mjs — шинэ файл, ЗААВАЛ нэмнэ
+- LICENSE_NPC623.md — лицензийн эх сурвалж
+
+Vercel build дээр npm build ажиллах үед `prebuild` автоматаар 4 NPC GLB татахыг оролдоно.
+Vercel build logs дотор `NPC623 Imported` гэсэн мөр бүрийг шалга.
+Хэрэв `NPC623 Unavailable` гэж байвал тухайн загвар татагдаагүй, хуучин NPC хэвээр үлдэнэ.
+Хамгийн чухал: энэ ZIP дотор гаднын GLB файлууд ОДОО байхгүй (орчин интернетийн бинар таталтад хязгаарлагдсан).
+`?npcmodels=old` — хуучин NPC-г хүчээр үзэх; `?npcmodels=cdn` — CDN шууд турших.
