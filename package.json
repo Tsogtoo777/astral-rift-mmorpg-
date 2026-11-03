@@ -1,15 +1,15 @@
 {
   "name": "astral-rift-alpha",
-  "version": "6.2.3-alpha",
+  "version": "6.2.4-alpha",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test:smoke": "node tests/alpha40-smoke.mjs && node tests/architecture42-smoke.mjs && node tests/gameplay56-smoke.mjs && node tests/enemy57-smoke.mjs && node tests/equipment59-smoke.mjs && node tests/meshy598-smoke.mjs && node tests/meshy599-smoke.mjs && node tests/ui60-smoke.mjs && node tests/ui61-smoke.mjs && node tests/ui611-smoke.mjs && node tests/meshy612-smoke.mjs && node tests/meshy613-smoke.mjs && node tests/goblin614-smoke.mjs && node tests/wolf615-smoke.mjs && node tests/character616-smoke.mjs && node tests/wolf617-smoke.mjs && node tests/wolf618-smoke.mjs && node tests/world62-smoke.mjs && node tests/world621-smoke.mjs && node tests/world622-smoke.mjs && node tests/npc623-smoke.mjs",
-    "test:assets": "python tests/meshy598-assets.py && python tests/meshy613-assets.py && python tests/goblin614-assets.py && python tests/wolf615-assets.py && python tests/character616-assets.py && python tests/wolf617-assets.py && python tests/wolf618-assets.py && python tests/world62-assets.py",
-    "prebuild": "node tools/download-npc623.mjs",
+    "test:smoke": "node tests/alpha40-smoke.mjs && node tests/architecture42-smoke.mjs && node tests/gameplay56-smoke.mjs && node tests/enemy57-smoke.mjs && node tests/equipment59-smoke.mjs && node tests/meshy598-smoke.mjs && node tests/meshy599-smoke.mjs && node tests/ui60-smoke.mjs && node tests/ui61-smoke.mjs && node tests/ui611-smoke.mjs && node tests/meshy612-smoke.mjs && node tests/meshy613-smoke.mjs && node tests/goblin614-smoke.mjs && node tests/wolf615-smoke.mjs && node tests/character616-smoke.mjs && node tests/wolf617-smoke.mjs && node tests/wolf618-smoke.mjs && node tests/world62-smoke.mjs && node tests/world621-smoke.mjs && node tests/world622-smoke.mjs && node tests/npc623-smoke.mjs && node tests/npc624-smoke.mjs",
+    "test:assets": "python tests/meshy598-assets.py && python tests/meshy613-assets.py && python tests/goblin614-assets.py && python tests/wolf615-assets.py && python tests/character616-assets.py && python tests/wolf617-assets.py && python tests/wolf618-assets.py && python tests/world62-assets.py && python tests/npc624-assets.py",
+    "prebuild": "node tools/verify-npc624.mjs",
     "assets:npc": "node tools/download-npc623.mjs"
   },
   "dependencies": {
