@@ -7,9 +7,11 @@ import { createEnemyAI57 } from './enemyAI57.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
+import { createWorld62, SPAWN_SITES62, ZONES62, WORLD62_RADIUS, zoneAt62 } from './world62.js';
+import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 6.1.8 — Original Meshy Wolf';
+document.title='Astral Rift Alpha 6.2 — World Expansion';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
@@ -21,12 +23,12 @@ import { installAstralUI60 } from './ui60.js';
 import { installAstralUI61 } from './ui61.js';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.1.8 · ORIGINAL WOLF</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.009);
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,150);
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.2 · WORLD EXPANSION</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.0065);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,360);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-36;sun.shadow.camera.right=36;sun.shadow.camera.top=36;sun.shadow.camera.bottom=-36;scene.add(sun);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 function trunk(x,z){const t=new THREE.Mesh(new THREE.CylinderGeometry(.27,.4,3,7),new THREE.MeshStandardMaterial({color:0x60452f}));t.position.set(x,1.5,z);t.castShadow=true;scene.add(t);const c=new THREE.Mesh(new THREE.ConeGeometry(1.7,4.5,8),new THREE.MeshStandardMaterial({color:0x254f3c}));c.position.set(x,4.6,z);c.castShadow=true;scene.add(c)}
 for(let i=0;i<65;i++){const a=i*2.399,r=24+(i%9)*4;trunk(Math.cos(a)*r,Math.sin(a)*r)}
@@ -256,8 +258,41 @@ loadOriginalWolf618({THREE,GLTFLoader,FBXLoader,enemy:wolfEnemy615}).then(contro
   console.warn('[Astral 6.1.8] Meshy wolf GLB unavailable:',error);
   msg('Wolf загвар ачаалсангүй — /monsters/forest_wolf.glb шалгана уу');
 });
+// Alpha 6.2: data-defined outdoor regions and nearby-only rigged enemies.
+const world62=createWorld62({THREE,scene});
+const assetPromises62=new Map();
+async function sharedRigAsset62(url){
+  if(!assetPromises62.has(url))assetPromises62.set(url,new GLTFLoader().loadAsync(url).catch(e=>{assetPromises62.delete(url);throw e;}));
+  const asset=await assetPromises62.get(url);
+  // Each clone has its OWN skinned bone hierarchy, while geometry/textures are shared.
+  return {scene:cloneSkeleton62(asset.scene),animations:asset.animations};
+}
+const regionEnemies62=SPAWN_SITES62.map(site=>{
+  const e=spawn(site.x,site.z);
+  e.world62={...site,requested:false,failed:false};
+  e.max=site.hp;e.hp=site.hp;e.elite=['elite','chief'].includes(site.tier);
+  e.fast=site.kind==='wolf'||site.tier==='scout';
+  e.kind614=site.kind==='goblin'?'goblin':undefined;
+  e.kind615=site.kind==='wolf'?'wolf':undefined;
+  if(site.kind==='goblin') e.g.scale.setScalar(site.tier==='chief'?1.65:site.tier==='elite'?1.3:site.tier==='scout'?.91:1);
+  else e.g.scale.setScalar(site.tier==='fast'?1.13:1);
+  e.g.visible=false; // Not rendered or simulated until player approaches.
+  return e;
+});
+let nextRegionBudget62=0;let activeRegionBudget62=new Set();
+const originalWolfAsset62='/monsters/forest_wolf.glb';
+function requestRegionRig62(enemy){
+  const site=enemy.world62;if(!site||site.requested)return;site.requested=true;
+  const factory=url=>sharedRigAsset62(url);
+  const promise=site.kind==='goblin'
+    ?loadGoblin614({THREE,GLTFLoader,enemy,assetFactory:factory})
+    :loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl:originalWolfAsset62,assetFactory:factory,
+      motionOverrides:async()=>{const clips=wolfEnemy615.visual615?.clips;return {Walk:clips?.get('Walk'),Run:clips?.get('Run')};}});
+  promise.then(controller=>{if(site.kind==='goblin')enemy.visual614=controller;else enemy.visual615=controller;})
+    .catch(err=>{console.warn('Region rig load failed:',site.id,err);site.failed=true;site.requested=false;});
+}
 // Lightweight on-screen enemy names/HP — 2 elements, not a new renderer.
-const namedEnemies615=[{enemy:goblinEnemy614,name:'Goblin Raider',level:5,height:1.7},{enemy:wolfEnemy615,name:'Forest Wolf',level:7,height:1.25}];
+const namedEnemies615=[{enemy:goblinEnemy614,name:'Goblin Raider',level:5,height:1.7},{enemy:wolfEnemy615,name:'Forest Wolf',level:7,height:1.25},...regionEnemies62.map(e=>({enemy:e,name:e.world62.kind==='wolf'?'Forest Wolf':e.world62.tier==='chief'?'Goblin Chief':e.world62.tier==='elite'?'Elite Goblin':e.world62.tier==='scout'?'Goblin Scout':'Goblin Raider',level:e.world62.level,height:e.world62.kind==='wolf'?1.25:1.8}))];
 const enemyHud615=document.createElement('div');enemyHud615.id='enemyHud615';document.body.append(enemyHud615);
 for(const entry of namedEnemies615){
   const tag=document.createElement('div');tag.className='monsterTag615';
@@ -420,7 +455,7 @@ for(let i=0;i<3;i++){
  const ring=visual08(new THREE.TorusGeometry(4+i*2,.065,6,48),i===1?gold08:edge07,48,.21+i*.01,-48,dungeon07);
  ring.rotation.x=Math.PI/2;
 }
-const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 6.1.8 · ORIGINAL WOLF'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
+const visualVersion08=document.querySelector('#hud small');if(visualVersion08)visualVersion08.textContent='ALPHA 6.2 · WORLD EXPANSION'; // Previous stable baseline: ALPHA 5.8.2 · COMBAT CONTROL
 versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';
 
 
@@ -857,11 +892,12 @@ menuToggle23.onclick=()=>{panel.classList.toggle('collapsed23');const opened=!pa
 // Live overhead minimap, world positions and compass direction. Canvas is kept lightweight.
 const mapCanvas23=document.createElement('canvas');mapCanvas23.id='mapCanvas23';mapCanvas23.width=160;mapCanvas23.height=160;
 const oldMini23=document.getElementById('minimap');oldMini23.appendChild(mapCanvas23);
-const ctx23=mapCanvas23.getContext('2d');let mapTick23=0;
+const ctx23=mapCanvas23.getContext('2d');let mapTick23=0;let areaLabel62='';
 function drawMap23(now){if(now-mapTick23<180)return;mapTick23=now;const c=ctx23;c.clearRect(0,0,160,160);c.fillStyle='#153e39';c.fillRect(0,0,160,160);c.strokeStyle='#456b61';c.lineWidth=1;for(let i=0;i<=160;i+=20){c.beginPath();c.moveTo(i,0);c.lineTo(i,160);c.moveTo(0,i);c.lineTo(160,i);c.stroke()}
 const pt=(x,z)=>[80+(x-player.position.x)*1.55,80+(z-player.position.z)*1.55];
-for(const [x,z,col] of [[0,32,'#ffdf92'],[-36,-43,'#5ce0a0'],[36,-44,'#a9baff'],[48,-38,'#ff778b'],[0,0,'#ffffff']]){const [px,py]=pt(x,z);c.fillStyle=col;c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill()}
+for(const [x,z,col] of [[0,32,'#ffdf92'],[-36,-43,'#5ce0a0'],[36,-44,'#a9baff'],[48,-38,'#ff778b'],[-88,-69,'#4bea9b'],[91,-63,'#f2b062'],[96,89,'#b9a1f9'],[0,0,'#ffffff']]){const [px,py]=pt(x,z);c.fillStyle=col;c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill()}
 for(const citizen of citizens22){const [px,py]=pt(citizen.g.position.x,citizen.g.position.z);c.fillStyle='#8bd9ff';c.fillRect(px-2,py-2,4,4)}
+for(const e of regionEnemies62){if(!e.alive||!e.g.visible)continue;const [px,py]=pt(e.g.position.x,e.g.position.z);if(px<4||py<4||px>156||py>156)continue;c.fillStyle=e.world62.kind==='wolf'?'#ffdf7a':'#fa7b69';c.fillRect(px-2,py-2,4,4)}
 c.save();c.translate(80,80);c.rotate(-player.rotation.y);c.fillStyle='#fff';c.beginPath();c.moveTo(0,-8);c.lineTo(-6,6);c.lineTo(6,6);c.closePath();c.fill();c.restore();}
 // Day/night cycle; existing sun reused. No extra shadow maps.
 const time23={hour:Math.min(24,Math.max(0,Number(saved.kingdomHour23??9))),cycle:true};
@@ -885,6 +921,8 @@ function updateKingdom23(now,dt){
  renderer.toneMappingExposure=.85+day*.5;clock23.textContent=`${day<.3?'🌙':'☀'} ${String(Math.floor(time23.hour)).padStart(2,'0')}:${String(Math.floor((time23.hour%1)*60)).padStart(2,'0')}`;
  for(let i=bursts23.length-1;i>=0;i--){const q=bursts23[i];q.t-=dt;q.b.scale.multiplyScalar(1+dt*2);q.b.material.opacity=Math.max(0,q.t/.48);if(q.t<=0){scene.remove(q.b);q.b.geometry.dispose();q.b.material.dispose();bursts23.splice(i,1)}}
  drawMap23(now);
+ const region=zoneAt62(player.position.x,player.position.z);
+ if(region.name!==areaLabel62){areaLabel62=region.name;oldMini23.querySelector('span').textContent=region.name;document.querySelector('#zoneLabel').textContent='✦ '+region.name.toUpperCase();}
 }
 // Visibly distinct named areas, with a landmark and navigation hint.
 const castleSign23=sign21('♜ ХААНЫ ЦАЙЗ',0,25.05);
@@ -999,7 +1037,7 @@ function questBoard25(){
  if(boardActive25&&boardKills25>=5&&!boardClaim25){boardClaim25=true;boardActive25=false;gold+=180;ore18+=3;gainXp(120);saveExtra25();saveGame();msg('📜 +180 алт, +3 хүдэр, +120 EXP');return}
  openWindow('📜 Хотын даалгаврын самбар',`<p>${boardClaim25?'Даалгавар биелсэн.':boardActive25?'Ялсан дайсан: '+boardKills25+'/5':'Самбарт ойртож даалгавар аваарай.'}</p>`);
 }
-function portalWindow25(){openWindow('🌀 Шилжих хаалга',`<p>Шилжих газраа сонго:</p><p><button id="forest25">🌲 Шидэт ой</button> <button id="ruins25">🏛 Эртний балгас</button> <button id="town25">🏰 Хот</button></p>`);document.querySelector('#forest25').onclick=()=>teleport25(-35,-38);document.querySelector('#ruins25').onclick=()=>teleport25(36,-39);document.querySelector('#town25').onclick=()=>teleport25(2,-17)}
+function portalWindow25(){openWindow('🌀 Шилжих хаалга',`<p>Шилжих газраа сонго:</p><p><button id="forest25">🌲 Хуучин ой</button> <button id="ruins25">🏛 Хуучин балгас</button> <button id="town25">🏰 Хот</button></p><hr><p><b>Alpha 6.2 — шинэ бүсүүд</b></p><p><button id="deepForest62">🌲 Шидэт ойн гүн</button> <button id="goblinCamp62">⚔ Гоблиний хуаран</button> <button id="ancientRuins62">✧ Эртний балгас</button></p>`);document.querySelector('#forest25').onclick=()=>teleport25(-35,-38);document.querySelector('#ruins25').onclick=()=>teleport25(36,-39);document.querySelector('#town25').onclick=()=>teleport25(2,-17);document.querySelector('#deepForest62').onclick=()=>teleport25(-60,-53);document.querySelector('#goblinCamp62').onclick=()=>teleport25(65,-55);document.querySelector('#ancientRuins62').onclick=()=>teleport25(75,63)}
 function teleport25(x,z){closeWindow();if(inCastle25)exitCastle25();if(inside09>=0)exitHouse09();player.position.set(x,0,z);state.target=null;msg('🌀 Шилжлээ')}
 function enterCastle25(){inCastle25=true;player.position.set(hallOrigin25.x,0,hallOrigin25.z+6);msg('🏰 Хааны танхимд орлоо')}
 function exitCastle25(){inCastle25=false;player.position.set(0,0,22);msg('🏰 Цайзын гадна гарлаа')}
@@ -1148,8 +1186,8 @@ const enemyAI57=createEnemyAI57({
 });
 const dodge57=createDodge57({onMove:(dx,dz)=>{
   moveSafely09(dx,dz);
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70);
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-WORLD62_RADIUS,WORLD62_RADIUS);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-WORLD62_RADIUS,WORLD62_RADIUS);
 }});
 const cameraGuard56=createCameraGuard56(THREE,cameraObstacles24);
 const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
@@ -1178,12 +1216,29 @@ if(walking){
   const speed55=state.dodge>0?0:moveSpeed613;
   moveSafely09(dir.x*dt*speed55,dir.z*dt*speed55);
   player.rotation.y=Math.atan2(dir.x,dir.z);
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-70,70);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-70,70);
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-WORLD62_RADIUS,WORLD62_RADIUS);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-WORLD62_RADIUS,WORLD62_RADIUS);
 }
 dodge57.update(dt);
 animateCharacters12(now,dt,walking);updateMeshy598(now,dt,walking,sprint55);advancedFX50.update(dt,walking,state.attacking);
-shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;for(const e of enemies){
+shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002)*.2;portal06.material.opacity=.23+Math.sin(now*.002)*.09;questGem.position.y=3.02+Math.sin(now*.003)*.16;
+// Performance budget: no more than 7 new skinned mobs simulated/rendered
+// at once on mobile. Re-evaluate every 0.7s to prevent per-frame thrashing.
+if(now>=nextRegionBudget62){
+  nextRegionBudget62=now+700;
+  const nearby=regionEnemies62.map(e=>({e,d:Math.hypot(e.g.position.x-player.position.x,e.g.position.z-player.position.z)}))
+    .filter(o=>o.d<43).sort((a,b)=>a.d-b.d);
+  activeRegionBudget62=new Set(nearby.slice(0,7).map(o=>o.e));
+}
+for(const e of enemies){
+  // 6.2: do not animate, AI-update or draw faraway outdoor enemies.
+  if(e.world62){
+    const near=inside09<0&&!inDungeon07&&!inCastle25 &&
+      activeRegionBudget62.has(e)&&Math.hypot(e.g.position.x-player.position.x,e.g.position.z-player.position.z)<46;
+    e.g.visible=near;
+    if(!near){enemyAI57.hide(e);enemyAI57.reset(e);continue;}
+    if(!e.world62.requested&&!e.world62.failed)requestRegionRig62(e);
+  }
   // Keep outdoor mobs inactive in indoor/dungeon scenes and vice versa.
   if(inside09>=0||(e.boss&&!inDungeon07)||(!e.boss&&inDungeon07)){
     enemyAI57.hide(e);continue;

@@ -12,9 +12,9 @@ export function chooseGoblinMotion614({alive=true,phase='idle',distance=0,dt=.01
   return 'Idle';
 }
 
-export async function loadGoblin614({THREE, GLTFLoader, enemy, assetUrl='/monsters/goblin_raider.glb'}) {
+export async function loadGoblin614({THREE, GLTFLoader, enemy, assetUrl='/monsters/goblin_raider.glb', assetFactory=null}) {
   if (!enemy?.g) throw Error('Goblin enemy group missing');
-  const gltf=await new GLTFLoader().loadAsync(assetUrl);
+  const gltf=assetFactory?await assetFactory(assetUrl):await new GLTFLoader().loadAsync(assetUrl);
   const root=gltf.scene;
   if (!root) throw Error('Goblin scene missing');
   const names=['Idle','Walking','Running','Attack','Dead'];

@@ -12,9 +12,9 @@ export function chooseWolfMotion615({alive=true,phase='idle',distance=0,dt=.016}
   return 'Idle';
 }
 
-export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monsters/forest_wolf.glb', motionOverrides=null}) {
+export async function loadForestWolf615({THREE,GLTFLoader,enemy,assetUrl='/monsters/forest_wolf.glb', motionOverrides=null,assetFactory=null}) {
   if(!enemy?.g)throw Error('Wolf enemy group missing');
-  const gltf=await new GLTFLoader().loadAsync(assetUrl),root=gltf.scene;
+  const gltf=assetFactory?await assetFactory(assetUrl):await new GLTFLoader().loadAsync(assetUrl),root=gltf.scene;
   if(!root)throw Error('Wolf scene missing');
   const clipNames=['Idle','Walk','Run','Attack','Hit','Dead','Howl'];
   const clips=new Map((gltf.animations||[]).map(c=>[c.name,c]));
