@@ -70,9 +70,9 @@ export function createWorld62({THREE,scene}){
     const x=96+Math.cos(a)*r,z=89+Math.sin(a)*r;
     if(i%2===0)boulders.push([x,.5,z,1.4,1.15,1.05,i*.5]);
   }
-  instanced(new THREE.CylinderGeometry(1,1,1,6),wood,trunks);
-  instanced(new THREE.ConeGeometry(1,1,7),pine,crowns);
-  instanced(new THREE.IcosahedronGeometry(1,0),stone,boulders);
+  const legacyForestTrunks=instanced(new THREE.CylinderGeometry(1,1,1,6),wood,trunks);
+  const legacyForestCrowns=instanced(new THREE.ConeGeometry(1,1,7),pine,crowns);
+  const legacyForestRocks=instanced(new THREE.IcosahedronGeometry(1,0),stone,boulders);
   function obj(geo,material,x,y,z,rotation=0){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.y=rotation;m.castShadow=false;m.receiveShadow=true;root.add(m);return m}
   function plankRoad(a,b,width=5){
     const dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz);
@@ -109,5 +109,6 @@ export function createWorld62({THREE,scene}){
     obj(new THREE.BoxGeometry(.14,2.6,.14),wood,x,1.3,z);obj(new THREE.PlaneGeometry(4,1),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}),x,3,z);
   }
   sign('ШИДЭТ ОЙ',-63,-53);sign('ГОБЛИНИЙ ХУАРАН',66,-56);sign('ЭРТНИЙ БАЛГАС',77,67);
-  return {root,zones:ZONES62,spawnSites:SPAWN_SITES62};
+  return {root,zones:ZONES62,spawnSites:SPAWN_SITES62,
+    legacyVegetation:{trees:[legacyForestTrunks,legacyForestCrowns],rocks:[legacyForestRocks]}};
 }
