@@ -46,7 +46,7 @@ export function layout621(){
 /** Build visuals (not colliders). Async loads are bounded to unique model URLs.
  * Every old object remains visible until its individual replacement succeeds.
  */
-export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621=[],legacyTrees621=[]}){
+export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621=[],legacyTrees621=[],detail622=false}){
   const query=typeof location!=='undefined'?new URLSearchParams(location.search):new URLSearchParams();
   const mode=query.get('worldassets')||'cdn';
   if(mode==='off')return {mode,loaded:0,failed:0,placements:0,disabled:true};
@@ -77,11 +77,11 @@ export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTown
     }
   })());
   const {plants,boulders}=layout621();
-  for(const plant of plants)jobs.push((async()=>{
+  for(const plant of (detail622?[]:plants))jobs.push((async()=>{
     const base=await fetchModel(plant.key);
     if(put(base,plant.x,plant.z,plant.scale,plant.angle))stats.trees++;
   })());
-  for(const rock of boulders)jobs.push((async()=>{
+  for(const rock of (detail622?[]:boulders))jobs.push((async()=>{
     const base=await fetchModel('rock');
     if(put(base,rock.x,rock.z,rock.scale,rock.angle))stats.rocks++;
   })());
@@ -97,11 +97,11 @@ export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTown
     const base=await fetchModel('arch');put(base,x,z,1.1,a);
   })());
   await Promise.allSettled(jobs);
-  if(stats.trees>=35){
+  if(!detail622&&stats.trees>=35){
     legacyTrees621.forEach(o=>o.visible=false);
     world62?.legacyVegetation?.trees?.forEach(o=>o.visible=false);
   }
-  if(stats.rocks>=16)world62?.legacyVegetation?.rocks?.forEach(o=>o.visible=false);
+  if(!detail622&&stats.rocks>=16)world62?.legacyVegetation?.rocks?.forEach(o=>o.visible=false);
   stats.loaded=Array.from(cached.keys()).length-failed.size;
   stats.failed=failed.size;
   if(typeof document!=='undefined'){

@@ -9,6 +9,8 @@ import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
 import { createWorld62, SPAWN_SITES62, ZONES62, WORLD62_RADIUS, zoneAt62 } from './world62.js';
 import { installWorld621 } from './world621.js';
+import { installForest622 } from './forest622.js';
+import { installNPC622 } from './npc622.js';
 import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
@@ -232,7 +234,7 @@ function talk(){
   }else openWindow('Саруул',`<p>Ялсан дайсан: ${questKills16}/3</p>`);
 }
 document.querySelector('#townBtn').onclick=talk;document.querySelector('#bagBtn').onclick=showBag;document.querySelector('#shopBtn16').onclick=showShop16;
-window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyE')talk();if(e.code==='KeyI')showBag();if(e.code==='KeyH')usePotion16();if(e.code==='Escape')closeWindow()});
+window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyE')interactWorld06();if(e.code==='KeyI')showBag();if(e.code==='KeyH')usePotion16();if(e.code==='Escape')closeWindow()});
 const enemies=[];let enemySerial19=0;function spawn(x,z){const g=new THREE.Group();g.position.set(x,0,z);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),new THREE.MeshStandardMaterial({color:0x963d42,flatShading:true}));m.position.y=.95;m.castShadow=true;g.add(m);scene.add(g);{const variant=enemySerial19++%5;const elite=variant===4,fast=variant===2;const max=elite?220:fast?75:100;
  m.material.color.setHex(elite?0xd6a344:fast?0x4e9ba9:0x963d42);
  g.scale.setScalar(elite?1.35:fast?.85:1);
@@ -264,7 +266,7 @@ loadOriginalWolf618({THREE,GLTFLoader,FBXLoader,enemy:wolfEnemy615}).then(contro
 // Alpha 6.2: data-defined outdoor regions and nearby-only rigged enemies.
 const world62=createWorld62({THREE,scene});
 // 6.2.1: independent optional visual layer; failed CDN loads keep existing geometry.
-installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621,legacyTrees621})
+installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621,legacyTrees621,detail622:true})
  .then(stats=>console.info('[Astral 6.2.1] Free CC0 world assets:',stats))
  .catch(error=>console.warn('[Astral 6.2.1] Asset upgrade skipped:',error));
 const assetPromises62=new Map();
@@ -1198,7 +1200,30 @@ const dodge57=createDodge57({onMove:(dx,dz)=>{
 }});
 const cameraGuard56=createCameraGuard56(THREE,cameraObstacles24);
 const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
-let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
+// Alpha 6.2.2: natural forest + living NPC roles. Originals remain as fallbacks.
+const forest622=installForest622({scene,ground,legacyTrees621,world62});
+// Keep the old magic grove altar, but remove its conspicuous cone-tree placeholders.
+for(const node of grove22.children)if(node.geometry?.type==='ConeGeometry'||(node.geometry?.type==='CylinderGeometry'&&node.position.y>1.3))node.visible=false;
+const npc622=installNPC622({GLTFLoader,scene,citizens22,guards24,player,openWindow,showForge18,saveGame,msg,
+ potionPurchase:()=>{if(gold<30){msg('Алт хүрэлцэхгүй');return}gold-=30;potions16++;saveGame();msg('❤️ Эм авлаа')},
+ closeWindow,questBoard25,showBag});
+const priorWorldInteract622=interactWorld06;
+interactWorld06=function(){
+ if(inside09<0&&!inDungeon07&&!inCastle25){
+  const dS=Math.hypot(player.position.x-npc.position.x,player.position.z-npc.position.z);
+  const near=npc622.nearest();const dOther=near?Math.hypot(player.position.x-near.group.position.x,player.position.z-near.group.position.z):Infinity;
+  if(dS<3.6&&dS<=dOther){talk();return;}
+  if(npc622.dialogue())return;
+ }
+ priorWorldInteract622();
+};
+// On mobile the existing NPC button now addresses the nearest NPC, not only Saruul.
+document.querySelector('#townBtn').textContent='🗣 NPC / F';
+document.querySelector('#townBtn').onclick=()=>interactWorld06();
+// Keep previous E=Saruul keyboard behaviour for backwards compatibility.
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.2 · NATURAL FOREST + NPC';
+document.title='Astral Rift Alpha 6.2.2 — Natural Forest & NPC';
+let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
@@ -1222,6 +1247,7 @@ if(walking){
   moveSpeed613+=(targetSpeed613-moveSpeed613)*(1-Math.exp(-12*dt));
   const speed55=state.dodge>0?0:moveSpeed613;
   moveSafely09(dir.x*dt*speed55,dir.z*dt*speed55);
+  if(inside09<0&&!inDungeon07&&!inCastle25)forest622.resolvePlayer?.(player.position);
   player.rotation.y=Math.atan2(dir.x,dir.z);
   player.position.x=THREE.MathUtils.clamp(player.position.x,-WORLD62_RADIUS,WORLD62_RADIUS);
   player.position.z=THREE.MathUtils.clamp(player.position.z,-WORLD62_RADIUS,WORLD62_RADIUS);
