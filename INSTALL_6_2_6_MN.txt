@@ -1,0 +1,7 @@
+Astral Rift Alpha 6.2.6 NPC FIX
+
+6.2.5 MAIN deer PATCH-ii file-iig yag zamaar ni oruulna.
+Zaaval: src/main.js, src/npc622.js, public/models/npc625/witch-girl-upright.glb, package.json, index.html.
+Huuchin npc625/ model-uudiig ustgahgui.
+Main GLB root ni 6.2.5-d upload hiisen esehig shalga.
+Vercel deer 6.2.6 NPC PLACEMENT FIX garch irvel build shinechlegdsen.
