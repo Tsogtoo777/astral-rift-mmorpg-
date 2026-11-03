@@ -1,0 +1,18 @@
+ASTRAL RIFT ALPHA 6.2.5 — 4 ШИНЭ NPC
+
+Одоогийн 6.2.4 дээр PATCH ZIP-ийг задалж GitHub-д файлуудыг замын дагуу байрлуулна.
+
+ШИНЭ GLB (бүгд PATCH дотор):
+ public/models/npc625/blacksmith-mobile.glb    Болд, texture хөнгөрүүлсэн
+ public/models/npc625/elf-woman-mobile.glb     Номин, texture хөнгөрүүлсэн
+ public/models/npc625/inquisitor-v2.glb        Тэмүүлэн, Idle/Talk анимацтай
+ public/models/npc625/witch-girl.glb          Саруул, хуучин quest хэвээр
+
+ЗАСАГДСАН КОД: src/main.js, src/npc622.js, index.html, package.json
+BUILD ШАЛГАЛТ: tools/verify-npc625.mjs
+ЗӨВШӨӨРӨЛ: CREDITS_NPC_6_2_5.md-г Github-д оруулах, тоглоомын Credits-д зохиогчдыг дурьдах.
+
+Харуулын Captain V2 GLB өмнөх 6.2.4-д байгаа, дахин солихгүй.
+Тоглоомын хувилбар: ALPHA 6.2.5 · REAL NPC MODELS
+
+Эхний Vercel build болон утсан дээрх үзэгдэл хараахан баталгаажаагүй.
