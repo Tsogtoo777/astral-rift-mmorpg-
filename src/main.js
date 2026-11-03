@@ -478,31 +478,37 @@ meshyHolder598.name='MeshyMainCharacter598';
 player.add(meshyHolder598);
 // Alpha 6.2.5: actual uploaded, CC BY witch model for Saruul.
 // Keep her original quest/store interaction anchored at the same npc group.
-function installSaruul625(gltf,legacy=false){
-  const model=gltf.scene;
-  // 6.2.6: upright is baked at the source GLB scene root; do NOT apply a
-  // second 90-degree rotation to its skin. Legacy Saruul is also Y-up.
-  model.updateMatrixWorld(true);
-  const bounds=new THREE.Box3().setFromObject(model);
-  const dims=new THREE.Vector3();bounds.getSize(dims);
-  if(!(dims.y>0.1 && Number.isFinite(dims.y) && dims.y>dims.z*1.15))
-    throw new Error('Saruul model is not upright: '+dims.toArray().join(','));
-  const scale=1.82/dims.y;
-  model.scale.multiplyScalar(scale);
-  model.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
-  model.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
-  // Only remove earlier model after a valid, upright replacement exists.
-  for(const child of [...npc.children])child.visible=false;
-  saruulModel11=model;npc.add(model);
-  if(legacy)setupJoints12(model);
-  console.info('[NPC626] Saruul upright model loaded:',legacy?'legacy':'witch-girl-upright.glb');
+function installSaruul625(gltf,sourceLabel,fixLegacyAxis=false){
+ const model=gltf.scene;
+ if(fixLegacyAxis)model.rotation.x=Math.PI/2; // cancel original Sketchfab -90° X
+ model.updateMatrixWorld(true);
+ const bounds=new THREE.Box3().setFromObject(model);
+ const dims=new THREE.Vector3();bounds.getSize(dims);
+ if(!(Number.isFinite(dims.y)&&dims.y>.12&&dims.y>dims.z*1.2))
+   throw new Error('Witch is still horizontal: '+dims.toArray());
+ const scale=1.82/dims.y;
+ model.scale.multiplyScalar(scale);
+ model.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
+ model.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
+ for(const child of [...npc.children])child.visible=false;
+ saruulModel11=model;npc.add(model);
+ console.info('[NPC627] Saruul READY',sourceLabel,dims.toArray());
+ if(location.search.includes('npcdebug=1')){const d=document.getElementById('saruul627-debug')||document.createElement('div');d.id='saruul627-debug';d.textContent='Саруул: '+sourceLabel;Object.assign(d.style,{position:'fixed',bottom:'7%',left:'8px',zIndex:'9001',background:'#123',color:'#fff',padding:'5px',fontSize:'12px'});document.body.appendChild(d);}
 }
-modelLoader11.load('/models/npc625/witch-girl-upright.glb',
-  gltf=>{try{installSaruul625(gltf);}catch(err){console.error('[NPC626] Upright Witch model invalid:',err);modelLoader11.load('/models/saruul.glb',g=>installSaruul625(g,true));}},
-  undefined,
-  error=>{console.warn('[NPC626] Witch unavailable; loading verified local Saruul:',error);
-    modelLoader11.load('/models/saruul.glb',g=>installSaruul625(g,true),undefined,err=>console.warn('Saruul fallback unavailable:',err));
-  });
+// Keep original Witch file as a real fallback, not the cartoon Saruul, when
+// only src/main.js was uploaded from a PATCH without the new upright GLB.
+function loadSaruul627(){
+ const choices=[['/models/npc625/witch-girl-upright.glb','Witch Upright',false],
+                ['/models/npc625/witch-girl.glb','Witch Original (+90°)',true]];
+ let idx=0;
+ const next=()=>{
+  if(idx>=choices.length){console.error('[NPC627] Witch assets not on server; kept legacy Saruul');return;}
+  const [url,label,fixAxis]=choices[idx++];
+  modelLoader11.load(url,gltf=>{try{installSaruul625(gltf,label,fixAxis);}catch(error){console.warn('[NPC627] Rejected',label,error);next();}},undefined,error=>{console.warn('[NPC627] Asset unavailable:',url,error);next()});
+ };
+ next();
+}
+loadSaruul627();
 
 const avatarStatus598=document.createElement('div');
 avatarStatus598.id='avatar-status-598';
@@ -1226,6 +1232,7 @@ const forest622=installForest622({scene,ground,legacyTrees621,world62});
 // Keep the old magic grove altar, but remove its conspicuous cone-tree placeholders.
 for(const node of grove22.children)if(node.geometry?.type==='ConeGeometry'||(node.geometry?.type==='CylinderGeometry'&&node.position.y>1.3))node.visible=false;
 const npc622=installNPC622({GLTFLoader,scene,citizens22,guards24,player,openWindow,showForge18,saveGame,msg,
+ onGuardModelReady:()=>world40.hideLegacyGuards(),
  potionPurchase:()=>{if(gold<30){msg('Алт хүрэлцэхгүй');return}gold-=30;potions16++;saveGame();msg('❤️ Эм авлаа')},
  closeWindow,questBoard25,showBag});
 const priorWorldInteract622=interactWorld06;
@@ -1242,8 +1249,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.6 · NPC PLACEMENT FIX';
-document.title='Astral Rift Alpha 6.2.6 — NPC Placement Fix';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.7 · NPC VISUAL FIX';
+document.title='Astral Rift Alpha 6.2.7 — NPC Visual Fix';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();

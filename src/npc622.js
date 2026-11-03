@@ -22,7 +22,7 @@ function addName(group,name){
  const mat=new THREE.MeshBasicMaterial({map:titleTexture(name),transparent:true,depthWrite:false,side:THREE.DoubleSide});
  const label=new THREE.Mesh(geo,mat);label.position.set(0,2.4,0);label.renderOrder=8;group.add(label);return label;
 }
-export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openWindow,showForge18,saveGame,msg,potionPurchase,closeWindow,questBoard25,showBag}){
+export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openWindow,showForge18,saveGame,msg,potionPurchase,closeWindow,questBoard25,showBag,onGuardModelReady}){
  const entries=[];
  const loader=new GLTFLoader();
  const stats={citizens:0,guards:0,failed:0};
@@ -43,10 +43,15 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   blacksmith:{local:'/models/npc625/blacksmith-mobile.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
   scholar:{local:'/models/npc625/inquisitor-v2.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
   guard:{local:'/models/npc623/guard-captain.glb',remote:'https://vibeassets.io/download/9h7odik5fl'},
-  female:{local:'/models/npc625/elf-woman-mobile.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
+  female:{local:'/models/npc625/merchant-witch.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
  };
  const fallback={citizen:'/models/saruul.glb',guard:'/models/meshy-warrior-nocape.glb'};
  const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':e.name==='Болд'?'blacksmith':'peasant';
+ const debugEnabled=qs.get('npcdebug')==='1';
+ const statuses=new Map();
+ const debugEl=debugEnabled?document.createElement('div'):null;
+ if(debugEl){debugEl.id='npc627-debug';Object.assign(debugEl.style,{position:'fixed',left:'8px',bottom:'11%',zIndex:'9000',maxWidth:'60vw',padding:'8px',borderRadius:'8px',background:'rgba(0,0,0,.82)',color:'#fff',fontSize:'11px',pointerEvents:'none',whiteSpace:'pre-wrap'});document.body.appendChild(debugEl);}
+ const status=(name,value)=>{statuses.set(name,value);if(debugEl)debugEl.textContent=[...statuses].map(([a,b])=>a+': '+b).join('\n')};
  const modelCache=new Map();
  const animationsFor=(gltf,m)=>{
   if(!gltf.animations?.length)return null;
@@ -119,7 +124,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   e.model=m;e.motions=animationsFor(gltf,m);e.lastPos=e.group.position.clone();
   e.label.position.y=height+.32;
   console.info('[NPC626] Ready',e.name, 'source=',kind,'height=',dims.y.toFixed(2));
-  if(e.kind==='guard')stats.guards++;else stats.citizens++;
+  if(e.kind==='guard'){stats.guards++;onGuardModelReady?.();}else stats.citizens++;
  }
 
  function modelFor(e){
@@ -134,10 +139,10 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  for(const e of entries){
   const source=modelFor(e);
   (async()=>{
-   try{placeModel(e,await fetchCached(source.key,source.url));}
+   try{placeModel(e,await fetchCached(source.key,source.url));status(e.name,'OK · '+source.key);}
    catch(err){
     console.warn('[NPC623] Licensed model failed; using existing character',e.name,err);
-    stats.failed++;
+    stats.failed++;status(e.name,'FAIL · '+source.key+' · '+String(err.message||err).slice(0,55));
     try{placeModel(e,await fetchCached('fallback_'+e.kind,fallback[e.kind]));}
     catch(fail){console.warn('[NPC623] Even fallback failed',e.name,fail);}
    }

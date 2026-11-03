@@ -160,7 +160,7 @@ export function createAlpha40(api) {
     const p=player.position;const inHall=api.isCastle();
     if(inHall){if(Math.hypot(p.x-hx,p.z-(hz-5.45))<3.4){royalTalk();return true}return false}
     if(api.isInterior()||api.isDungeon())return false;
-    for(const item of [{obj:guildmaster,fn:guildTalk},{obj:librarian,fn:libraryTalk},{obj:trainer,fn:trainerTalk},...guards.map(obj=>({obj,fn:guardTalk}))]){
+    for(const item of [{obj:guildmaster,fn:guildTalk},{obj:librarian,fn:libraryTalk},{obj:trainer,fn:trainerTalk},...guards.filter(obj=>obj.g.visible).map(obj=>({obj,fn:guardTalk}))]){
       if(p.distanceTo(item.obj.g.position)<3.6){item.fn();return true}
     }
     if(Math.hypot(p.x-18,p.z+14)<3.2){trainerTalk();return true}
@@ -247,5 +247,7 @@ export function createAlpha40(api) {
     qualityClock+=dt;qualityFrames++;
     if(qualityClock>6){const fps=qualityFrames/qualityClock;qualityClock=0;qualityFrames=0;if(fps<37&&!lowQuality){lowQuality=true;renderer.setPixelRatio(Math.min(devicePixelRatio,.95));renderer.shadowMap.enabled=false;renderer.setSize(innerWidth,innerHeight);msg('⚙ FPS хамгаалах горим идэвхжив')}}
   }
-  return {update,interact,recordKill,blocked,cameraCollision,showMap,hideMap,architectureReady:architecture42.ready,getQuest:()=>({...state})};
+  return {update,interact,recordKill,blocked,cameraCollision,showMap,hideMap,
+    hideLegacyGuards:()=>guards.forEach(obj=>{obj.g.visible=false}),
+    architectureReady:architecture42.ready,getQuest:()=>({...state})};
 }
