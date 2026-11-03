@@ -10,5 +10,5 @@ assert.doesNotMatch(body,/const refresh=\(\)=>\{saveGame\(\);showEquipment59\(\)
 assert.match(viewer,/preview\.mount!==win\.querySelector\('#arViewer61'\)/);
 assert.match(viewer,/!mount\.isConnected/);
 assert.match(viewer,/disposePreview/);
-assert.equal(JSON.parse(fs.readFileSync('package.json')).version,'6.2.3-alpha');
+assert.equal(JSON.parse(fs.readFileSync('package.json')).version,'6.2.4-alpha');
 console.log('PASS 6.1.1: equipment updates preserve WebGL canvas, preview mount lifecycle guarded');
