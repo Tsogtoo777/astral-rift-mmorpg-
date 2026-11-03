@@ -1,0 +1,6 @@
+6.2.6 deer shuud PATCH suulgana. GitHub root-d path-g ni hadgal.
+Zaaval solih: src/main.js, src/npc622.js, src/alpha40.js, package.json, index.html
+Zaaval nemeh: public/models/npc625/merchant-witch.glb
+Saruul-d zaaval: public/models/npc625/witch-girl-upright.glb esvel 6.2.5-nii witch-girl.glb; PATCH dotor 2-uulaa baigaa.
+URL: ?npcdebug=1 NPC file loading haruulna.
+Source copyright: Witch Girl original is creator CC BY; preserve CREDITS_NPC_6_2_5.md
