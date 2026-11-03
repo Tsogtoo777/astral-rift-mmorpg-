@@ -5,7 +5,7 @@ const tree=fs.readFileSync('src/forest622.js','utf8');
 const npc=fs.readFileSync('src/npc622.js','utf8');
 const world621=fs.readFileSync('src/world621.js','utf8');
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
-assert.equal(pkg.version,'6.2.10-alpha');
+assert.equal(pkg.version,'6.2.12-alpha');
 for(const key of ['oak','birch','pine'])assert.match(tree,new RegExp(key));
 assert.match(tree,/new THREE.InstancedMesh/);
 assert.match(tree,/new THREE.CanvasTexture/);
