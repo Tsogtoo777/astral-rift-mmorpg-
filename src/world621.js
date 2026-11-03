@@ -46,7 +46,7 @@ export function layout621(){
 /** Build visuals (not colliders). Async loads are bounded to unique model URLs.
  * Every old object remains visible until its individual replacement succeeds.
  */
-export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621=[],legacyTrees621=[],detail622=false}){
+export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621=[],legacyTrees621=[],detail622=false,onPlaced=()=>{}}){
   const query=typeof location!=='undefined'?new URLSearchParams(location.search):new URLSearchParams();
   const mode=query.get('worldassets')||'cdn';
   if(mode==='off')return {mode,loaded:0,failed:0,placements:0,disabled:true};
@@ -70,7 +70,9 @@ export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTown
   }
   const jobs=[];
   // Replace only the eight primitive house groups; original collision footprints remain.
-  for(let i=0;i<TOWN_POINTS621.length;i++)jobs.push((async()=>{
+  // New GLB houses and Architecture 4.2 houses were rendering at the SAME positions.
+  // Prefer the locally bundled Quaternius buildings; opt-in old CDN houses only for visual comparison.
+  if(query.get('worldbuildings')==='experimental')for(let i=0;i<TOWN_POINTS621.length;i++)jobs.push((async()=>{
     const base=await fetchModel(HOUSE_KEYS621[i]);
     if(put(base,...TOWN_POINTS621[i],.79,i%2?Math.PI:0)){
       if(legacyTownBuildings621[i])legacyTownBuildings621[i].visible=false;stats.houses++;
@@ -91,7 +93,7 @@ export async function installWorld621({THREE,GLTFLoader,scene,world62,legacyTown
     // Other placement jobs may run next microtask; wait for them in a follow-up below.
   })());
   for(const [x,z,a] of [[83,-80,0],[107,-47,1.2],[113,-86,-.4]])jobs.push((async()=>{
-    const base=await fetchModel('tower');put(base,x,z,.82,a);
+    const base=await fetchModel('tower');if(put(base,x,z,.82,a))onPlaced({name:'watchtower621',type:'circle',x,z,r:1.6,yMax:6.5});
   })());
   for(const [x,z,a] of [[94,98,0],[107,88,Math.PI/2],[95,78,Math.PI],[84,89,-Math.PI/2]])jobs.push((async()=>{
     const base=await fetchModel('arch');put(base,x,z,1.1,a);

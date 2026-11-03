@@ -43,6 +43,8 @@ export function zoneAt62(x,z){
 // One scene graph and instanced vegetation; important for mobile draw-call budget.
 export function createWorld62({THREE,scene}){
   const root=new THREE.Group();root.name='WorldExpansion62';scene.add(root);
+  const colliders=[];
+  const circleSolid=(name,x,z,r,yMax=4)=>colliders.push({name,type:'circle',x,z,r,yMax});
   const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.94,...extra});
   const pine=mat(0x275847),pineAlt=mat(0x3c7551),wood=mat(0x67482f),stone=mat(0x88877d),earth=mat(0x746345),
     moss=mat(0x486d4b),rust=mat(0x94543d),gold=mat(0xc5a767),crystal=mat(0x7d9acb,{emissive:0x2a477a,emissiveIntensity:.34});
@@ -70,6 +72,7 @@ export function createWorld62({THREE,scene}){
     const x=96+Math.cos(a)*r,z=89+Math.sin(a)*r;
     if(i%2===0)boulders.push([x,.5,z,1.4,1.15,1.05,i*.5]);
   }
+  for(const [x,,z,sx,,sz] of boulders)circleSolid('rock62',x,z,Math.max(sx,sz)*.88,1.9);
   const legacyForestTrunks=instanced(new THREE.CylinderGeometry(1,1,1,6),wood,trunks);
   const legacyForestCrowns=instanced(new THREE.ConeGeometry(1,1,7),pine,crowns);
   const legacyForestRocks=instanced(new THREE.IcosahedronGeometry(1,0),stone,boulders);
@@ -87,28 +90,34 @@ export function createWorld62({THREE,scene}){
   for(let i=0;i<23;i++){
     const theta=-1.15+i*5.1/22,x=91+16*Math.cos(theta),z=-63+16*Math.sin(theta);
     obj(new THREE.CylinderGeometry(.46,.53,3.5,5),wood,x,1.75,z,theta);
+    circleSolid('palisade62',x,z,.53,3.5);
   }
   for(const [x,z,angle] of [[82,-55,.25],[100,-73,-.5],[99,-51,.5]]){
     obj(new THREE.ConeGeometry(4.1,3.3,4),rust,x,2.0,z,Math.PI/4+angle);
     obj(new THREE.CylinderGeometry(2.35,2.5,.4,7),wood,x,.2,z);
+    circleSolid('camp-tent62',x,z,2.3,3.65);
   }
   obj(new THREE.CylinderGeometry(1.2,1.4,.45,9),stone,91,.23,-63);
+  circleSolid('fire62',91,-63,1.4,2.3);
   obj(new THREE.ConeGeometry(.8,2,7),mat(0xe69b46,{emissive:0x98400c,emissiveIntensity:.8}),91,1.3,-63);
   // Old ruins: broken pillars around a dormant teleport/quest altar.
   for(let i=0;i<9;i++){
     const a=i*2*Math.PI/9,x=96+13*Math.cos(a),z=89+13*Math.sin(a),h=2.6+(i%4)*.7;
     obj(new THREE.CylinderGeometry(.65,.8,h,8),stone,x,h/2,z,a);
     obj(new THREE.BoxGeometry(1.8,.3,1.8),stone,x,h+.15,z,a);
+    circleSolid('ruins-pillar62',x,z,.85,h+.4);
   }
   obj(new THREE.CylinderGeometry(3.2,3.5,.65,12),stone,96,.33,89);
+  circleSolid('ruins-altar62',96,89,3.3,3.8);
   obj(new THREE.OctahedronGeometry(1.1),crystal,96,2.7,89);
   function sign(s,x,z){const cv=document.createElement('canvas');cv.width=512;cv.height=128;
     const c=cv.getContext('2d');c.fillStyle='#172d30';c.fillRect(0,0,512,128);c.strokeStyle='#d9b877';c.lineWidth=8;c.strokeRect(5,5,502,118);
     c.fillStyle='#f4e6bc';c.font='bold 35px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(s,256,64,465);
     const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;
-    obj(new THREE.BoxGeometry(.14,2.6,.14),wood,x,1.3,z);obj(new THREE.PlaneGeometry(4,1),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}),x,3,z);
+    obj(new THREE.BoxGeometry(.14,2.6,.14),wood,x,1.3,z);
+    circleSolid('sign62',x,z,.16,2.6);obj(new THREE.PlaneGeometry(4,1),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}),x,3,z);
   }
   sign('ШИДЭТ ОЙ',-63,-53);sign('ГОБЛИНИЙ ХУАРАН',66,-56);sign('ЭРТНИЙ БАЛГАС',77,67);
-  return {root,zones:ZONES62,spawnSites:SPAWN_SITES62,
+  return {root,zones:ZONES62,spawnSites:SPAWN_SITES62,colliders,
     legacyVegetation:{trees:[legacyForestTrunks,legacyForestCrowns],rocks:[legacyForestRocks]}};
 }

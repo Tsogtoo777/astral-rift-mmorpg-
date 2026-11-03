@@ -6,6 +6,7 @@ import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
 import {createEnemyNavigator6212} from './pathfinding6212.js';
 import {SpatialHash6212} from './spatial6212.js';
+import {createAdventure6213} from './adventure6213.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
@@ -19,7 +20,7 @@ import {makeWorldCollision6211} from './world6211.js';
 import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 6.2.12 — NJ AI Navigation';
+document.title='Astral Rift Alpha 6.2.13 — Adventure & Loot';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
@@ -144,6 +145,7 @@ const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshS
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
 const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
 const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';document.querySelector('#app').appendChild(versionLabel);
+const adventure6213=createAdventure6213({storage:window.localStorage});
 const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
 let potions16=Math.max(0,Number(saved.potions16??2)||0),questKills16=Math.max(0,Number(saved.questKills16)||0);
@@ -211,7 +213,7 @@ function finishEquipment59(previousHpBonus){
   meshy597?.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
 }
 function showBag(){
-  openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button>`);
+  openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p>${adventure6213.lootHtml()}<button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button>`);
   document.querySelector('#forgeFromBag18').onclick=showForge18;
   document.querySelector('#usePotion16').onclick=()=>{usePotion16();showBag()};
   document.querySelector('#swapWeapon16').onclick=()=>{swap();showBag()};
@@ -740,7 +742,8 @@ document.querySelector('#panel').appendChild(return17);
 function showJournal17(){
  const progress=questComplete?'Биелсэн':questAccepted?`${Math.min(questKills16,3)}/3 мангас`:'Аваагүй';
  const rows=[['Анхны анчин',totalKills>=1],['10 мангас ялсан',totalKills>=10],['Boss ялсан',bossWins07>=1],['5-р түвшинд хүрсэн',level>=5]];
- openWindow('📜 Даалгавар ба амжилт',`<p><b>Саруулын даалгавар:</b> ${progress}</p><p><b>Нийт ялалт:</b> ${totalKills} · <b>Boss:</b> ${bossWins07} · <b>Level:</b> ${level}</p><h3>🏆 Амжилтууд</h3>${rows.map(([name,done])=>`<p>${done?'✅':'🔒'} ${name}</p>`).join('')}<small>Амжилт бүрийг анх биелүүлэхэд 40 алт өгнө.</small>`);
+ openWindow('📜 Даалгавар ба амжилт',`<p><b>Саруулын даалгавар:</b> ${progress}</p><p><b>Нийт ялалт:</b> ${totalKills} · <b>Boss:</b> ${bossWins07} · <b>Level:</b> ${level}</p>${adventure6213.summaryHtml()}<p><button id="openContractsFromJournal6213">📜 Шинэ гэрээ</button></p><h3>🏆 Амжилтууд</h3>${rows.map(([name,done])=>`<p>${done?'✅':'🔒'} ${name}</p>`).join('')}<small>Амжилт бүрийг анх биелүүлэхэд 40 алт өгнө.</small>`);
+ document.querySelector('#openContractsFromJournal6213').onclick=showContracts6213;
 }
 function returnTown17(){
  if(inside09>=0){msg('Эхлээд байшингаас гараарай');return}
@@ -1169,6 +1172,46 @@ const oldInteract40=interactWorld06;
 interactWorld06=function(){if(world40.interact())return;oldInteract40()};
 const oldHit40=hit;
 hit=function(damage=25,range=2.8){const enemy=activeEnemy56();const wasAlive=!!enemy?.alive;oldHit40(damage,range);if(wasAlive&&enemy&&!enemy.alive)world40.recordKill(enemy)};
+
+// Alpha 6.2.13: NJ-MMO inspired staged contracts and stackable loot.
+// Built on top of existing quests/bounty/inventory; does not replace their rewards.
+const contractButton6213=document.createElement('button');
+contractButton6213.id='contracts6213';contractButton6213.textContent='📜 Гэрээ';
+panel.appendChild(contractButton6213);
+function contractBoardNear6213(){return Math.hypot(player.position.x+4,player.position.z+19)<6 || inCastle25}
+function showContracts6213(){
+ const info=adventure6213.describe();
+ if(info.done){openWindow('📜 Анчдын гэрээ','<p>🏆 Бүх 3 бүлгийн гэрээ биелсэн байна.</p>'+adventure6213.lootHtml());return}
+ const q=info.quest,r=q.reward;
+ const stateText=!info.active?'Даалгавраа аваагүй':info.ready?'✅ Биелсэн — шагнал авахад бэлэн':`${info.progress}/${q.count} ялалт`;
+ const button=!info.active?'<button id="startContract6213">Даалгавар авах</button>':info.ready?'<button id="claimContract6213">🎁 Шагнал авах</button>':'<button disabled>Үргэлжилж байна</button>';
+ openWindow('📜 Анчдын гэрээ',`<p><b>Бүлэг ${info.stage}/${info.totalStages} · ${q.name}</b></p><p>${q.description}</p><p>${stateText}</p><p>Шагнал: 🪙 ${r.gold} алт · ${r.xp} EXP · ⛏ ${r.ore} хүдэр · 💎 ${r.crystal} талст · ❤️ ${r.potions} эм</p><small>Гэрээ эхлүүлэх болон шагнал авахдаа хотын 📜 самбарт ойрт.</small><p>${button}</p>${adventure6213.lootHtml()}`);
+ const start=document.getElementById('startContract6213');if(start)start.onclick=()=>{
+   if(!contractBoardNear6213()){msg('📜 Хотын самбарт ойртоорой');return}
+   const result=adventure6213.start();if(result.ok){msg('📜 '+q.name+' эхэллээ');showContracts6213()}
+ };
+ const claim=document.getElementById('claimContract6213');if(claim)claim.onclick=()=>{
+   if(!contractBoardNear6213()){msg('📜 Шагналаа самбарт ирж авна');return}
+   const result=adventure6213.claim();if(!result.ok)return;
+   const reward=result.reward;
+   gold+=reward.gold;ore18+=reward.ore;crystal18+=reward.crystal;potions16+=reward.potions;
+   gainXp(reward.xp);saveGame();msg('🏆 '+q.name+' — шагнал авлаа');showContracts6213();
+ };
+}
+contractButton6213.addEventListener('click',showContracts6213);
+const prevHit6213=hit;
+hit=function(damage=25,range=2.8){
+ const enemy=activeEnemy56(),wasAlive=!!enemy?.alive;
+ prevHit6213(damage,range);
+ if(!wasAlive||!enemy||enemy.alive)return;
+ const kind=enemy.kind615==='wolf'||enemy.world62?.kind==='wolf'?'wolf':enemy.kind614==='goblin'||enemy.world62?.kind==='goblin'?'goblin':'other';
+ const result=adventure6213.onKill({kind,elite:!!enemy.elite,boss:!!enemy.boss});
+ potions16+=result.potions;
+ if(result.drops.length)logBattle18('🎒 '+result.drops.map(d=>`${d.name} +${d.count}`).join(' · '));
+ if(result.ready)msg('📜 Гэрээ биелсэн! Шагналаа самбараас ав');
+ saveGame();
+};
+
 let parryWindow40=0;
 const block40=document.getElementById('block25');
 block40.addEventListener('pointerdown',()=>{if(stamina25>=12)parryWindow40=.23});
@@ -1292,8 +1335,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.12 · SMART MONSTER AI';
-document.title='Astral Rift Alpha 6.2.12 — NJ AI Navigation';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.13 · ADVENTURE & LOOT';
+document.title='Astral Rift Alpha 6.2.13 — Adventure & Loot';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);graphics6210.update(now);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
  if(saruulModel11){
    const talking629=now<saruulTalkUntil629;
