@@ -4,6 +4,8 @@ import { createCombat56, effectiveStrikeRange56 } from './combat56.js';
 import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
+import {createEnemyNavigator6212} from './pathfinding6212.js';
+import {SpatialHash6212} from './spatial6212.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
@@ -13,10 +15,11 @@ import { installForest622 } from './forest622.js';
 import { installNPC622 } from './npc622.js';
 import {idlePose629,easeAngle629,facingAngle629} from './npc629.js';
 import {installGraphics6210} from './graphics6210.js';
+import {makeWorldCollision6211} from './world6211.js';
 import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 6.2.1 — Free World Assets';
+document.title='Astral Rift Alpha 6.2.12 — NJ AI Navigation';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
@@ -75,7 +78,8 @@ cylinder(2.3,2.5,.45,0x807f80,2,.3,4);cylinder(1.95,1.95,.12,0x69b5cb,2,.56,4);c
 for(const [x,z] of [[-5,6],[10,5],[-5,-4],[10,-4]]){cylinder(.1,.13,4,0x483a2e,x,2,z);const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.8),new THREE.MeshStandardMaterial({color:0x355b89,side:THREE.DoubleSide}));flag.position.set(x+.55,2.7,z);scene.add(flag);const l=new THREE.PointLight(0xffb45e,1,6);l.position.set(x,2.8,z);scene.add(l)}
 for(const [x,z] of [[-8,4],[10,12],[-10,-8],[9,-10]]){box(1.2,.9,1.1,0x755638,x,.45,z);box(.1,.93,1.2,0xa58b5a,x,.45,z)}
 // Distant castle silhouette in the hills.
-for(const [x,z,h] of [[-19,40,11],[-12,42,16],[-4,42,13],[5,42,18]]){box(5,h,5,0x8a8e93,x,h/2,z);const cone=new THREE.Mesh(new THREE.ConeGeometry(3.6,5,4),new THREE.MeshStandardMaterial({color:0x4a5979}));cone.position.set(x,h+2.5,z);cone.rotation.y=Math.PI/4;scene.add(cone)}
+const obsoleteTowerBlocks6211=[];
+for(const [x,z,h] of [[-19,40,11],[-12,42,16],[-4,42,13],[5,42,18]]){const body=box(5,h,5,0x8a8e93,x,h/2,z);const cone=new THREE.Mesh(new THREE.ConeGeometry(3.6,5,4),new THREE.MeshStandardMaterial({color:0x4a5979}));cone.position.set(x,h+2.5,z);cone.rotation.y=Math.PI/4;scene.add(cone);obsoleteTowerBlocks6211.push(body,cone)}
 const plaza=new THREE.Mesh(new THREE.CylinderGeometry(7,7,.08,32),new THREE.MeshStandardMaterial({color:0x9c9488}));plaza.position.set(2,.018,7);scene.add(plaza);
 const npc=new THREE.Group();npc.position.set(1,0,7);const npcBody=new THREE.Mesh(new THREE.CapsuleGeometry(.42,.75,5,10),new THREE.MeshStandardMaterial({color:0x9a75b5}));npcBody.position.y=1.1;npc.add(npcBody);const npcHead=new THREE.Mesh(new THREE.SphereGeometry(.29,12,8),new THREE.MeshStandardMaterial({color:0xe7c4a4}));npcHead.position.y=1.92;npc.add(npcHead);scene.add(npc);
 // Alpha 1.0: replace capsule-only Saruul with an articulated fantasy NPC.
@@ -268,8 +272,11 @@ loadOriginalWolf618({THREE,GLTFLoader,FBXLoader,enemy:wolfEnemy615}).then(contro
 });
 // Alpha 6.2: data-defined outdoor regions and nearby-only rigged enemies.
 const world62=createWorld62({THREE,scene});
+const worldCollision6211=makeWorldCollision6211(world62.colliders);
+// Old town fountain was visibly solid but had no gameplay collision.
+worldCollision6211.add({name:'town-fountain6211',type:'circle',x:2,z:4,r:2.35,yMax:2.8});
 // 6.2.1: independent optional visual layer; failed CDN loads keep existing geometry.
-installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621,legacyTrees621,detail622:true})
+installWorld621({THREE,GLTFLoader,scene,world62,legacyTownBuildings621,legacyTrees621,detail622:true,onPlaced:c=>worldCollision6211.add(c)})
  .then(stats=>console.info('[Astral 6.2.1] Free CC0 world assets:',stats))
  .catch(error=>console.warn('[Astral 6.2.1] Asset upgrade skipped:',error));
 const assetPromises62=new Map();
@@ -291,6 +298,8 @@ const regionEnemies62=SPAWN_SITES62.map(site=>{
   e.g.visible=false; // Not rendered or simulated until player approaches.
   return e;
 });
+const regionSpatial6212=new SpatialHash6212(20);
+regionEnemies62.forEach(e=>regionSpatial6212.set(e,e.g.position.x,e.g.position.z));
 let nextRegionBudget62=0;let activeRegionBudget62=new Set();
 const originalWolfAsset62='/monsters/forest_wolf.glb';
 function requestRegionRig62(enemy){
@@ -737,7 +746,7 @@ function returnTown17(){
  if(inside09>=0){msg('Эхлээд байшингаас гараарай');return}
  if(inDungeon07){msg('Dungeon-оос гарах хаалгаар буцна');return}
  if(player.position.distanceTo(npc.position)<9){msg('Аль хэдийн хотод байна');return}
- player.position.set(2,0,4);state.target=null;msg('⌂ Эхлэл хотод ирлээ');
+ player.position.set(2,0,-5);state.target=null;msg('⌂ Эхлэл хотод ирлээ');
 }
 function checkAchievements17(){
  const rules=[['hunter',totalKills>=1],['slayer',totalKills>=10],['boss',bossWins07>=1],['level5',level>=5]];
@@ -917,8 +926,9 @@ const gate23=k23(new THREE.BoxGeometry(4.2,5,.4),wood23,0,2.5,-6.7,castle23);gat
 k23(new THREE.BoxGeometry(5,.6,1.5),gold23,0,5.2,-6.9,castle23);
 for(let i=0;i<10;i++)k23(new THREE.BoxGeometry(3.2,.16,2.5),i%2?stone23:dark23,0,.12,14+i*1.9);
 // New plaza architecture, bridges, gardens, colored stalls, and lanterns.
+const obsoleteDistrictHouses6211=[];
 for(const [x,z] of [[-18,2],[19,3],[-18,-14],[19,-13]]){
- const g=new THREE.Group();g.position.set(x,0,z);kingdom23.add(g);
+ const g=new THREE.Group();g.position.set(x,0,z);kingdom23.add(g);obsoleteDistrictHouses6211.push(g);
  k23(new THREE.BoxGeometry(7,4.6,6),stone23,0,2.3,0,g);k23(new THREE.ConeGeometry(5.2,3.6,4),roof23,0,6.25,0,g).rotation.y=Math.PI/4;
  k23(new THREE.BoxGeometry(1.3,2.5,.25),wood23,0,1.25,3.05,g);
  for(const dx of [-2.1,2.1])k23(new THREE.BoxGeometry(1,.95,.15),gold23,dx,2.7,3.08,g);
@@ -983,9 +993,10 @@ const gameTitle23=document.createElement('div');gameTitle23.id='kingdomTitle23';
 town.visible=false;
 const city24=new THREE.Group();scene.add(city24);
 const citySolid24=[];
+const obsoleteCastleTowers6211=[];
 const c24={wall:new THREE.MeshStandardMaterial({color:0xd8c8a5,roughness:.95}),beam:new THREE.MeshStandardMaterial({color:0x594332}),slate:new THREE.MeshStandardMaterial({color:0x304b66}),copper:new THREE.MeshStandardMaterial({color:0x94613c}),gold:new THREE.MeshStandardMaterial({color:0xf0ca78,metalness:.25}),blue:new THREE.MeshStandardMaterial({color:0x368fba,emissive:0x0a2736}),red:new THREE.MeshStandardMaterial({color:0xb45655}),green:new THREE.MeshStandardMaterial({color:0x427b65}),stone:new THREE.MeshStandardMaterial({color:0x8b9b9c}),glass:new THREE.MeshStandardMaterial({color:0x89d8e2,emissive:0x174b5d,transparent:true,opacity:.82})};
 function block24(parent,w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
-function tower24(parent,x,z){const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const body=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.25,7.5,8),c24.stone);body.position.y=3.75;g.add(body);const cap=new THREE.Mesh(new THREE.ConeGeometry(1.65,3,8),c24.slate);cap.position.y=9;g.add(cap);citySolid24.push({x,z,w:2.2,d:2.2})}
+function tower24(parent,x,z){const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const body=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.25,7.5,8),c24.stone);body.position.y=3.75;g.add(body);const cap=new THREE.Mesh(new THREE.ConeGeometry(1.65,3,8),c24.slate);cap.position.y=9;g.add(cap);obsoleteCastleTowers6211.push(g);citySolid24.push({x,z,w:2.2,d:2.2})}
 const colors24=[c24.red,c24.blue,c24.green,c24.copper];
 for(let i=0;i<houses09.length;i++){
  const [x,z]=houses09[i],g=new THREE.Group();g.position.set(x,0,z);city24.add(g);
@@ -1135,8 +1146,25 @@ const world40=createAlpha40({
   getHour:()=>time23.hour,
   addResources:({gold:g=0,ore:o=0,crystal:c=0})=>{gold+=g;ore18+=o;crystal18+=c;saveGame()}
 });
+// Alpha 6.2.11: eliminate superseded dummy towers, district box houses and
+// duplicate castle lookout towers. The real 4.0 guild, library and castle remain.
+obsoleteTowerBlocks6211.forEach(o=>o.visible=false);
+obsoleteDistrictHouses6211.forEach(o=>o.visible=false);
+obsoleteCastleTowers6211.forEach(o=>o.visible=false);
+// Invisible legacy towers must NOT keep invisible colliders.
+for(let i=citySolid24.length-1;i>=0;i--){
+  const b=citySolid24[i];if(Math.abs(Math.abs(b.x)-7.6)<.01&&(b.z===22||b.z===28))citySolid24.splice(i,1);
+}
+// Retain the old market/plaza visuals only if authored architecture cannot load.
+world40.architectureReady.then(result=>{
+  if(result?.ok){town21.visible=false;plaza24.visible=false;}
+}).catch(e=>console.warn('[6.2.11] Architecture fallback retained:',e));
+// Existing movement & enemy AI both call blocked09; one additional footprint
+// layer covers tents, palisades, ruins, rocks and downloaded watchtowers.
 const oldBlocked40=blocked09;
 blocked09=function(x,z){if(inCastle25)return world40.blocked(x,z);if(world40.blocked(x,z))return true;return oldBlocked40(x,z)};
+const oldBlocked6211=blocked09;
+blocked09=function(x,z){if(inside09>=0||inDungeon07||inCastle25)return oldBlocked6211(x,z);return oldBlocked6211(x,z)||worldCollision6211.blocked(x,z)};
 const oldInteract40=interactWorld06;
 interactWorld06=function(){if(world40.interact())return;oldInteract40()};
 const oldHit40=hit;
@@ -1204,8 +1232,9 @@ for(const e of enemies){
   mark.position.y=e.boss?4.2:2.1;mark.visible=false;
   e.g.add(ring,mark);e.warnRing57=ring;e.warnMark57=mark;
 }
+const enemyNavigation6212=createEnemyNavigator6212({isBlocked:(x,z)=>blocked09(x,z)});
 const enemyAI57=createEnemyAI57({
-  player,isBlocked:(x,z)=>blocked09(x,z),
+  player,isBlocked:(x,z)=>blocked09(x,z),navigation:enemyNavigation6212,
   isSafeZone:(enemy,p)=>Math.hypot(p.x,p.z)<=19||Math.hypot(enemy.g.position.x-npc.position.x,enemy.g.position.z-npc.position.z)<4,
   onTelegraph:(enemy,active,t)=>{
     enemy.warnRing57.visible=active;enemy.warnMark57.visible=active;
@@ -1263,8 +1292,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.10 · GRAPHICS QUALITY';
-document.title='Astral Rift Alpha 6.2.10 — Graphics Quality';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.12 · SMART MONSTER AI';
+document.title='Astral Rift Alpha 6.2.12 — NJ AI Navigation';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);graphics6210.update(now);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
  if(saruulModel11){
    const talking629=now<saruulTalkUntil629;
@@ -1310,8 +1339,11 @@ shrineCrystal06.rotation.y+=dt*.6;shrineCrystal06.position.y=2+Math.sin(now*.002
 // at once on mobile. Re-evaluate every 0.7s to prevent per-frame thrashing.
 if(now>=nextRegionBudget62){
   nextRegionBudget62=now+700;
-  const nearby=regionEnemies62.map(e=>({e,d:Math.hypot(e.g.position.x-player.position.x,e.g.position.z-player.position.z)}))
-    .filter(o=>o.d<43).sort((a,b)=>a.d-b.d);
+  // NJ-MMO spatial grid: query nearby enemies instead of scanning all world mobs.
+  regionEnemies62.forEach(e=>regionSpatial6212.set(e,e.g.position.x,e.g.position.z));
+  const nearby=regionSpatial6212.queryRadius(player.position.x,player.position.z,43)
+    .map(e=>({e,d:Math.hypot(e.g.position.x-player.position.x,e.g.position.z-player.position.z)}))
+    .sort((a,b)=>a.d-b.d);
   activeRegionBudget62=new Set(nearby.slice(0,7).map(o=>o.e));
 }
 for(const e of enemies){
@@ -1370,6 +1402,7 @@ else camera.position.lerp(desiredCamera10,1-Math.exp(-dt*12));
 if(inside09<0&&!inDungeon07&&!inCastle25){
   cameraGuard56.resolve(camTarget,camera.position);
   world40.cameraCollision(camTarget,camera.position);
+  worldCollision6211.resolveCamera(camTarget,camera.position);
 }
 if(inside09>=0){
   camera.position.x=THREE.MathUtils.clamp(camera.position.x,interiorOrigin09.x-3.85,interiorOrigin09.x+3.85);

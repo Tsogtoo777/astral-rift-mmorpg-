@@ -6,7 +6,7 @@
 const clamp57=(n,lo,hi)=>Math.min(hi,Math.max(lo,n));
 const dist57=(ax,az,bx,bz)=>Math.hypot(ax-bx,az-bz);
 
-export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,onTelegraph=()=>{}}){
+export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,onTelegraph=()=>{},navigation=null}){
   const brains=new WeakMap();
   const stats={started:0,landed:0,cancelled:0};
   function get(enemy){
@@ -25,10 +25,12 @@ export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,
   }
   function reset(e){
     const b=get(e);b.phase='idle';b.timer=0;
-    e.windup57=false;onTelegraph(e,false,0);
+    e.windup57=false;onTelegraph(e,false,0);navigation?.clear?.(e);
   }
   function stepToward(e,tx,tz,speed,dt){
-    const p=e.g.position,dx=tx-p.x,dz=tz-p.z,len=Math.hypot(dx,dz);
+    const p=e.g.position,wp=navigation?.next?.(e,tx,tz,dt);
+    if(wp&&Number.isFinite(wp.x)&&Number.isFinite(wp.z)){tx=wp.x;tz=wp.z;}
+    const dx=tx-p.x,dz=tz-p.z,len=Math.hypot(dx,dz);
     if(len<.11)return;
     const angle=Math.atan2(dx,dz),step=Math.min(len,Math.max(0,speed)*dt);
     const candidates=[0,.56,-.56,1.12,-1.12];
@@ -54,6 +56,7 @@ export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,
     const aggro=e.boss?13:e.elite?11:e.fast?11:9;
     const leash=e.boss?25:17;
     const protectedZone=!e.boss&&isSafeZone(e,u);
+    const occluded=!!navigation?.blockedLine?.(p,u);
     const stunned=(e.stun56||0)>0;
     const disengaged=protectedZone||d>aggro+3||home>leash;
     if(stunned||disengaged){
@@ -63,7 +66,7 @@ export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,
     }
     if(d>.01)e.g.rotation.y=Math.atan2(u.x-p.x,u.z-p.z);
     if(b.phase==='windup'){
-      if(d>reach+1.15){cancel(e,b);return;}
+      if(d>reach+1.15||occluded){cancel(e,b);return;}
       b.timer=Math.max(0,b.timer-dt);
       indicate(e,b);
       if(b.timer<=0){
@@ -78,7 +81,7 @@ export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,
     }
     if(b.phase==='recover'&&e.cool>0){indicate(e,b);return;}
     b.phase='chase';
-    if(d<=reach+.25 && e.cool<=0){
+    if(d<=reach+.25 && e.cool<=0 && !occluded){
       b.phase='windup';
       b.duration=(e.boss&&e.hp<e.max*.5)?.48:e.fast?.47:e.elite?.70:.62;
       b.timer=b.duration;
@@ -86,7 +89,7 @@ export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,
       indicate(e,b);
       return;
     }
-    if(d>reach*.85&&d<=aggro&&home<leash){
+    if((d>reach*.85||occluded)&&d<=aggro&&home<leash){
       const speed=e.boss?(e.hp<e.max*.5?1.9:1.25):e.fast?2.3:e.elite?.95:1.2;
       stepToward(e,u.x,u.z,speed,dt);
     }else if(d>aggro&&home>.5){stepToward(e,e.home.x,e.home.z,1.4,dt);}
