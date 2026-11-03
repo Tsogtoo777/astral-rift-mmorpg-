@@ -10,7 +10,7 @@ assert.ok(main.includes('saruul-witch-static628.glb')); // Z-up to Y-up
 assert.ok(readFileSync('src/ui60.js','utf8').includes('arCredits625')); // in-game CC BY credit
 assert.ok(npc.includes("e.name==='Болд'?'blacksmith'"));
 assert.ok(npc.includes("if(e.kind==='guard')e.group.visible=true"));
-assert.ok(main.includes('ALPHA 6.2.8 · NPC STATIC MODEL FIX'));
+assert.ok(main.includes('ALPHA 6.2.9 · NPC INTERACTION POLISH'));
 assert.equal(pkg.scripts.prebuild,'node tools/verify-npc625.mjs');
-assert.equal(pkg.version,'6.2.8-alpha');
+assert.equal(pkg.version,'6.2.9-alpha');
 console.log('NPC625 smoke PASS (4 bundled NPC roles, original Saruul quest preserved, guard retained)');
