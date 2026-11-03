@@ -18,7 +18,7 @@ function titleTexture(text){
  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;return tex;
 }
 function addName(group,name){
- const geo=new THREE.PlaneGeometry(1.85,.35);
+ const geo=new THREE.PlaneGeometry(1.40,.27);
  const mat=new THREE.MeshBasicMaterial({map:titleTexture(name),transparent:true,depthWrite:false,side:THREE.DoubleSide});
  const label=new THREE.Mesh(geo,mat);label.position.set(0,2.4,0);label.renderOrder=8;group.add(label);return label;
 }
@@ -39,13 +39,14 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  const qs=typeof location!=='undefined'?new URLSearchParams(location.search):new URLSearchParams();
  const mode=qs.get('npcmodels')||'local';
  const NPC_SOURCES623={
-  peasant:{local:'/models/npc623/tavern-peasant.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
-  scholar:{local:'/models/npc623/hooded-scholar.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
+  peasant:{local:'/models/saruul.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
+  blacksmith:{local:'/models/npc625/blacksmith-mobile.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
+  scholar:{local:'/models/npc625/inquisitor-v2.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
   guard:{local:'/models/npc623/guard-captain.glb',remote:'https://vibeassets.io/download/9h7odik5fl'},
-  female:{local:'/models/npc623/vale-shieldmaiden.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
+  female:{local:'/models/npc625/elf-woman-mobile.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
  };
  const fallback={citizen:'/models/saruul.glb',guard:'/models/meshy-warrior-nocape.glb'};
- const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':'peasant';
+ const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':e.name==='Болд'?'blacksmith':'peasant';
  const modelCache=new Map();
  const animationsFor=(gltf,m)=>{
   if(!gltf.animations?.length)return null;
@@ -65,7 +66,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   const bounds=new THREE.Box3().setFromObject(m),size=new THREE.Vector3();bounds.getSize(size);
   if(!(size.y>.4&&Number.isFinite(size.y)))throw Error('NPC size is invalid: '+e.name);
   const isGuard=e.kind==='guard';const height=isGuard?1.95:1.78;
-  const scale=Math.min(4,Math.max(.15,height/size.y));
+  const scale=Math.min(100,Math.max(.01,height/size.y));
   m.scale.setScalar(scale);
   m.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
   m.rotation.y=0;
@@ -77,7 +78,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   // Unhide ONLY after an actual GLB (bundled Captain V2, or fallback) has loaded.
   if(isGuard)e.group.visible=true;
   e.model=m;e.motions=animationsFor(gltf,m);e.lastPos=e.group.position.clone();
-  e.label.position.y=height+.42;
+  e.label.position.y=height+.32;
   if(isGuard)stats.guards++;else stats.citizens++;
  }
  function modelFor(e){
@@ -124,7 +125,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  }
  function update(camera,now){for(const e of entries){
   const d=Math.hypot(e.group.position.x-player.position.x,e.group.position.z-player.position.z);
-  e.label.visible=d<7.5;e.label.quaternion.copy(camera.quaternion);
+  e.label.visible=d<5.8;e.label.quaternion.copy(camera.quaternion);
   if(e.motions&&e.lastPos){
    const delta=e.group.position.distanceToSquared(e.lastPos);e.lastPos.copy(e.group.position);
    const desired=e.talkUntil>now&&e.motions.talkA?e.motions.talkA:(e.motions.walkA&&delta>.000006?e.motions.walkA:e.motions.idleA);

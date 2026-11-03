@@ -80,6 +80,12 @@ export function installAstralUI60({ app, panel, win, openBag, openEquipment, ope
    <label>Удирдлагын тунгалаг байдал <output id="arOpacityValue60">90%</output><input type="range" id="arOpacity60" min="45" max="100" step="5" value="90"/></label>
    <label class="ar-check-row60"><input type="checkbox" id="arCompact60"/> Бага мэдээлэлтэй HUD</label>
    <p>Эдгээр нь зөвхөн дэлгэцийн харагдах байдлыг өөрчилнө. Тулааны механик болон хадгалсан тоглолтыг өөрчлөхгүй.</p>
+   <details id="arCredits625" style="font-size:12px;line-height:1.55;max-height:125px;overflow:auto"><summary>🎭 3D дүрийн бүтээгчид (CC BY)</summary>
+   <p>Болд: <a href="https://sketchfab.com/3d-models/blacksmith-312d59262c3b4477abf4ef046f7b5706" target="_blank" rel="noopener noreferrer">Vaibhav Nigam</a> (санааны зураг: Yuhong Ding)<br>
+   Номин: <a href="https://sketchfab.com/3d-models/rigged-elf-woman-4adec6d6dd1542159f668353563315bb" target="_blank" rel="noopener noreferrer">TopNotch Assets</a><br>
+   Саруул: <a href="https://sketchfab.com/3d-models/medieval-witch-girl-5db519588d9946b2b8d1214a9b281a1f" target="_blank" rel="noopener noreferrer">BELAZ</a>.<br>
+   Материал, texture-ийг тоглоомд тохируулан өөрчилсөн. Лиценз: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.</p>
+   </details>
    <button id="arReset60" type="button">Анхны тохиргоо</button></div>`;
   document.body.appendChild(settings);
   const scaleEl=settings.querySelector('#arScale60');const opacityEl=settings.querySelector('#arOpacity60');const compactEl=settings.querySelector('#arCompact60');

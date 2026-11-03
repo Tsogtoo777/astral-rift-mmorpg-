@@ -476,12 +476,31 @@ let meshy597=null;
 const meshyHolder598=new THREE.Group();
 meshyHolder598.name='MeshyMainCharacter598';
 player.add(meshyHolder598);
-modelLoader11.load('/models/saruul.glb',gltf=>{
+// Alpha 6.2.5: actual uploaded, CC BY witch model for Saruul.
+// Keep her original quest/store interaction anchored at the same npc group.
+function installSaruul625(gltf,legacy=false){
   const model=gltf.scene;
-  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;}});
+  // Uploaded Witch Girl exports lying along -Z (Z-up). Rotate it upright before sizing.
+  if(!legacy)model.rotation.x=Math.PI/2;
+  const bounds=new THREE.Box3().setFromObject(model);
+  const dims=new THREE.Vector3();bounds.getSize(dims);
+  if(!(dims.y>0.01&&Number.isFinite(dims.y)))throw new Error('Invalid Saruul rig bounds');
+  const scale=1.82/dims.y;
+  model.scale.multiplyScalar(scale);
+  model.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
+  model.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
   for(const child of [...npc.children])child.visible=false;
-  saruulModel11=model; npc.add(model); setupJoints12(model);
-},undefined,error=>console.warn('Saruul NPC asset unavailable:',error));
+  saruulModel11=model;npc.add(model);
+  if(legacy)setupJoints12(model);
+  console.info('[NPC625] Saruul actual 3D model loaded:',legacy?'legacy fallback':'witch-girl.glb');
+}
+modelLoader11.load('/models/npc625/witch-girl.glb',
+  gltf=>{try{installSaruul625(gltf);}catch(err){console.error('Saruul witch model invalid:',err);}},
+  undefined,
+  error=>{
+    console.warn('[NPC625] Witch model unavailable, trying original Saruul:',error);
+    modelLoader11.load('/models/saruul.glb',gltf=>installSaruul625(gltf,true),undefined,err=>console.warn('Saruul NPC unavailable:',err));
+  });
 
 const avatarStatus598=document.createElement('div');
 avatarStatus598.id='avatar-status-598';
@@ -1221,8 +1240,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.4 · CAPTAIN GUARD';
-document.title='Astral Rift Alpha 6.2.4 — Captain Guard';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.5 · REAL NPC MODELS';
+document.title='Astral Rift Alpha 6.2.5 — Real NPC Models';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
