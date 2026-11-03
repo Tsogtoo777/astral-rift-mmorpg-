@@ -975,7 +975,7 @@ const oldBlocked24=blocked09;
 blocked09=function(x,z){if(oldBlocked24(x,z))return true;if(inside09>=0||inDungeon07)return false;return citySolid24.some(b=>{if(b.w>15&&Math.abs(x)<2.15&&z>24.5&&z<39.5)return false;return Math.abs(x-b.x)<b.w/2+.42&&Math.abs(z-b.z)<b.d/2+.42})};
 // Citizen schedules: walking by day, return to fixed stations at night.
 const cityCitizenStations24=citizens22.map(c=>({x:c.x,z:c.z}));
-function updateCitizens24(now){const night=time23.hour<6||time23.hour>21;citizens22.forEach((c,i)=>{const base=cityCitizenStations24[i];if(night){c.g.position.x=base.x;c.g.position.z=base.z;c.g.rotation.y=Math.PI;}else{const t=now*.00024+i*1.7;c.g.position.x=base.x+(c.axis===0?Math.sin(t)*c.range:0);c.g.position.z=base.z+(c.axis===1?Math.sin(t)*c.range:0);c.g.rotation.y=Math.cos(t)>0?0:Math.PI;}})}
+function updateCitizens24(now){const night=time23.hour<6||time23.hour>21;citizens22.forEach((c,i)=>{const base=cityCitizenStations24[i];if(!npc622?.entries?.[i]?.motions?.walkA){c.g.position.set(base.x,0,base.z);c.g.rotation.y=Math.PI;return;}if(night){c.g.position.x=base.x;c.g.position.z=base.z;c.g.rotation.y=Math.PI;}else{const t=now*.00024+i*1.7;c.g.position.x=base.x+(c.axis===0?Math.sin(t)*c.range:0);c.g.position.z=base.z+(c.axis===1?Math.sin(t)*c.range:0);c.g.rotation.y=Math.cos(t)>0?0:Math.PI;}})}
 const prevLiving24=updateLiving22;updateLiving22=function(now,dt){prevLiving24(now,dt);updateCitizens24(now)};
 // Interact with city guards, with a visible dialogue instead of silent decorative NPCs.
 const guards24=[[-5,20],[5,20]].map(([x,z],i)=>{const g=new THREE.Group();g.position.set(x,0,z);city24.add(g);block24(g,.72,1.4,.5,c24.slate,0,.9,0);const helm=new THREE.Mesh(new THREE.SphereGeometry(.4,9,7),c24.gold);helm.position.y=1.85;g.add(helm);return g});
@@ -1221,8 +1221,8 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.2 · NATURAL FOREST + NPC';
-document.title='Astral Rift Alpha 6.2.2 — Natural Forest & NPC';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.3 · FANTASY NPC';
+document.title='Astral Rift Alpha 6.2.3 — Fantasy NPCs';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();

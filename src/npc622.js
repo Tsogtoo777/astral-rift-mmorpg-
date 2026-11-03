@@ -1,7 +1,6 @@
-/** Astral Rift 6.2.2 — interactive NPC roles + available real GLB character assets.
- * Existing Saruul, hero, economy and combat are unchanged.
- * Citizens are recostumed from the existing Saruul GLB; guards use an existing
- * armoured Meshy character as a PLACEHOLDER until individual licensed rigs exist.
+/** Astral Rift 6.2.3: licensed fantasy NPC loader, animated when available.
+ * Models are fetched to public/models/npc623 at build time by the included
+ * downloader. Older NPCs remain visible if a new model is absent or invalid.
  */
 import * as THREE from 'three';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
@@ -15,13 +14,13 @@ function titleTexture(text){
  const cv=document.createElement('canvas');cv.width=512;cv.height=96;
  const ctx=cv.getContext('2d');ctx.fillStyle='#142824ea';ctx.fillRect(0,2,512,92);
  ctx.strokeStyle='#c7ae77';ctx.lineWidth=4;ctx.strokeRect(3,4,506,88);
- ctx.font='bold 29px sans-serif';ctx.fillStyle='#f4e9d0';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,49,490);
+ ctx.font='bold 30px sans-serif';ctx.fillStyle='#f4e9d0';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,49,490);
  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;return tex;
 }
 function addName(group,name){
- const geo=new THREE.PlaneGeometry(2.9,.53);
+ const geo=new THREE.PlaneGeometry(1.85,.35);
  const mat=new THREE.MeshBasicMaterial({map:titleTexture(name),transparent:true,depthWrite:false,side:THREE.DoubleSide});
- const label=new THREE.Mesh(geo,mat);label.position.set(0,2.8,0);label.renderOrder=8;group.add(label);return label;
+ const label=new THREE.Mesh(geo,mat);label.position.set(0,2.4,0);label.renderOrder=8;group.add(label);return label;
 }
 export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openWindow,showForge18,saveGame,msg,potionPurchase,closeWindow,questBoard25,showBag}){
  const entries=[];
@@ -35,33 +34,70 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  for(let i=0;i<guards24.length;i++){
   const g=guards24[i];entries.push({group:g,name:i?'Өмнөд харуул':'Хойд харуул',role:'Хотын харуул',icon:'🛡',kind:'guard',label:addName(g,`🛡 Хотын харуул`)});
  }
- // Loading existing local files does NOT depend on any external CDN.
- loader.loadAsync('/models/saruul.glb').then(gltf=>{
-  for(const e of entries.filter(e=>e.kind==='citizen')){
-   const role=NPC_ROLES622[e.name];const m=gltf.scene.clone(true);
-   // Recolor duplicate outfits to make professions distinguishable.
-   m.traverse(o=>{if(!o.isMesh)return;
-    const wasArray=Array.isArray(o.material),arr=wasArray?o.material:[o.material];
-    const key=o.name.toLowerCase();
-    const changed=arr.map(src=>{const mat=src.clone();if(mat.color){
-     if(/dress|underskirt|bodice|sash|sleeve/.test(key))mat.color.setHex(role.coat);
-     else if(/face|neck|hand/.test(key))mat.color.setHex(role.face);
-    }mat.roughness=Math.max(.6,mat.roughness??.7);return mat;});
-    o.material=wasArray?changed:changed[0];o.castShadow=false;
-   });
-   m.scale.setScalar(.78);m.name=`Citizen622_${e.name}`;
-   e.group.children.filter(o=>o!==e.label).forEach(o=>o.visible=false);
-   e.group.add(m);e.model=m;stats.citizens++;
-  }
- }).catch(err=>{stats.failed++;console.warn('[NPC622] Citizen GLB failed',err)});
- loader.loadAsync('/models/meshy-warrior-nocape.glb').then(gltf=>{
-  for(const e of entries.filter(e=>e.kind==='guard')){
-   const m=cloneSkeleton(gltf.scene);m.name=`Guard622_${e.name}`;m.scale.setScalar(1.13);
-   m.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
-   e.group.children.filter(o=>o!==e.label).forEach(o=>o.visible=false);
-   e.group.add(m);e.model=m;stats.guards++;
-  }
- }).catch(err=>{stats.failed++;console.warn('[NPC622] Guard GLB failed',err)});
+ // Loads only once per distinct source; each NPC gets an independent skeleton
+ // and animation mixer. Failure returns to the existing local Saruul/Meshy meshes.
+ const qs=typeof location!=='undefined'?new URLSearchParams(location.search):new URLSearchParams();
+ const mode=qs.get('npcmodels')||'local';
+ const NPC_SOURCES623={
+  peasant:{local:'/models/npc623/tavern-peasant.glb',remote:'https://vibeassets.io/download/fbd1hbd0su'},
+  scholar:{local:'/models/npc623/hooded-scholar.glb',remote:'https://vibeassets.io/download/k6bdm27lba'},
+  guard:{local:'/models/npc623/guard-captain.glb',remote:'https://vibeassets.io/download/9h7odik5fl'},
+  female:{local:'/models/npc623/vale-shieldmaiden.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
+ };
+ const fallback={citizen:'/models/saruul.glb',guard:'/models/meshy-warrior-nocape.glb'};
+ const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':'peasant';
+ const modelCache=new Map();
+ const animationsFor=(gltf,m)=>{
+  if(!gltf.animations?.length)return null;
+  const mixer=new THREE.AnimationMixer(m);
+  const find=(rx)=>gltf.animations.find(a=>rx.test(a.name))||null;
+  const idle=find(/(^|_)idle|stand.*idle/i)||gltf.animations[0];
+  const walk=find(/walk|stroll|run_forward/i);
+  const talk=find(/talk|hand.*hip|gesture|wave|agree/i);
+  const idleA=mixer.clipAction(idle);idleA.play();
+  const walkA=walk&&walk!==idle?mixer.clipAction(walk):null;
+  const talkA=talk&&talk!==idle?mixer.clipAction(talk):null;
+  return {mixer,idleA,walkA,talkA,active:idleA};
+ };
+ function placeModel(e,gltf){
+  const m=cloneSkeleton(gltf.scene);m.name=`NPC623_${e.name}`;
+  m.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});
+  const bounds=new THREE.Box3().setFromObject(m),size=new THREE.Vector3();bounds.getSize(size);
+  if(!(size.y>.4&&Number.isFinite(size.y)))throw Error('NPC size is invalid: '+e.name);
+  const isGuard=e.kind==='guard';const height=isGuard?1.95:1.78;
+  const scale=Math.min(4,Math.max(.15,height/size.y));
+  m.scale.setScalar(scale);
+  m.position.set(-(bounds.min.x+bounds.max.x)*.5*scale,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*.5*scale);
+  m.rotation.y=0;
+  e.group.add(m);
+  // Don't hide marker nor unrelated scene objects; hide only the primitive/Saruul
+  // stand-ins. Repeated imports and rapid area switching are handled by visibility.
+  for(const old of [...e.group.children])if(old!==e.label&&old!==m)old.visible=false;
+  e.model=m;e.motions=animationsFor(gltf,m);e.lastPos=e.group.position.clone();
+  e.label.position.y=height+.42;
+  if(isGuard)stats.guards++;else stats.citizens++;
+ }
+ function modelFor(e){
+  const kind=typeFor(e),src=NPC_SOURCES623[kind];
+  if(mode==='old')return {key:'fallback_'+e.kind,url:fallback[e.kind]};
+  return {key:kind,url:mode==='cdn'?src.remote:src.local};
+ }
+ async function fetchCached(key,url){
+  if(!modelCache.has(key))modelCache.set(key,loader.loadAsync(url));
+  return modelCache.get(key);
+ }
+ for(const e of entries){
+  const source=modelFor(e);
+  (async()=>{
+   try{placeModel(e,await fetchCached(source.key,source.url));}
+   catch(err){
+    console.warn('[NPC623] Licensed model failed; using existing character',e.name,err);
+    stats.failed++;
+    try{placeModel(e,await fetchCached('fallback_'+e.kind,fallback[e.kind]));}
+    catch(fail){console.warn('[NPC623] Even fallback failed',e.name,fail);}
+   }
+  })();
+ }
  function nearest(maxDist=3.6){let hit=null,dist=maxDist;
   for(const e of entries){const d=Math.hypot(e.group.position.x-player.position.x,e.group.position.z-player.position.z);
    if(d<dist){dist=d;hit=e;}}
@@ -69,6 +105,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  }
  function dialogue(){
   const e=nearest();if(!e)return false;
+  if(e.motions?.talkA)e.talkUntil=performance.now()+3600;
   const text=e.kind==='guard'?'<p>Хотоос гадна чоно, гоблин олширсон. Даалгаврын самбараа үзээрэй.</p><button id="npc622Board">📜 Даалгаврын самбар</button>':
   e.name==='Болд'?'<p>Би хуяг, илдийг чинь сайжруулж өгнө. Хүдэр болон алт цуглуулсан уу?</p><button id="npc622Forge">⚒ Дархны цэс</button>':
   e.name==='Номин'?'<p>Аянд гарахын өмнө эдгээх эм аваарай.</p><button id="npc622Buy">❤️ Эдгээх эм · 30 алт</button><button id="npc622Bag">🎒 Цүнх</button>':
@@ -84,8 +121,14 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
  }
  function update(camera,now){for(const e of entries){
   const d=Math.hypot(e.group.position.x-player.position.x,e.group.position.z-player.position.z);
-  e.label.visible=d<15;e.label.quaternion.copy(camera.quaternion);
-  if(e.model&&e.kind==='citizen')e.model.position.y=Math.sin(now*.0018+e.group.position.x)*.022;
+  e.label.visible=d<7.5;e.label.quaternion.copy(camera.quaternion);
+  if(e.motions&&e.lastPos){
+   const delta=e.group.position.distanceToSquared(e.lastPos);e.lastPos.copy(e.group.position);
+   const desired=e.talkUntil>now&&e.motions.talkA?e.motions.talkA:(e.motions.walkA&&delta>.000006?e.motions.walkA:e.motions.idleA);
+   if(desired!==e.motions.active){e.motions.active.fadeOut(.22);desired.reset().fadeIn(.22).play();e.motions.active=desired;}
+   if(d<27&&e.lastTick!==undefined)e.motions.mixer.update(Math.min(.05,(now-e.lastTick)*.001));
+   e.lastTick=now;
+  }
  }}
  return {dialogue,update,stats,nearest,entries};
 }
