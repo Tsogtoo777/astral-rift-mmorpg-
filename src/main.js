@@ -7,6 +7,7 @@ import { createEnemyAI57 } from './enemyAI57.js';
 import {createEnemyNavigator6212,segmentBlocked6212} from './pathfinding6212.js';
 import {SpatialHash6212} from './spatial6212.js';
 import {createAdventure6213} from './adventure6213.js';
+import {craftingHtml630,craftStatus630,sellStatus630} from './crafting630.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
@@ -20,7 +21,7 @@ import {makeWorldCollision6211} from './world6211.js';
 import { clone as cloneSkeleton62 } from 'three/addons/utils/SkeletonUtils.js';
 import './monsterHUD615.css';
 import { createDodge57 } from './dodge57.js';
-document.title='Astral Rift Alpha 6.2.13 — Adventure & Loot';
+document.title='Astral Rift Alpha 6.3.0 — Crafting & Equipment';
 import { createAdvancedFX50 } from './advanced50.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
@@ -773,8 +774,31 @@ const bountyBtn18=document.createElement('button');bountyBtn18.id='bounty18';bou
 const logBtn18=document.createElement('button');logBtn18.id='log18';logBtn18.textContent='📋 Log';panel.appendChild(logBtn18);
 function showForge18(){
  const ranks=[swordRank18,bowRank18,armorRank18],names=['⚔️ Илд','🏹 Нум','🛡️ Хуяг'];
- openWindow('⚒️ Дархны газар',`<p>🪙 ${gold} алт · ⛏️ ${ore18} хүдэр · 💎 ${crystal18} кристалл</p><small>Сайжруулалт 10 хүртэл. Илд/нумын гэмтэл +5, хуягны HP +8.</small>${names.map((n,i)=>{const r=ranks[i],price=50+(r*35),metal=2+r,gem=r>=3?1+Math.floor((r-3)/3):0;return `<p>${n} +${r} ${r>=10?'(MAX)':`<button data-upgrade18="${i}">+1 · ${price} алт, ${metal} хүдэр${gem?', '+gem+' кристалл':''}</button>`}</p>`}).join('')}`);
+ openWindow('⚒️ Дархны газар',`<p>🪙 ${gold} алт · ⛏️ ${ore18} хүдэр · 💎 ${crystal18} кристалл</p><small>Сайжруулалт 10 хүртэл. Илд/нумын гэмтэл +5, хуягны HP +8.</small>${names.map((n,i)=>{const r=ranks[i],price=50+(r*35),metal=2+r,gem=r>=3?1+Math.floor((r-3)/3):0;return `<p>${n} +${r} ${r>=10?'(MAX)':`<button data-upgrade18="${i}">+1 · ${price} алт, ${metal} хүдэр${gem?', '+gem+' кристалл':''}</button>`}</p>`}).join('')}${craftingHtml630({gold,loot:adventure6213.snapshot().loot,owned:equipment59.owned,near:nearBlacksmith630()})}`);
  win.querySelectorAll('[data-upgrade18]').forEach(btn=>btn.onclick=()=>upgrade18(Number(btn.dataset.upgrade18)));
+ win.querySelectorAll('[data-craft630]').forEach(btn=>btn.onclick=()=>craftRecipe630(btn.dataset.craft630));
+ win.querySelectorAll('[data-sell630]').forEach(btn=>btn.onclick=()=>sellMaterial630(btn.dataset.sell630));
+}
+function nearBlacksmith630(){
+ const bold=citizens22.find(c=>c.name.startsWith('Болд'));
+ return !inDungeon07&&!!bold?.g&&player.position.distanceTo(bold.g.position)<7;
+}
+function craftRecipe630(id){
+ if(!nearBlacksmith630()){msg('⚒ Болд дарханд ойртоорой');return}
+ const check=craftStatus630(id,{gold,loot:adventure6213.snapshot().loot,owned:equipment59.owned});
+ if(!check.ok){msg(check.reason==='already-owned'?'Энэ тоноглол аль хэдийн байгаа':'Алт эсвэл материал хүрэлцэхгүй');showForge18();return}
+ const {recipe}=check;
+ if(!adventure6213.spendLoot(recipe.loot)){msg('Материал хүрэлцэхгүй');showForge18();return}
+ gold-=recipe.gold;
+ if(recipe.product.type==='equipment')equipment59.grant(recipe.product.id);
+ else if(recipe.product.type==='potion')potions16+=recipe.product.count;
+ saveGame();logBattle18('⚒ '+recipe.title);msg('✅ '+recipe.title+' урлалаа');showForge18();
+}
+function sellMaterial630(id){
+ if(!nearBlacksmith630()){msg('⚒ Болд дарханд ойртоорой');return}
+ const check=sellStatus630(id,adventure6213.snapshot().loot);
+ if(!check.ok||!adventure6213.spendLoot({[id]:1})){msg('Зарах материал байхгүй');showForge18();return}
+ gold+=check.price;saveGame();msg('🪙 +'+check.price+' алт');showForge18();
 }
 function upgrade18(i){
  const rank=[swordRank18,bowRank18,armorRank18][i];if(rank>=10){msg('Хамгийн дээд түвшин');return}
