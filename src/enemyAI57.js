@@ -37,7 +37,8 @@ export function createEnemyAI57({player,isBlocked,onAttack,isSafeZone=()=>false,
     for(const side of candidates){
       const a=angle+side,nx=p.x+Math.sin(a)*step,nz=p.z+Math.cos(a)*step;
       // Check X/Z separately to allow sliding along a wall without tunneling.
-      const canX=!isBlocked(nx,p.z),canZ=!isBlocked(p.x,nz);
+      const canX=!isBlocked(nx,p.z);
+      const canZ=!isBlocked(canX?nx:p.x,nz);
       if(canX&&canZ){p.x=nx;p.z=nz;return;}
       if(side===0&&(canX||canZ)){
         if(canX)p.x=nx;

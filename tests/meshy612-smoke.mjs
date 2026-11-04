@@ -10,7 +10,7 @@ assert.match(src,/bone\.quaternion\.slerp\(rest\.q,correction\)/);
 assert.match(src,/capeRest/);
 assert.match(src,/MeshyContactShadow612/);
 assert.match(src,/skinned mesh|SkinnedMesh/i);
-const binary=fs.readFileSync('public/models/meshy-warrior-mobile.glb');
+const binary=fs.readFileSync('public/models/meshy-warrior-nocape.glb');
 assert.equal(binary.toString('ascii',0,4),'glTF');
 const jsonSize=binary.readUInt32LE(12);
 const gltf=JSON.parse(binary.toString('utf8',20,20+jsonSize));

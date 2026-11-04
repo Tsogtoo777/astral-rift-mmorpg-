@@ -13,6 +13,6 @@ assert.match(main,/ALPHA 6\.2 · WORLD EXPANSION/);
 for(const key of ['#actions','#pad','#hud','#window','#arQuest60','#arSettings60','#arShortcuts60','#minimap'])assert(css.includes(key),`Missing visual rule ${key}`);
 for(const key of ['openBag','openEquipment','openJournal','openSkills','openMap','arScale60','arOpacity60','arCompact60','arModalNavigation60'])assert(ui.includes(key),`Missing UI action ${key}`);
 assert(!ui.includes('localStorage.clear('));
-assert(fs.existsSync('public/models/meshy-warrior-mobile.glb'));
+assert(fs.existsSync('public/models/meshy-warrior-nocape.glb'));
 assert(fs.existsSync('public/equipment/meshy-dark-katana.glb'));
 console.log('PASS Alpha 6.0: HUD, touch control, modal tabs, preference storage and Meshy assets');

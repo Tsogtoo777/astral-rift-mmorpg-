@@ -141,7 +141,7 @@ export function createAlpha40(api) {
     mesh(root,new THREE.OctahedronGeometry(.8),mat.glow,x,3.3,z);
   }
   // Separate save key: existing 2.5.1 save remains readable and unmodified.
-  const key='astral-rift-alpha40-save';let stored={};try{stored=JSON.parse(localStorage.getItem(key)||'{}')}catch{}
+  const key='astral-rift-alpha40-save';let stored={};try{stored=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch{}
   const state={stage:Math.min(4,Math.max(0,Number(stored.stage)||0)),kills:Math.max(0,Number(stored.kills)||0),relic:!!stored.relic,claimed:!!stored.claimed,discoveries:Array.isArray(stored.discoveries)?stored.discoveries:[],tutorial:!!stored.tutorial};
   function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch{}}
   function reward(){api.addResources({gold:350,ore:4,crystal:2});gainXp(250);saveGame();persist()}

@@ -13,6 +13,6 @@ assert.match(c,/mixer\.update\(dt\)/);
 assert.match(c,/RightHand/);
 for(const bad of ['rodin-rigged.glb','createRodin54','meshMode597','meshButton597','mesh[y]?597\.root\.visible'])assert.equal(m.includes(bad),false,`Legacy player reference remains: ${bad}`);
 assert(!fs.existsSync('public/models/rodin-rigged.glb'));
-assert(fs.existsSync('public/models/meshy-warrior-mobile.glb'));
+assert(fs.existsSync('public/models/meshy-warrior-nocape.glb'));
 assert(fs.existsSync('public/equipment/meshy-dark-katana.glb'));
 console.log('PASS Meshy 5.9.8 single-player replacement smoke');

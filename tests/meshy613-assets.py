@@ -7,5 +7,5 @@ assert len(j['skins'][0]['joints'])==62
 assert sorted(a['name'] for a in j['animations'])==['Running','Walking']
 assert 18000<ind["count"]//3<20000
 assert j['asset']['extras']['noCapeExperimental']
-assert Path('public/models/meshy-warrior-mobile.glb').exists() # safe rollback
-print('PASS 6.1.3: valid no-cape GLB, skin=62, two clips, 18.9k faces, original retained')
+assert '/models/meshy-warrior-nocape.glb' in Path('src/main.js').read_text() # active player asset
+print('PASS 6.1.3: valid no-cape GLB, skin=62, two clips, 18.9k faces, active player asset')
