@@ -89,7 +89,7 @@ export function installAstralUI60({ app, panel, win, openBag, openEquipment, ope
    <button id="arReset60" type="button">Анхны тохиргоо</button></div>`;
   document.body.appendChild(settings);
   const scaleEl=settings.querySelector('#arScale60');const opacityEl=settings.querySelector('#arOpacity60');const compactEl=settings.querySelector('#arCompact60');
-  const readPrefs=()=>{try{return JSON.parse(localStorage.getItem('astralRiftUi60')||'{}')}catch{return {}}};
+  const readPrefs=()=>{try{return JSON.parse(localStorage.getItem('astralRiftUi60')||'{}')||{}}catch{return {}}};
   let preferences={scale:100,opacity:90,compact:false,...readPrefs()};
   const apply=()=>{
     const scale=Math.min(125,Math.max(85,Number(preferences.scale)||100));

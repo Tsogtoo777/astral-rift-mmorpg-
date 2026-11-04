@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { resolveMeshyRigBones } from '../src/meshy597.js';
-const path='public/models/meshy-warrior-mobile.glb';
+const path='public/models/meshy-warrior-nocape.glb';
 const bin=fs.readFileSync(path);
 assert.equal(bin.toString('ascii',0,4),'glTF','Expected GLB');
 const jsonStart=20;

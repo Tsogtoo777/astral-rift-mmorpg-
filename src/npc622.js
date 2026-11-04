@@ -47,7 +47,7 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   guard:{local:'/models/npc623/guard-captain.glb',remote:'https://vibeassets.io/download/9h7odik5fl'},
   female:{local:'/models/npc625/merchant-witch-static628.glb',remote:'https://assetyard.dev/pack/files/vale-shieldmaiden.glb'},
  };
- const fallback={citizen:'/models/saruul.glb',guard:'/models/meshy-warrior-nocape.glb'};
+ const fallback={citizen:'/models/npc625/saruul-witch-static628.glb',guard:'/models/meshy-warrior-nocape.glb'};
  const typeFor=e=>e.kind==='guard'?'guard':e.name==='Номин'?'female':e.name==='Тэмүүлэн'?'scholar':e.name==='Болд'?'blacksmith':e.name==='Энхээ'?'traveler':'peasant';
  const debugEnabled=qs.get('npcdebug')==='1';
  const statuses=new Map();
@@ -145,8 +145,8 @@ export function installNPC622({GLTFLoader,scene,citizens22,guards24,player,openW
   return {key:kind,url:mode==='cdn'?src.remote:src.local};
  }
  async function fetchCached(key,url){
-  if(!modelCache.has(key))modelCache.set(key,loader.loadAsync(url));
-  return modelCache.get(key);
+  if(!modelCache.has(url))modelCache.set(url,loader.loadAsync(url));
+  return modelCache.get(url);
  }
  for(const e of entries){
   const source=modelFor(e);

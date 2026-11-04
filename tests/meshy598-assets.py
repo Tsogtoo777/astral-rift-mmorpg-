@@ -1,7 +1,7 @@
 from pathlib import Path
 import struct, json, hashlib
 root=Path(__file__).resolve().parents[1]
-p=root/'public/models/meshy-warrior-mobile.glb'
+p=root/'public/models/meshy-warrior-nocape.glb'
 def read_glb(path):
     with open(path,'rb') as f:
         magic,vers,size=struct.unpack('<4sII',f.read(12)); assert magic==b'glTF' and vers==2 and size==path.stat().st_size

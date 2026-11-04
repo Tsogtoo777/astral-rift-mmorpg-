@@ -13,11 +13,19 @@ export const ARCH42_ASSETS = [
   'Stairs_Exterior_NoFirstStep','Roof_Tower_RoundTiles','Wall_Plaster_WoodGrid'
 ];
 
+// The two UnevenBrick modules reference textures absent from the bundle.
+// Use the bundled brick maps without changing authored geometry or asset files.
+export function architectureTextureUrl42(url){
+  return url.replace(/T_UnevenBrick_(BaseColor|Roughness|Normal)\.png$/, 'T_Brick_$1.png');
+}
+
 const HOUSE_LABELS=['ДАРХАН','ДЭН БУУДАЛ','ДЭЛГҮҮР','НОМЫН ДЭЛГҮҮР','АЛХИМИ','ЭДЛЭЛ','УРЧУУД','ХУДАЛДАА'];
 
 export function installArchitecture42({scene,city24,houses09,onStatus=()=>{}}){
   const root=new THREE.Group();root.name='Architecture42RealGLTF';scene.add(root);
-  const loader=new GLTFLoader();
+  const manager=new THREE.LoadingManager();
+  manager.setURLModifier(architectureTextureUrl42);
+  const loader=new GLTFLoader(manager);
   const templates=new Map();
   const sharedMaterials=new Map();
   const houses=[];

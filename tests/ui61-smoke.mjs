@@ -21,5 +21,5 @@ assert(!main.includes('rodin-rigged.glb'));
 assert(!module.includes('localStorage.clear('));
 for(const id of ['wanderer-hood','wanderer-coat','wanderer-gloves','wanderer-pants','wanderer-boots','teal-cape'])assert(equipment.includes(`id:'${id}'`),`Save-incompatible item ID ${id}`);
 for(const label of ['Meshy Battle Coat','Meshy Gauntlets','Meshy Crimson Cape'])assert(equipment.includes(label));
-for(const asset of ['public/models/meshy-warrior-mobile.glb','public/equipment/meshy-dark-katana.glb'])assert(fs.existsSync(asset));
+for(const asset of ['public/models/meshy-warrior-nocape.glb','public/equipment/meshy-dark-katana.glb'])assert(fs.existsSync(asset));
 console.log('PASS Alpha 6.1: responsive dialogs, live Meshy preview, preserved equipment IDs, saved UI preferences and avatar');

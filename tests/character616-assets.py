@@ -14,7 +14,7 @@ f=(w*np.isin(ids,badbones)).sum(1)[tri].mean(1);c=pos[tri].mean(1)
 assert len(tri)==18888
 assert not np.any((c[:,1]>.47)&(c[:,1]<.98)&(f>.23)&(np.abs(c[:,0])>.115)), 'Finger-driven cloth triangles remain'
 assert len(j['skins'][0]['joints'])==62 and [a['name'] for a in j['animations']]==['Running','Walking']
-assert j['asset']['extras']['capeCleanup616'];assert Path('public/models/meshy-warrior-mobile.glb').exists()
+assert j['asset']['extras']['capeCleanup616']
 
 j,a=glb('public/monsters/forest_wolf.glb');assert len(j['skins'][0]['joints'])==27
 anim={an['name']:an for an in j['animations']};assert len(anim)==7

@@ -4,7 +4,7 @@ import { createCombat56, effectiveStrikeRange56 } from './combat56.js';
 import { createCameraGuard56 } from './camera56.js';
 import { createProjectile56 } from './projectile56.js';
 import { createEnemyAI57 } from './enemyAI57.js';
-import {createEnemyNavigator6212} from './pathfinding6212.js';
+import {createEnemyNavigator6212,segmentBlocked6212} from './pathfinding6212.js';
 import {SpatialHash6212} from './spatial6212.js';
 import {createAdventure6213} from './adventure6213.js';
 import { loadGoblin614 } from './goblin614.js';
@@ -145,8 +145,9 @@ const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshS
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
 const questHalo=new THREE.PointLight(0x4fe0ff,1.25,6);questHalo.position.set(1,2.95,7);scene.add(questHalo);
 const versionLabel=document.createElement('div');versionLabel.id='zoneLabel';versionLabel.textContent='✦ ЭХЛЭЛ ХОТ';document.querySelector('#app').appendChild(versionLabel);
-const adventure6213=createAdventure6213({storage:window.localStorage});
-const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')}catch{}
+let gameStorage;try{gameStorage=window.localStorage}catch{}
+const adventure6213=createAdventure6213({storage:gameStorage});
+const saveKey='astral-rift-alpha03-save';let saved={};try{saved=JSON.parse(localStorage.getItem(saveKey)||'{}')||{}}catch{}
 let questAccepted=!!saved.questAccepted,questComplete=!!saved.questComplete,gold=Number(saved.gold)||0,inventory=Array.isArray(saved.inventory)?saved.inventory:['Хоёр гарын илд','Нум'];
 let potions16=Math.max(0,Number(saved.potions16??2)||0),questKills16=Math.max(0,Number(saved.questKills16)||0);
 let level=Math.max(1,Number(saved.level)||1),xp=Math.max(0,Number(saved.xp)||0),totalKills=Number(saved.totalKills)||0;
@@ -797,7 +798,7 @@ function lock(){state.target=state.target?.alive?null:closest();msg(state.target
 function swap(){state.weapon=1-state.weapon;meshy597?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Илд')}
 let queuedHitEnemy56=null;
 function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
-function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)meshy597?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);showDamage615(e,damage);e.hp=Math.max(0,e.hp-damage);e.visual615?.hit?.();if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=!!(e.visual614||e.visual615);e.visual614?.die();e.visual615?.die();e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18(`⚔️ ${e.kind615==='wolf'?'Wolf':e.kind614==='goblin'?'Goblin':'Дайсан'}: +${e.elite?45:e.fast?15:10} алт, +${e.elite?90:e.fast?45:35} EXP, +хүдэр`);questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();if(e.visual614||e.visual615)setTimeout(()=>msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`),650);else msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`)}}else msg(`-${damage} HP`)}
+function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)meshy597?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;if(!combat56.resolving&&segmentBlocked6212(player.position,e.g.position,(x,z)=>blocked09(x,z))){msg('Хана цаана байгаа бай руу онохгүй');return}const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);showDamage615(e,damage);e.hp=Math.max(0,e.hp-damage);e.visual615?.hit?.();if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=!!(e.visual614||e.visual615);e.visual614?.die();e.visual615?.die();e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18(`⚔️ ${e.kind615==='wolf'?'Wolf':e.kind614==='goblin'?'Goblin':'Дайсан'}: +${e.elite?45:e.fast?15:10} алт, +${e.elite?90:e.fast?45:35} EXP, +хүдэр`);questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();if(e.visual614||e.visual615)setTimeout(()=>msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`),650);else msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`)}}else msg(`-${damage} HP`)}
 function attack(){
   if(state.cool>0||state.hp<=0||combat56.pending)return;
   const weapon=state.weapon;
@@ -1086,7 +1087,7 @@ for(const x of [-7.6,7.6]){
 }
 const hallGlow251=new THREE.PointLight(0xffd29a,2,17);hallGlow251.position.set(hallOrigin25.x,4,hallOrigin25.z-5);castleHall25.add(hallGlow251);
 let inCastle25=false;
-const saved25=(()=>{try{return JSON.parse(localStorage.getItem('astralRift25')||'{}')}catch{return {}}})();
+const saved25=(()=>{try{return JSON.parse(localStorage.getItem('astralRift25')||'{}')||{}}catch{return {}}})();
 let boardKills25=Number(saved25.boardKills||0),boardClaim25=!!saved25.boardClaim,boardActive25=!!saved25.boardActive;
 let stamina25=100,blocking25=false;
 const status25=document.createElement('div');status25.id='status25';status25.innerHTML='<span>⚡ ST <b id="stNum25">100</b></span><div id="stTrack25"><i id="stFill25"></i></div>';
@@ -1314,6 +1315,7 @@ const cameraGuard56=createCameraGuard56(THREE,cameraObstacles24);
 const advancedFX50=createAdvancedFX50(scene,player,camera,renderer);
 // Alpha 6.2.2: natural forest + living NPC roles. Originals remain as fallbacks.
 const forest622=installForest622({scene,ground,legacyTrees621,world62});
+forest622.colliders.forEach(c=>worldCollision6211.add(c));
 // Keep the old magic grove altar, but remove its conspicuous cone-tree placeholders.
 for(const node of grove22.children)if(node.geometry?.type==='ConeGeometry'||(node.geometry?.type==='CylinderGeometry'&&node.position.y>1.3))node.visible=false;
 let saruulTalkUntil629=0;

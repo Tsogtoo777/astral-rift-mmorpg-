@@ -119,9 +119,9 @@ function makeGroundTexture(){
  return t;
 }
 export function installForest622({scene,ground,legacyTrees621=[],world62}){
- if(typeof document==='undefined')return {trees:0,enabled:false};
+ if(typeof document==='undefined')return {trees:0,enabled:false,colliders:[]};
  const query=new URLSearchParams(location.search);
- if(query.get('forest')==='old')return {trees:0,enabled:false};
+ if(query.get('forest')==='old')return {trees:0,enabled:false,colliders:[]};
  const all=scatterTrees(),unit=new THREE.Object3D();
  const woodMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
  const leafMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide,alphaTest:.02});
@@ -142,8 +142,10 @@ export function installForest622({scene,ground,legacyTrees621=[],world62}){
    const dx=position.x-tree.x,dz=position.z-tree.z;
    const target=.5+TYPES[tree.type].radius*tree.scale;
    const d2=dx*dx+dz*dz;if(d2>=target*target)continue;
-   const d=Math.sqrt(d2)||.001;position.x=tree.x+dx/d*target;position.z=tree.z+dz/d*target;
+   const d=Math.sqrt(d2);
+   position.x=tree.x+(d?dx/d:1)*target;position.z=tree.z+(d?dz/d:0)*target;
   }
  }
- return {trees:all.length,enabled:true,instances,resolvePlayer,notes:'Procedural branched trees with individual leaves; no external downloads'};
+ const colliders=all.map(tree=>({name:'forest622-trunk',type:'circle',x:tree.x,z:tree.z,r:TYPES[tree.type].radius*tree.scale+.14,yMax:3}));
+ return {trees:all.length,enabled:true,instances,colliders,resolvePlayer,notes:'Procedural branched trees with individual leaves; no external downloads'};
 }

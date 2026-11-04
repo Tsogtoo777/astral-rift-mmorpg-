@@ -8,7 +8,7 @@ class G{constructor(){this.position=new V3();this.rotation={y:0};this.scale={set
 class M extends G{constructor(){super();this.isMesh=true}}
 class Loader{async loadAsync(url){if(globalThis.__failEssential&&url.includes('Wall_Plaster_Straight'))throw Error('mock download failure');return {scene:new M()}}}
 class C{getContext(){return new Proxy({},{get:(_,p)=>p==='fillText'?()=>{}:()=>{}})}}
-const THREE={Group:G,Mesh:M,PlaneGeometry:class{},MeshBasicMaterial:class{},CanvasTexture:class{},DoubleSide:2,SRGBColorSpace:'sRGB'};
+const THREE={LoadingManager:class{setURLModifier(fn){this.resolveURL=fn;}},Group:G,Mesh:M,PlaneGeometry:class{},MeshBasicMaterial:class{},CanvasTexture:class{},DoubleSide:2,SRGBColorSpace:'sRGB'};
 globalThis.__THREE_MOCK__=THREE;globalThis.__LOADER_MOCK__=Loader;
 globalThis.document={createElement:()=>new C()};
 let src=fs.readFileSync(path.join(dir,'../src/architecture42.js'),'utf8');
