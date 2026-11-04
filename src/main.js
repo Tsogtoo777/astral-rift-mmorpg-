@@ -1361,7 +1361,7 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.2.13 · ADVENTURE & LOOT';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 6.3.0 · CRAFTING & EQUIPMENT';
 document.title='Astral Rift Alpha 6.2.13 — Adventure & Loot';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);graphics6210.update(now);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
  if(saruulModel11){
