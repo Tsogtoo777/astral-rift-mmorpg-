@@ -44,6 +44,8 @@ export function createEquipment59(previous={}) {
     if(!item||owned.has(id)||!Number.isFinite(budget)||budget<price)return {ok:false,price:0};
     owned.add(id);return {ok:true,price};
   }
+  // Existing equipment data and visual bindings also support crafted rewards.
+  function grant(id){if(!ITEMS.has(id)||owned.has(id))return false;owned.add(id);return true;}
   function get(slot){return ITEMS.get(equipped[slot])||null;}
   function render(gold=0){const b=bonuses();const fmt=(item)=>item?`<span class="eq59-name ${item.rarity.toLowerCase()}">${item.icon} ${item.name}</span>`:'<span class="eq59-empty">Хоосон</span>';
     const slots=SLOTS_59.map(s=>`<div class="eq59-slot"><span>${s.label}</span>${fmt(get(s.id))}<span>${get(s.id)&&s.id!=='weapon'?`<button type="button" data-unequip59="${s.id}" aria-label="Тайлах">Тайлах</button>`:''}</span></div>`).join('');
@@ -54,5 +56,5 @@ export function createEquipment59(previous={}) {
     }).join('');
     return `<div class="eq59-root"><div class="eq59-summary">🪙 ${Math.max(0,Math.floor(gold))} · ⚔ +${b.attack} · 🛡 +${b.defense} · ❤️ +${b.hp} · ⚡ +${b.stamina}</div><h3>Өмссөн тоноглол</h3><div class="eq59-slots">${slots}</div><h3>Хувцас ба зэвсэг</h3><div class="eq59-items">${items}</div><p class="eq59-note">3D: Үндсэн дүр бол Meshy хуягтай загвар. Зэвсгийн модель харагдана. Одоогийн Meshy хуяг, нөмрөг нэг mesh-д нэгтгэсэн тул тусдаа тоноглолын статистик ажиллах боловч 3D хувцас солигдохгүй.</p></div>`;
   }
-  return {owned,equipped,get,snapshot,bonuses,equip,unequip,buy,render};
+  return {owned,equipped,get,snapshot,bonuses,equip,unequip,buy,grant,render};
 }
