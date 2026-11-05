@@ -45,7 +45,7 @@ import { installAstralUI60 } from './ui60.js';
 import { installAstralUI61 } from './ui61.js';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 7.0 · MEDIEVAL GLTF</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 8.4 · MEDIEVAL CITY</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.0065);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,360);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
@@ -172,7 +172,7 @@ function detailsAt(x,z,i){const g=new THREE.Group();g.position.set(x,0,z);scene.
 [[-9,10],[-3,14],[5,14],[12,9],[-11,1],[14,0],[-7,-12],[8,-14]].forEach(([x,z],i)=>detailsAt(x,z,i));
 // Distant rolling hills, clouds, scattered shrubs and flowers.
 const hillMat=new THREE.MeshStandardMaterial({color:0x64877e,roughness:1});
-for(let i=0;i<18;i++){const a=i*Math.PI*2/18;const r=66;const h=8+(i%5)*3;const hill=artMesh(scene,new THREE.ConeGeometry(14+(i%3)*3,h,7),hillMat,Math.cos(a)*r,h/2-1,Math.sin(a)*r);hill.rotation.y=i*.47}
+for(let i=0;i<18;i++){const a=i*Math.PI*2/18;const r=155+(i%3)*15;const h=11+(i%5)*3;const hill=artMesh(scene,new THREE.ConeGeometry(18+(i%3)*4,h,9),hillMat,Math.cos(a)*r,h/2-1,Math.sin(a)*r);hill.rotation.y=i*.47}
 const cloudMat=new THREE.MeshBasicMaterial({color:0xf6fcff,transparent:true,opacity:.74,depthWrite:false});
 for(let i=0;i<12;i++){const a=i*2.4,r=36+(i%4)*9;const g=new THREE.Group();g.position.set(Math.cos(a)*r,23+(i%4)*3,Math.sin(a)*r);scene.add(g);for(let j=0;j<3;j++){const c=artMesh(g,new THREE.SphereGeometry(2.2,8,6),cloudMat,(j-1)*2,Math.sin(j)*.35,0);c.scale.y=.45}}
 const leafMat=new THREE.MeshStandardMaterial({color:0x39785c,roughness:1});
@@ -1487,7 +1487,7 @@ interactWorld06=function(){
 document.querySelector('#townBtn').textContent='🗣 NPC / F';
 document.querySelector('#townBtn').onclick=()=>interactWorld06();
 // Keep previous E=Saruul keyboard behaviour for backwards compatibility.
-const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 7.0 · REAL MEDIEVAL CITY';
+const banner622=document.querySelector('#hud small');if(banner622)banner622.textContent='ALPHA 8.4 · REAL MEDIEVAL CITY';
 document.title='Astral Rift Alpha 6.2.13 — Adventure & Loot';
 let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loop(now){requestAnimationFrame(loop);graphics6210.update(now);const dt=Math.min((now-prev)/1000,.05);prev=now;updateFx13(dt);checkAchievements17();updateLiving22(now,dt);npc622.update(camera,now);
  if(saruulModel11){
