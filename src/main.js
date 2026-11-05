@@ -326,7 +326,19 @@ function talk(){
 }
 document.querySelector('#townBtn').onclick=talk;document.querySelector('#bagBtn').onclick=showBag;document.querySelector('#shopBtn16').onclick=showShop16;
 window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyE')interactWorld06();if(e.code==='KeyI')showBag();if(e.code==='KeyH')usePotion16();if(e.code==='Escape')closeWindow()});
-const enemies=[];let enemySerial19=0;function spawn(x,z){const g=new THREE.Group();g.position.set(x,0,z);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),new THREE.MeshStandardMaterial({color:0x963d42,flatShading:true}));m.position.y=.95;m.castShadow=true;g.add(m);scene.add(g);{const variant=enemySerial19++%5;const elite=variant===4,fast=variant===2;const max=elite?220:fast?75:100;
+// Alpha 7.4: keep all monster spawn homes outside the expanded starter-city buffer.
+// Apply at the common spawn entrypoint so forest, regional, and future respawns
+// share the same safe boundary without touching their combat/loot lifecycle.
+const CITY_MONSTER_SAFE_RADIUS74=40;
+function outsideCitySpawn74(x,z){
+  const distance=Math.hypot(x,z);
+  if(distance>=CITY_MONSTER_SAFE_RADIUS74)return [x,z];
+  const angle=distance>0.001?Math.atan2(z,x):-Math.PI/2;
+  return [Math.cos(angle)*CITY_MONSTER_SAFE_RADIUS74,Math.sin(angle)*CITY_MONSTER_SAFE_RADIUS74];
+}
+const enemies=[];let enemySerial19=0;function spawn(x,z){
+  [x,z]=outsideCitySpawn74(x,z);
+  const g=new THREE.Group();g.position.set(x,0,z);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),new THREE.MeshStandardMaterial({color:0x963d42,flatShading:true}));m.position.y=.95;m.castShadow=true;g.add(m);scene.add(g);{const variant=enemySerial19++%5;const elite=variant===4,fast=variant===2;const max=elite?220:fast?75:100;
  m.material.color.setHex(elite?0xd6a344:fast?0x4e9ba9:0x963d42);
  g.scale.setScalar(elite?1.35:fast?.85:1);
  const entity={g,m,hp:max,max,alive:true,cool:0,respawn:0,home:new THREE.Vector3(x,0,z),elite,fast,baseColor:elite?0xd6a344:fast?0x4e9ba9:0x963d42};
