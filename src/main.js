@@ -10,6 +10,7 @@ import {createAdventure6213} from './adventure6213.js';
 import {craftingHtml630,craftStatus630,sellStatus630} from './crafting630.js';
 import {inventoryHtml64,bindInventory64} from './inventory64.js';
 import {characterStatsHtml643} from './character643.js';
+import {applyHud644,hudSettingsHtml644} from './hud644.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -174,8 +175,21 @@ function logBattle18(t){battleLog18.unshift(t);battleLog18=battleLog18.slice(0,8
 function saveGame(){try{localStorage.setItem(saveKey,JSON.stringify({questAccepted,questComplete,gold,inventory,level,xp,totalKills,bossWins07,potions16,questKills16,achievements17,ore18,crystal18,swordRank18,bowRank18,armorRank18,bounty18,bountyClaims18,talents19,talentPoints19,equipment59:equipment59.snapshot()}))}catch{}}
 function gainXp(amount){xp+=amount;while(xp>=level*80){xp-=level*80;level++;talentPoints19++;state.max+=10;state.hp=state.max;msg('LEVEL UP! '+level+' · +1 Skill Point')}saveGame()}
 
+const hudRoot644=document.querySelector('#app');
+let hudSize644='normal';
+try{hudSize644=localStorage.getItem('astral-hud-size644')||'normal'}catch{}
+hudSize644=applyHud644(hudRoot644,hudSize644);
 const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button><button id="shopBtn16">🛒 Shop</button>';document.querySelector('#app').appendChild(panel);
 const win=document.createElement('div');win.id='window';document.querySelector('#app').appendChild(win);
+const settingsBtn644=document.createElement('button');settingsBtn644.id='hudSettings644';settingsBtn644.textContent='⚙ UI';panel.appendChild(settingsBtn644);
+settingsBtn644.onclick=()=>{
+ openWindow('⚙ HUD Settings',hudSettingsHtml644(hudSize644));
+ win.querySelectorAll('[data-hud644]').forEach(button=>button.onclick=()=>{
+  hudSize644=applyHud644(hudRoot644,button.dataset.hud644);
+  try{localStorage.setItem('astral-hud-size644',hudSize644)}catch{}
+  win.querySelectorAll('[data-hud644]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ });
+};
 const statsBtn643=document.createElement('button');statsBtn643.id='character643';statsBtn643.textContent='👤 Stats';panel.appendChild(statsBtn643);
 statsBtn643.onclick=()=>openWindow('👤 Character Stats',characterStatsHtml643({level,xp,hp:state.hp,maxHp:state.max,gold,kills:totalKills,bosses:bossWins07,bonuses:equipment59.bonuses(),sword:swordRank18,bow:bowRank18,armor:armorRank18}));
 function closeWindow(){win.style.display='none'}
