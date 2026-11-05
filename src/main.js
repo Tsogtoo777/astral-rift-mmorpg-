@@ -8,6 +8,7 @@ import {createEnemyNavigator6212,segmentBlocked6212} from './pathfinding6212.js'
 import {SpatialHash6212} from './spatial6212.js';
 import {createAdventure6213} from './adventure6213.js';
 import {craftingHtml630,craftStatus630,sellStatus630} from './crafting630.js';
+import {inventoryHtml64,bindInventory64} from './inventory64.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
@@ -215,11 +216,13 @@ function finishEquipment59(previousHpBonus){
   meshy597?.setSwordStyle?.(equipment59.get('weapon')?.visual || 'iron');
 }
 function showBag(){
-  openWindow('🎒 Inventory',`<p>🪙 Алт: <b>${gold}</b> · ❤️ Эм: <b>${potions16}</b></p><p>${inventory.map(item=>'• '+item).join('<br>')}</p><p>Зэвсэг: ${state.weapon?'Нум':'Хоёр гарын илд'} · Илд +${swordRank18} · Нум +${bowRank18} · Хуяг +${armorRank18}</p><p>⛏️ Хүдэр: ${ore18} · 💎 Кристалл: ${crystal18}</p>${adventure6213.lootHtml()}<button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button>`);
-  document.querySelector('#forgeFromBag18').onclick=showForge18;
-  document.querySelector('#usePotion16').onclick=()=>{usePotion16();showBag()};
-  document.querySelector('#swapWeapon16').onclick=()=>{swap();showBag()};
-  document.querySelector('#openEquipment59').onclick=showEquipment59;
+ const bag64={inventory,loot:adventure6213.snapshot().loot,owned:[...equipment59.owned],equipped:equipment59.equipped,gold,potions:potions16,ore:ore18,crystal:crystal18};
+ openWindow('🎒 Inventory',inventoryHtml64(bag64)+'<div class="ar64-actions"><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button></div>');
+ bindInventory64(win,bag64);
+ document.querySelector('#forgeFromBag18').onclick=showForge18;
+ document.querySelector('#usePotion16').onclick=()=>{usePotion16();showBag()};
+ document.querySelector('#swapWeapon16').onclick=()=>{swap();showBag()};
+ document.querySelector('#openEquipment59').onclick=showEquipment59;
 }
 function usePotion16(){
   if(!potions16){msg('Эм дууссан — Shop-оос аваарай');return}
