@@ -220,6 +220,16 @@ function showBag(){
  const bag64={inventory,loot:adventure6213.snapshot().loot,owned:[...equipment59.owned],equipped:equipment59.equipped,gold,potions:potions16,ore:ore18,crystal:crystal18};
  openWindow('🎒 Inventory',inventoryHtml64(bag64)+'<div class="ar64-actions"><button id="forgeFromBag18">⚒️ Дархны газар</button><button id="usePotion16">❤️ Эм хэрэглэх (+50 HP)</button><button id="swapWeapon16">⇄ Зэвсэг солих</button><button id="openEquipment59">🛡 Equipment</button></div>');
  bindInventory64(win,bag64);
+ win.querySelector('.ar64-inventory')?.addEventListener('click',e=>{
+  const button=e.target.closest('[data-bag-action64]');
+  if(!button)return;
+  const action=button.dataset.bagAction64,id=button.dataset.itemId64,slot=button.dataset.itemSlot64;
+  if(action==='use-potion'){usePotion16();showBag();return;}
+  const oldHp=equipment59.bonuses().hp;
+  const ok=action==='equip'?equipment59.equip(id):action==='unequip'?equipment59.unequip(slot):false;
+  if(!ok){msg('Энэ тоноглолыг өөрчлөх боломжгүй');return;}
+  finishEquipment59(oldHp);saveGame();showBag();
+ });
  document.querySelector('#forgeFromBag18').onclick=showForge18;
  document.querySelector('#usePotion16').onclick=()=>{usePotion16();showBag()};
  document.querySelector('#swapWeapon16').onclick=()=>{swap();showBag()};

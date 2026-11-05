@@ -24,3 +24,9 @@ assert.ok(main.includes("import {inventoryHtml64,bindInventory64} from './invent
 assert.ok(main.includes('bindInventory64(win,bag64)'));
 for(const id of ['forgeFromBag18','usePotion16','swapWeapon16','openEquipment59'])assert.ok(main.includes(id));
 console.log('PASS Alpha 6.4 inventory: grid, counts, equipped gear, legacy save, HTML escaping, existing actions');
+
+const src=readFileSync(new URL('../src/inventory64.js',import.meta.url),'utf8');
+assert.ok(src.includes('data-bag-action64'));
+assert.ok(src.includes("action==='use-potion'"));
+assert.ok(main.includes("equipment59.equip(id)"));
+assert.ok(main.includes("equipment59.unequip(slot)"));

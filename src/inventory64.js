@@ -42,6 +42,10 @@ export function bindInventory64(root,data={}){
   items.forEach(b=>b.classList.toggle('ar64-selected',b===button));
   const detail=root.querySelector('#ar64-detail');
   if(detail)detail.innerHTML='<strong>'+esc(item.icon)+' '+esc(item.name)+'</strong><p>'+esc(item.detail)+'</p><small>Тоо: '+item.count+(item.slot?' · Slot: '+esc(item.slot):'')+(item.equipped?' · Өмссөн':'')+'</small>';
+  if(detail){
+   const action=item.id==='potion'?'use-potion':item.slot?(item.equipped?'unequip':'equip'):null;
+   if(action){const btn=document.createElement('button');btn.type='button';btn.dataset.bagAction64=action;btn.dataset.itemId64=item.id;btn.dataset.itemSlot64=item.slot||'';btn.textContent=action==='use-potion'?'❤️ Эм хэрэглэх':action==='unequip'?'Тайлах':'Өмсөх';detail.appendChild(btn);}
+  }
  }));
  apply();
 }
