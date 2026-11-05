@@ -4,7 +4,23 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 export function installCityExpansion75(THREE,scene){
  const root=new THREE.Group();root.name='StarterCityExpansion75';scene.add(root);
  const footprints=[];
- const positions=[[-32,-15],[-32,-5],[-32,6],[-32,16],[32,-15],[32,-5],[32,6],[32,16],[-21,-29],[-10,-30],[10,-30],[21,-29]];
+ const streets=new THREE.Group();streets.name='StarterCityStreets80';root.add(streets);
+ const roadMaterial=new THREE.MeshStandardMaterial({color:0x8b8073,roughness:1,depthWrite:false});
+ function street(x,z,w,d){const o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),roadMaterial);o.rotation.x=-Math.PI/2;o.position.set(x,.025,z);o.receiveShadow=true;streets.add(o)}
+ // Central travel corridor remains open for existing NPC, quest and castle routes.
+ street(-38,-3,5,80);street(38,-3,5,80);street(0,-35,82,5);
+ street(-27,31,19,4);street(27,31,19,4);
+ const positions=[
+  // West artisan quarter / East merchant quarter
+  [-32,-15],[-32,-5],[-32,6],[-32,16],[32,-15],[32,-5],[32,6],[32,16],
+  // South residential quarter
+  [-21,-29],[-10,-30],[10,-30],[21,-29],
+  // Expanded perimeter: visible town districts, not enlarged individual meshes
+  [-44,-23],[-44,-12],[-44,-1],[-44,10],[-44,21],
+  [44,-23],[44,-12],[44,-1],[44,10],[44,21],
+  [-34,-39],[-23,-40],[-12,-41],[12,-41],[23,-40],[34,-39],
+  [-33,35],[-22,37],[22,37],[33,35]
+ ];
  const loader=new GLTFLoader();const names=['Wall_Plaster_Straight','Wall_Plaster_Door_Round','Wall_Plaster_Window_Wide_Round','Roof_RoundTiles_6x6','DoorFrame_Round_Brick','Prop_Chimney'];
  const loaded=Promise.allSettled(names.map(n=>loader.loadAsync('/architecture/medieval/'+n+'.gltf'))).then(results=>{
   const models=new Map();results.forEach((r,i)=>{if(r.status==='fulfilled')models.set(names[i],r.value.scene)});
