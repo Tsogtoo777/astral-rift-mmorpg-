@@ -269,3 +269,13 @@
 #window small{color:#b9cad7;line-height:1.45}
 #window p{line-height:1.5}
 #window .eq59-item,#window .eq59-slot{border-radius:10px}
+
+
+/* Alpha 6.4.3 character stats */
+#window:has(.ar643-sheet){width:min(620px,94vw);top:8%;max-height:84vh}
+.ar643-sheet{display:grid;gap:12px}
+.ar643-level{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#f2d28c}
+.ar643-level strong{font-size:22px}.ar643-xp{height:12px;border:1px solid #7a9db4;border-radius:8px;overflow:hidden;background:#152739}.ar643-xp>div{height:100%;background:linear-gradient(90deg,#3589bb,#90dfff)}
+.ar643-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px}
+.ar643-stats>div{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:12px;background:#1b3448;border:1px solid #647d92;border-radius:9px}
+.ar643-stats strong{color:#ffdc98}
