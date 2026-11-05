@@ -15,6 +15,7 @@ import {combatFeedback65,combatFeedbackHtml65} from './combatFeedback65.js';
 import {createSwordCombo651} from './swordCombo651.js';
 import {worldPoisHtml68} from './world68.js';
 import {createLoreWorld69} from './loreWorld69.js';
+import {makeWorldMaterials70,decorateTown70} from './worldMaterials70.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -41,13 +42,14 @@ import { installAstralUI60 } from './ui60.js';
 import { installAstralUI61 } from './ui61.js';
 import { createAlpha40 } from './alpha40.js';
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 6.9.1 · LORE WORLD ART PASS</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
+app.innerHTML=`<div id="hud"><strong>✦ ASTRAL RIFT <small>ALPHA 7.0 · WORLD MATERIALS</small></strong><div class="bar"><div id="hpbar"></div></div><div class="expbar"><div id="expfill"></div></div><div id="stats"></div><div id="target">Бай: байхгүй</div><div id="hint">WASD хөдөлгөөн • хулганаар камер • click довтлох • X зэвсэг солих • Space бултах • Tab бай сонгох • 1–3 чадвар</div></div><div id="questbox">✦ <b>Саруулын даалгавар</b><div id="questtext">Саруултай уулзаарай</div></div><div id="minimap"><div id="maparrow">▲</div><span>Эхлэл хот</span></div><div id="cross">✧</div><div id="mobile"><div id="pad"><div id="stick"></div></div><div id="actions"><button id="attack">⚔</button><button id="dodge">↝</button><button id="switch">⇄</button><button id="lock">◎</button><button id="skill1">1</button><button id="skill2">2</button><button id="skill3">3</button></div></div><div id="toast"></div>`;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x99cde4);scene.fog=new THREE.FogExp2(0xb6d8db,.0065);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,360);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;app.prepend(renderer.domElement);
 const graphics6210=installGraphics6210({renderer});
 scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-36;sun.shadow.camera.right=36;sun.shadow.camera.top=36;sun.shadow.camera.bottom=-36;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const worldMaterials70=makeWorldMaterials70(THREE);ground.material.map=worldMaterials70.grass;ground.material.color.set(0xffffff);ground.material.needsUpdate=true;
 // Alpha 6.9: outskirts keep existing town, dungeon, player and NPC untouched.
 const loreWorld69=createLoreWorld69(THREE,scene);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
@@ -68,6 +70,9 @@ function townBox(g,w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w
 const legacyTownBuildings621=[];
 function building(x,z,color){const g=new THREE.Group();g.position.set(x,0,z);townBox(g,4.8,3.4,4.5,color,0,1.7,0);townBox(g,5.1,.28,4.9,0x5e4a3c,0,3.32,0);const roof=new THREE.Mesh(new THREE.ConeGeometry(3.85,2.5,4),new THREE.MeshStandardMaterial({color:0x79423a,roughness:.9}));roof.rotation.y=Math.PI/4;roof.position.y=4.5;roof.castShadow=true;g.add(roof);for(const side of [-1,1]){townBox(g,.2,3.4,.24,0x4c3427,side*2.3,1.7,2.3);townBox(g,.9,1,.12,0x5c8eaa,side*1.3,2.1,2.29)}townBox(g,1.05,1.8,.15,0x483324,0,.9,2.3);townBox(g,1.35,.14,.2,0xd7b46e,0,1.9,2.43);const lamp=new THREE.PointLight(0xffae56,1.3,6);lamp.position.set(1.9,2.2,2.5);g.add(lamp);town.add(g);legacyTownBuildings621.push(g)}
 for(const [x,z,c] of [[-9,10,0xb7a48b],[-3,14,0xaba69b],[5,14,0xc6aa85],[12,9,0xb5a28d],[-11,1,0xa8a4a0],[14,0,0xc1aa8b],[-7,-12,0xb2a18b],[8,-14,0xb4a69b]])building(x,z,c);
+// Texture the legacy town and add facade details without moving collision geometry.
+const townDetails70=decorateTown70(THREE,town,worldMaterials70);
+for(const house of legacyTownBuildings621){for(const part of house.children){if(!part.isMesh)continue;if(part.geometry?.type==='BoxGeometry'&&part.position.y>1.2&&part.position.y<3.5){part.material.map=worldMaterials70.stone;part.material.needsUpdate=true;}else if(part.geometry?.type==='ConeGeometry'){part.material.map=worldMaterials70.roof;part.material.needsUpdate=true;}}}
 // Alpha 2.1 — richer low-poly town landmarks. Static meshes, no extra shadow-casting lights.
 const town21=new THREE.Group();scene.add(town21);
 const mats21={wood:new THREE.MeshStandardMaterial({color:0x765039,roughness:.9}),gold:new THREE.MeshStandardMaterial({color:0xe0b76a,metalness:.25,roughness:.45}),cloth:new THREE.MeshStandardMaterial({color:0x386d8a,side:THREE.DoubleSide}),red:new THREE.MeshStandardMaterial({color:0x9c5148,side:THREE.DoubleSide}),stone:new THREE.MeshStandardMaterial({color:0x8d928e}),leaf:new THREE.MeshStandardMaterial({color:0x4f9566}),water:new THREE.MeshStandardMaterial({color:0x4ba9b8,transparent:true,opacity:.78})};
@@ -82,7 +87,7 @@ for(const [x,z] of [[-12,-4],[-8,7],[11,7],[12,-11]]){townPart21(new THREE.Cylin
 for(const [x,z] of [[-13,6],[12,13],[-9,-8],[13,-9]]){townPart21(new THREE.CylinderGeometry(.85,.9,.34,10),mats21.stone,x,.17,z);for(let i=0;i<7;i++){const a=i*Math.PI*2/7;townPart21(new THREE.SphereGeometry(.19,6,5),i%2?mats21.gold:mats21.leaf,x+Math.cos(a)*.57,.48,z+Math.sin(a)*.57)}}
 // Paved streets: a road into the town and a circular plaza.
 const stoneMat=new THREE.MeshStandardMaterial({color:0x9b9689,roughness:1});
-const road=new THREE.Mesh(new THREE.PlaneGeometry(8,42),stoneMat);road.rotation.x=-Math.PI/2;road.position.set(2,.026,-9);road.receiveShadow=true;scene.add(road);
+const road=new THREE.Mesh(new THREE.PlaneGeometry(8,42),stoneMat);road.rotation.x=-Math.PI/2;road.position.set(2,.026,-9);road.receiveShadow=true;scene.add(road);road.material.map=worldMaterials70.cobble;road.material.color.set(0xffffff);road.material.needsUpdate=true;
 for(let z=-28;z<12;z+=2.1)for(let x=-1.5;x<6;x+=1.8){const stone=new THREE.Mesh(new THREE.BoxGeometry(1.6,.045,1.85),new THREE.MeshStandardMaterial({color:(Math.round(x+z)%3===0?0xafa99b:0x8d8b81)}));stone.position.set(x,.06,z);stone.receiveShadow=true;scene.add(stone)}
 function cylinder(r1,r2,h,color,x,y,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m}
 // Fountain, flags, crates and lanterns.
