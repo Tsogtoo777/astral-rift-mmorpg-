@@ -14,6 +14,7 @@ import {applyHud644,hudSettingsHtml644} from './hud644.js';
 import {combatFeedback65,combatFeedbackHtml65} from './combatFeedback65.js';
 import {createSwordCombo651} from './swordCombo651.js';
 import {worldPoisHtml68} from './world68.js';
+import {createLoreWorld69} from './loreWorld69.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -47,6 +48,8 @@ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-per
 const graphics6210=installGraphics6210({renderer});
 scene.add(new THREE.HemisphereLight(0xdcecff,0x6a5845,2.4));const sun=new THREE.DirectionalLight(0xffe5b0,2);sun.position.set(-22,36,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-36;sun.shadow.camera.right=36;sun.shadow.camera.top=36;sun.shadow.camera.bottom=-36;scene.add(sun);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshStandardMaterial({color:0x6a895b,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+// Alpha 6.9: outskirts keep existing town, dungeon, player and NPC untouched.
+const loreWorld69=createLoreWorld69(THREE,scene);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 const legacyTrees621=[];
 function trunk(x,z){const t=new THREE.Mesh(new THREE.CylinderGeometry(.27,.4,3,7),new THREE.MeshStandardMaterial({color:0x60452f}));t.position.set(x,1.5,z);t.castShadow=true;scene.add(t);const c=new THREE.Mesh(new THREE.ConeGeometry(1.7,4.5,8),new THREE.MeshStandardMaterial({color:0x254f3c}));c.position.set(x,4.6,z);c.castShadow=true;scene.add(c);legacyTrees621.push(t,c)}
