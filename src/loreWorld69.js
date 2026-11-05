@@ -26,6 +26,17 @@ export function createLoreWorld69(THREE,scene){
   block(g,x,1.13*s,z+1.91*s,.92*s,1.78*s,.18*s,wood);
   for(const dx of [-1.22,1.22])block(g,x+dx*s,2*s,z+1.92*s,.55*s,.62*s,.18*s,darkStone);
   block(g,x,3.2*s,z+1.9*s,3.9*s,.18*s,.23*s,beam);
+  // Alpha 7.3: framed windows, stone foundations, chimney and roof supports.
+  block(g,x,.22*s,z,4.65*s,.44*s,4.05*s,limestone);
+  for(const dx of [-1.2,1.2]){
+   block(g,x+dx*s,2*s,z+2*s,.82*s,.82*s,.1*s,gold);
+   block(g,x+dx*s,2*s,z+2.08*s,.11*s,.96*s,.12*s,beam);
+   block(g,x+dx*s,2*s,z+2.08*s,.96*s,.11*s,.12*s,beam);
+   block(g,x+dx*s,1.47*s,z+2.09*s,1.12*s,.16*s,.25*s,limestone);
+  }
+  for(const dx of [-2,2])block(g,x+dx*s,1.8*s,z+1.92*s,.18*s,3.2*s,.2*s,wood);
+  block(g,x+1.2*s,3.85*s,z-.7*s,.7*s,1.55*s,.75*s,darkStone);
+  for(const dx of [-1.55,1.55])block(g,x+dx*s,3.65*s,z+1.8*s,.17*s,1.25*s,.18*s,beam);
  }
  function roadBetween(x1,z1,x2,z2){const length=Math.hypot(x2-x1,z2-z1);const road=mesh(group,geo(new THREE.PlaneGeometry(4.4,length)),path,(x1+x2)/2,.015,(z1+z2)/2);road.rotation.x=-Math.PI/2;road.rotation.z=-Math.atan2(x2-x1,z2-z1)}
  for(const p of SETTLEMENTS69){
@@ -44,6 +55,10 @@ export function createLoreWorld69(THREE,scene){
    block(g,0,2.5,5.65,2,3,.18,beam);
    for(const x of [-3,3])gem(g,x,5.5,5.8,.48,rune);
    for(let i=0;i<6;i++){const a=i*Math.PI/3;column(g,Math.cos(a)*12,1.8,Math.sin(a)*12,.7,3.6,darkStone)}
+   // Layered entrance steps and engraved lintels.
+   for(let i=0;i<4;i++)block(g,0,.12+i*.16,7.7-i*.7,5.8-i*.35,.24,1.1,limestone);
+   for(const x of [-5.6,5.6])for(const z of [-5.2,5.2])column(g,x,5,z,.38,9.7,darkStone);
+   block(g,0,6.1,5.7,10,.32,.48,gold);
   }
   if(p.kind==='fort'){
    for(const x of [-11,11])block(g,x,3,0,2.4,6,25,limestone);
@@ -55,6 +70,10 @@ export function createLoreWorld69(THREE,scene){
    house(g,0,0,1.1);
    block(g,0,2,-11.15,3.8,4,.25,beam);
    for(const x of [-2.5,2.5])column(g,x,3.3,-12,.4,6.6,gold);
+   for(const z of [-9,-5,-1,3,7])for(const x of [-11,11])block(g,x,6.35,z,2.2,.75,1.35,limestone);
+   for(const x of [-9,-5,-1,3,7])for(const z of [-11,11])block(g,x,6.35,z,1.35,.75,2.2,limestone);
+   for(const x of [-7,7])block(g,x,2.2,-11.2,1.1,4.4,.38,wood);
+   block(g,0,5.6,-11.4,7.8,.55,.6,beam);
   }
   if(p.kind==='rift'){
    for(let i=0;i<9;i++){
