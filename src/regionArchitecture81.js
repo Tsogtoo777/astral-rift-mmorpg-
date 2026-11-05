@@ -66,19 +66,34 @@ export function installRegionArchitecture81(THREE,scene,loreWorld){
     for(const x of [-4,0,4])for(const z of [-3,1,5])place(g,'Floor_Brick',x,.02,z);
     replaceOld('veil');
   }
+  // Kenney assets use different native units. Fit each piece to a world-space span
+  // and align its actual bounding-box base to the ground (no floating blocks).
+  function fitted(parent,name,x,z,targetSpan,rot=0){
+    const source=models.get(name);if(!source)return null;
+    const o=source.clone(true);o.rotation.y=rot;o.updateMatrixWorld(true);
+    const bounds=new THREE.Box3().setFromObject(o),size=bounds.getSize(new THREE.Vector3());
+    const horizontal=Math.max(size.x,size.z,.001);
+    const s=targetSpan/horizontal;o.scale.setScalar(s);o.updateMatrixWorld(true);
+    const bb=new THREE.Box3().setFromObject(o),center=bb.getCenter(new THREE.Vector3());
+    o.position.set(x-center.x,-bb.min.y,z-center.z);
+    o.traverse(n=>{if(n.isMesh){n.castShadow=false;n.receiveShadow=true}});
+    parent.add(o);return o;
+  }
   function buildFort(){
     if(!['wall','wall-corner','tower-square','gate'].every(n=>models.has(n)))return false;
     const g=group('BorderWatchCastle81',91,-82);
-    for(const x of [-12,-8,-4,4,8,12]){
-      place(g,'wall',x,0,-12);
-      place(g,'wall',x,0,12,1,Math.PI);
+    // Continuous perimeter with a clear entrance, not detached raw-size cubes.
+    for(const x of [-9,-6,-3,3,6,9]){
+      fitted(g,'wall',x,-12,3);
+      fitted(g,'wall',x,12,3,Math.PI);
     }
-    for(const z of [-8,-4,0,4,8]){
-      place(g,'wall',-12,0,z,1,Math.PI/2);
-      place(g,'wall',12,0,z,1,-Math.PI/2);
+    for(const z of [-9,-6,-3,0,3,6,9]){
+      fitted(g,'wall',-12,z,3,Math.PI/2);
+      fitted(g,'wall',12,z,3,-Math.PI/2);
     }
-    for(const x of [-12,12])for(const z of [-12,12])place(g,'tower-square',x,0,z);
-    place(g,'gate',0,0,-12);
+    for(const x of [-12,12])for(const z of [-12,12])
+      fitted(g,'tower-square',x,z,5);
+    fitted(g,'gate',0,-12,6);
     house(g,0,2,0,.75);
     replaceOld('border');return true;
   }
