@@ -227,3 +227,23 @@
 .ar64-detail{padding:10px;border:1px solid #7b91a5;border-radius:9px;background:#132638;min-height:66px}
 .ar64-detail p{margin:5px 0}.ar64-actions{display:flex;flex-wrap:wrap;gap:4px}
 @media(max-height:560px){.ar64-grid{max-height:32vh}#window .ar64-item{min-height:76px}}
+
+
+/* Alpha 6.4.1: consistent journal, skills and mobile dialog surfaces */
+#window:has(.ar641){width:min(680px,94vw);top:8%;max-height:84vh}
+.ar641{display:grid;gap:12px;color:#f2e8d5}
+.ar641-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.ar641-stats>div,.ar641-panel,.ar641-skill{border:1px solid #6b8197;background:#182e43;border-radius:12px;padding:12px}
+.ar641-stats strong{display:block;color:#ffda92;font-size:20px;margin-top:4px}
+.ar641 h3{margin:0 0 8px;color:#f3d598}
+.ar641-achievements{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:7px}
+.ar641-achievements>div{padding:9px;border-radius:8px;background:#28425b}
+.ar641-achievements .locked{opacity:.58}
+.ar641-achievements .done{border:1px solid #8dd4a3}
+.ar641-skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px}
+.ar641-skill{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ar641-skill small{display:block;margin:5px 0;color:#b8c9d7}
+.ar641-pips{display:flex;gap:4px}.ar641-pips span{width:15px;height:7px;border-radius:3px;background:#41576a}.ar641-pips .filled{background:#eac26c}
+#window .ar641-skill button{min-width:45px;margin:0}
+#window button:focus-visible,#panel button:focus-visible{outline:3px solid #ffe5a5;outline-offset:2px}
+@media(max-height:520px){#window:has(.ar641){top:3%;max-height:94vh}.ar641-stats strong{font-size:16px}.ar641-panel,.ar641-skill{padding:8px}}
