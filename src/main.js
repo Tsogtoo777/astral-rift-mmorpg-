@@ -1083,11 +1083,34 @@ menuToggle23.onclick=()=>{panel.classList.toggle('collapsed23');const opened=!pa
 const mapCanvas23=document.createElement('canvas');mapCanvas23.id='mapCanvas23';mapCanvas23.width=160;mapCanvas23.height=160;
 const oldMini23=document.getElementById('minimap');oldMini23.appendChild(mapCanvas23);
 const ctx23=mapCanvas23.getContext('2d');let mapTick23=0;let areaLabel62='';
+// Alpha 8.2 navigation: world-coordinate compass, target beacon and live distance.
+const navTarget82={name:'Хилийн Харуул',x:91,z:-82};
+const navInfo82=document.createElement('div');
+navInfo82.id='navInfo82';
+navInfo82.setAttribute('aria-live','off');
+navInfo82.style.cssText='position:fixed;right:12px;top:112px;z-index:45;max-width:210px;padding:6px 9px;border:1px solid #d9c28b88;border-radius:9px;background:#142a2ce8;color:#fff4ce;font:600 11px/1.45 system-ui,sans-serif;pointer-events:none;text-shadow:0 1px 2px #000';
+navInfo82.textContent='⌖ Хилийн Харуул';
+app.appendChild(navInfo82);
+
 function drawMap23(now){if(now-mapTick23<180)return;mapTick23=now;const c=ctx23;c.clearRect(0,0,160,160);c.fillStyle='#153e39';c.fillRect(0,0,160,160);c.strokeStyle='#456b61';c.lineWidth=1;for(let i=0;i<=160;i+=20){c.beginPath();c.moveTo(i,0);c.lineTo(i,160);c.moveTo(0,i);c.lineTo(160,i);c.stroke()}
 const pt=(x,z)=>[80+(x-player.position.x)*1.55,80+(z-player.position.z)*1.55];
 for(const [x,z,col] of [[0,32,'#ffdf92'],[-36,-43,'#5ce0a0'],[36,-44,'#a9baff'],[48,-38,'#ff778b'],[-88,-69,'#4bea9b'],[91,-63,'#f2b062'],[96,89,'#b9a1f9'],[0,0,'#ffffff']]){const [px,py]=pt(x,z);c.fillStyle=col;c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill()}
 for(const citizen of citizens22){const [px,py]=pt(citizen.g.position.x,citizen.g.position.z);c.fillStyle='#8bd9ff';c.fillRect(px-2,py-2,4,4)}
 for(const e of regionEnemies62){if(!e.alive||!e.g.visible)continue;const [px,py]=pt(e.g.position.x,e.g.position.z);if(px<4||py<4||px>156||py>156)continue;c.fillStyle=e.world62.kind==='wolf'?'#ffdf7a':'#fa7b69';c.fillRect(px-2,py-2,4,4)}
+// World north = -Z, east = +X. Show cardinal directions even when target is off-map.
+c.save();c.font='bold 11px system-ui';c.textAlign='center';c.fillStyle='#f6e8bd';
+c.fillText('N',80,13);c.fillText('S',80,154);c.fillText('W',12,83);c.fillText('E',148,83);c.restore();
+const dx82=navTarget82.x-player.position.x,dz82=navTarget82.z-player.position.z;
+const dist82=Math.hypot(dx82,dz82);
+const targetX82=80+dx82*1.55,targetY82=80+dz82*1.55;
+const beaconX82=Math.max(14,Math.min(146,targetX82));
+const beaconY82=Math.max(16,Math.min(144,targetY82));
+c.save();c.fillStyle='#ffd36d';c.strokeStyle='#4a260c';c.lineWidth=2;
+c.beginPath();c.arc(beaconX82,beaconY82,6,0,Math.PI*2);c.fill();c.stroke();
+c.fillStyle='#211a0b';c.font='bold 9px system-ui';c.textAlign='center';c.fillText('H',beaconX82,beaconY82+3);c.restore();
+const bearing82=(Math.atan2(dx82,-dz82)*180/Math.PI+360)%360;
+const compass82=['N','NE','E','SE','S','SW','W','NW'][Math.round(bearing82/45)%8];
+navInfo82.textContent='⌖ '+navTarget82.name+' · '+Math.round(dist82)+'м · '+compass82+' '+Math.round(bearing82)+'° | X:'+Math.round(player.position.x)+' Z:'+Math.round(player.position.z);
 c.save();c.translate(80,80);c.rotate(-player.rotation.y);c.fillStyle='#fff';c.beginPath();c.moveTo(0,-8);c.lineTo(-6,6);c.lineTo(6,6);c.closePath();c.fill();c.restore();}
 // Day/night cycle; existing sun reused. No extra shadow maps.
 const time23={hour:Math.min(24,Math.max(0,Number(saved.kingdomHour23??9))),cycle:true};
