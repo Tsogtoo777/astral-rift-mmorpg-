@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {journalUi641,skillUi641} from '../src/ui641.js';
+const journal=journalUi641({progress:'2/3 мангас',kills:12,bosses:1,level:5,summaryHtml:'<p>Contracts</p>'});
+assert.match(journal,/2\/3 мангас/);
+assert.match(journal,/openContractsFromJournal6213/);
+assert.match(journal,/Contracts/);
+assert.match(journal,/10 мангас ялсан/);
+const skills=skillUi641({names:['Sword','Bow','HP','Magic'],levels:[5,1,0,2],points:1,level:7});
+assert.match(skills,/data-talent19="0" disabled/);
+assert.match(skills,/data-talent19="1"/);
+assert.match(skillUi641({names:['<script>'],levels:[0],points:0}),/&lt;script&gt;/);
+assert.ok(!skillUi641({names:['<script>'],levels:[0],points:0}).includes('<script>'));
+console.log('PASS Alpha 6.4.1 journal and skill UI smoke');
