@@ -211,3 +211,19 @@
 #window .eq59-root button{margin:0;padding:6px 8px;font-size:11px;min-height:32px;flex-shrink:0}
 .eq59-note{font-size:11px;color:#d0c2a6;line-height:1.5}
 @media(max-width:700px){.eq59-root{font-size:11px}.eq59-slots{gap:4px}.eq59-slot{padding:5px}.eq59-item{padding:5px}.eq59-item small{font-size:10px}#window .eq59-root button{padding:5px}}
+
+
+/* Alpha 6.4 inventory grid — landscape phone and desktop */
+#window:has(.ar64-inventory){width:min(780px,94vw);top:7%;max-height:86vh;padding:clamp(10px,2vw,20px)}
+.ar64-inventory{display:grid;gap:10px;min-width:0}
+.ar64-top{display:flex;justify-content:space-between;gap:12px;color:#f5d99c;font-weight:700}
+.ar64-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:44vh;overflow:auto;padding:3px}
+#window .ar64-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:92px;min-width:0;margin:0;padding:9px 5px;background:#203247;border:1px solid #75879b;border-radius:10px;color:#fff;touch-action:manipulation}
+#window .ar64-item.ar64-rare{border-color:#4d9df3}#window .ar64-item.ar64-epic{border-color:#b875ef}
+#window .ar64-item.ar64-selected{outline:2px solid #f2d28c;background:#334962}
+.ar64-icon{font-size:26px}.ar64-name{font-size:11px;text-align:center;overflow-wrap:anywhere}
+.ar64-count{position:absolute;right:5px;top:3px;font-size:11px;color:#ffe2a2}
+.ar64-equipped{font-size:10px;color:#a9f2bc}
+.ar64-detail{padding:10px;border:1px solid #7b91a5;border-radius:9px;background:#132638;min-height:66px}
+.ar64-detail p{margin:5px 0}.ar64-actions{display:flex;flex-wrap:wrap;gap:4px}
+@media(max-height:560px){.ar64-grid{max-height:32vh}#window .ar64-item{min-height:76px}}
