@@ -1544,6 +1544,13 @@ for(const e of enemies){
   const beforeRigged615=(e.visual614||e.visual615)?e.g.position.clone():null;
   combat56.updateEnemy(e,dt);
   enemyAI57.update(e,dt);
+  // Alpha 7.6: AI cannot follow a player through the starter-city safe boundary.
+  // Keep enemy y/animation untouched; its home is already outside this boundary.
+  const monsterDistance76=Math.hypot(e.g.position.x,e.g.position.z);
+  if(monsterDistance76<CITY_MONSTER_SAFE_RADIUS74){
+    const [safeX,safeZ]=outsideCitySpawn74(e.g.position.x,e.g.position.z);
+    e.g.position.x=safeX;e.g.position.z=safeZ;
+  }
   if(beforeRigged615){const d=e.g.position.distanceTo(beforeRigged615);const motion={alive:true,phase:enemyAI57.phase(e),distance:d};e.visual614?.update(dt,motion);e.visual615?.update(dt,motion);}
 }
 const camTarget=player.position.clone().add(new THREE.Vector3(0,1.55,0));
