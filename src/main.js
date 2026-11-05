@@ -15,6 +15,7 @@ import {combatFeedback65,combatFeedbackHtml65} from './combatFeedback65.js';
 import {createSwordCombo651} from './swordCombo651.js';
 import {worldPoisHtml68} from './world68.js';
 import {createLoreWorld69} from './loreWorld69.js';
+import {installRegionArchitecture81} from './regionArchitecture81.js';
 import {installCityExpansion75} from './cityExpansion75.js';
 import {installMedievalVillage70} from './medievalVillage70.js';
 import {makeWorldMaterials70,decorateTown70} from './worldMaterials70.js';
@@ -54,6 +55,7 @@ const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshStand
 const worldMaterials70=makeWorldMaterials70(THREE);ground.material.map=worldMaterials70.grass;ground.material.color.set(0xffffff);ground.material.needsUpdate=true;
 // Alpha 6.9: outskirts keep existing town, dungeon, player and NPC untouched.
 const loreWorld69=createLoreWorld69(THREE,scene);
+const regionArchitecture81=installRegionArchitecture81(THREE,scene,loreWorld69);
 const cityExpansion75=installCityExpansion75(THREE,scene);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 const legacyTrees621=[];
@@ -1293,7 +1295,7 @@ world40.architectureReady.then(result=>{
 const oldBlocked40=blocked09;
 blocked09=function(x,z){if(inCastle25)return world40.blocked(x,z);if(world40.blocked(x,z))return true;return oldBlocked40(x,z)};
 const oldBlocked6211=blocked09;
-blocked09=function(x,z){if(inside09>=0||inDungeon07||inCastle25)return oldBlocked6211(x,z);return cityExpansion75.blocked(x,z)||oldBlocked6211(x,z)||worldCollision6211.blocked(x,z)};
+blocked09=function(x,z){if(inside09>=0||inDungeon07||inCastle25)return oldBlocked6211(x,z);return regionArchitecture81.blocked(x,z)||cityExpansion75.blocked(x,z)||oldBlocked6211(x,z)||worldCollision6211.blocked(x,z)};
 const oldInteract40=interactWorld06;
 interactWorld06=function(){if(world40.interact())return;oldInteract40()};
 const oldHit40=hit;
