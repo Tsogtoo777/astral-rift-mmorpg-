@@ -93,14 +93,14 @@ const road=new THREE.Mesh(new THREE.PlaneGeometry(8,42),stoneMat);road.rotation.
 // Alpha 7.1: irregular, instanced cobblestones instead of giant flat road slabs.
 const cobbleGeo71=new THREE.BoxGeometry(.72,.065,.53);
 const cobbleMat71=new THREE.MeshStandardMaterial({color:0xb7afa3,roughness:1,metalness:0,vertexColors:false});
-const cobbleCount71=22*11;
+const cobbleCount71=69*11;
 const cobbles71=new THREE.InstancedMesh(cobbleGeo71,cobbleMat71,cobbleCount71);
 cobbles71.name='TownCobblestoneRoad71';cobbles71.receiveShadow=true;
 const cobbleDummy71=new THREE.Object3D(),cobbleColor71=new THREE.Color();
 let cobbleIndex71=0;
-for(let zi=0;zi<22;zi++)for(let xi=0;xi<11;xi++){
+for(let zi=0;zi<69;zi++)for(let xi=0;xi<11;xi++){
  const stagger=(zi%2)*.37,noise=Math.sin(zi*37.17+xi*91.73);
- cobbleDummy71.position.set(-1.65+xi*.72+stagger,.055+(noise+1)*.004,-28+zi*1.81);
+ cobbleDummy71.position.set(-1.65+xi*.72+stagger,.055+(noise+1)*.004,-28+zi*.58);
  cobbleDummy71.rotation.set(0,noise*.045,0);
  cobbleDummy71.scale.set(.88+Math.abs(noise)*.09,1,.85+Math.abs(Math.cos(xi*13+zi))*.1);
  cobbleDummy71.updateMatrix();cobbles71.setMatrixAt(cobbleIndex71,cobbleDummy71.matrix);
