@@ -1293,8 +1293,7 @@ world40.architectureReady.then(result=>{
 const oldBlocked40=blocked09;
 blocked09=function(x,z){if(inCastle25)return world40.blocked(x,z);if(world40.blocked(x,z))return true;return oldBlocked40(x,z)};
 const oldBlocked6211=blocked09;
-blocked09=function(x,z){return cityExpansion75.blocked(x,z)||oldBlocked6211(x,z)};
-blocked09=function(x,z){if(inside09>=0||inDungeon07||inCastle25)return oldBlocked6211(x,z);return oldBlocked6211(x,z)||worldCollision6211.blocked(x,z)};
+blocked09=function(x,z){if(inside09>=0||inDungeon07||inCastle25)return oldBlocked6211(x,z);return cityExpansion75.blocked(x,z)||oldBlocked6211(x,z)||worldCollision6211.blocked(x,z)};
 const oldInteract40=interactWorld06;
 interactWorld06=function(){if(world40.interact())return;oldInteract40()};
 const oldHit40=hit;
