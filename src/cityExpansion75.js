@@ -19,22 +19,27 @@ export function installCityExpansion75(THREE,scene){
   [-44,-23],[-44,-12],[-44,-1],[-44,10],[-44,21],
   [44,-23],[44,-12],[44,-1],[44,10],[44,21],
   [-34,-39],[-23,-40],[-12,-41],[12,-41],[23,-40],[34,-39],
-  [-33,35],[-22,37],[22,37],[33,35]
+  [-33,35],[-22,37],[22,37],[33,35],
+  // Fill previously empty streets with real medieval modular houses.
+  [-20,-15],[-20,-5],[-20,7],[-20,18],
+  [20,-15],[20,-5],[20,7],[20,18],
+  [-11,27],[11,27],[-48,33],[48,33],
+  [-46,-35],[46,-35],[-20,-49],[20,-49]
  ];
  const loader=new GLTFLoader();const names=['Wall_Plaster_Straight','Wall_Plaster_Door_Round','Wall_Plaster_Window_Wide_Round','Roof_RoundTiles_6x6','DoorFrame_Round_Brick','Prop_Chimney'];
  const loaded=Promise.allSettled(names.map(n=>loader.loadAsync('/architecture/medieval/'+n+'.gltf'))).then(results=>{
   const models=new Map();results.forEach((r,i)=>{if(r.status==='fulfilled')models.set(names[i],r.value.scene)});
-  if(names.slice(0,5).some(n=>!models.has(n))){console.warn('[Astral 7.5] Expansion assets missing; no partial houses created');return false;}
+  if(names.slice(0,4).some(n=>!models.has(n))){console.warn('[Astral 7.5] Expansion assets missing; no partial houses created');return false;}
   function add(g,name,x,y,z,rotation=0){const model=models.get(name);if(!model)return null;const obj=model.clone(true);obj.position.set(x,y,z);obj.rotation.y=rotation;obj.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true}});g.add(obj);return obj;}
   positions.forEach(([x,z],i)=>{
-   const house=new THREE.Group();house.position.set(x,0,z);house.rotation.y=i%2?Math.PI:0;root.add(house);
+   const house=new THREE.Group();house.position.set(x,0,z);house.rotation.y=i%2?Math.PI:0;house.name='MedievalResidence_'+i;root.add(house);
    for(const xx of [-2,0,2]){
     add(house,xx===0?'Wall_Plaster_Door_Round':'Wall_Plaster_Window_Wide_Round',xx,0,3);
     add(house,'Wall_Plaster_Straight',xx,0,-3,Math.PI);
    }
    for(const zz of [-2,0,2]){add(house,'Wall_Plaster_Straight',-3,0,zz,-Math.PI/2);add(house,'Wall_Plaster_Straight',3,0,zz,Math.PI/2);}
    const roof=add(house,'Roof_RoundTiles_6x6',0,3.15,0);if(roof)roof.scale.set(.76,.65,.76);
-   add(house,'DoorFrame_Round_Brick',0,0,3.06);
+   if(models.has('DoorFrame_Round_Brick'))add(house,'DoorFrame_Round_Brick',0,0,3.06);
    if(i%3===0){const chimney=add(house,'Prop_Chimney',1.5,3.4,-1.4);if(chimney)chimney.scale.setScalar(.65)}
    footprints.push({x,z,r:3.1});
   });
