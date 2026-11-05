@@ -279,3 +279,15 @@
 .ar643-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px}
 .ar643-stats>div{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:12px;background:#1b3448;border:1px solid #647d92;border-radius:9px}
 .ar643-stats strong{color:#ffdc98}
+
+
+/* Alpha 6.4.4 HUD sizing and settings */
+.ar644-settings{display:grid;gap:12px}.ar644-settings>div{display:flex;flex-wrap:wrap;gap:8px}
+#window .ar644-settings button[aria-pressed="true"]{background:#765832;border-color:#ffe2a0}
+#app[data-hud-size644="compact"] #actions{transform:scale(.84);transform-origin:bottom right}
+#app[data-hud-size644="compact"] #pad{transform:scale(.84);transform-origin:bottom left}
+#app[data-hud-size644="compact"] #hud{transform:scale(.9);transform-origin:top left}
+#app[data-hud-size644="large"] #actions{transform:scale(1.13);transform-origin:bottom right}
+#app[data-hud-size644="large"] #pad{transform:scale(1.13);transform-origin:bottom left}
+#app[data-hud-size644="large"] #hud{transform:scale(1.08);transform-origin:top left}
+@media(max-width:650px){#app[data-hud-size644="large"] #actions{transform:scale(1.08)}}
