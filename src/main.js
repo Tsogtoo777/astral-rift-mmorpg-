@@ -866,9 +866,13 @@ function attack(){
     if(to.length()>.01 && to.length()<(weapon?18:4))player.rotation.y=Math.atan2(to.x,to.z);
   }
   // The damage is resolved at the release frame, not when the button is pressed.
-  const combo651=weapon===0?swordCombo651.next(performance.now(),weapon):{step:0,multiplier:1,label:'BOW'};
-   if(combat56.queue({weapon,target:enemy,damage:Math.round((weapon?18:28)*combo651.multiplier),range:weapon?17:3})){
-     if(weapon===0)combatState65.textContent=combo651.label;
+  const combo651=weapon===0?swordCombo651.preview(performance.now()):{step:0,multiplier:1,label:'BOW'};
+  if(combat56.queue({weapon,target:enemy,damage:Math.round((weapon?18:28)*combo651.multiplier),range:weapon?17:3})){
+    if(weapon===0){
+      swordCombo651.commit(performance.now());
+      combatState65.textContent=combo651.label;
+      slashFx13(combo651.step===3?1.6:combo651.step===2?1.2:1);
+    }
     meshy597?.triggerAttack(weapon);
     state.cool=weapon?.48:.36;
   }
@@ -1413,7 +1417,7 @@ let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loo
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
  const feedback65=combatFeedback65({cool:state.cool,dodge:state.dodge,skillCool:state.skillCool,weapon:state.weapon,target:!!state.target});
- combatWeapon65.textContent=feedback65.weaponLabel;combatState65.textContent=feedback65.label;combatSkills65.textContent=feedback65.skillReady+' / 3 SKILLS';
+ combatWeapon65.textContent=feedback65.weaponLabel;combatState65.textContent=state.weapon===0&&swordCombo651.current(performance.now())>0?'⚔ COMBO '+swordCombo651.current(performance.now())+'/3':feedback65.label;combatSkills65.textContent=feedback65.skillReady+' / 3 SKILLS';
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
 let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;
 const len=Math.hypot(x,z);
