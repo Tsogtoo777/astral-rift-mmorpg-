@@ -90,7 +90,25 @@ for(const [x,z] of [[-13,6],[12,13],[-9,-8],[13,-9]]){townPart21(new THREE.Cylin
 // Paved streets: a road into the town and a circular plaza.
 const stoneMat=new THREE.MeshStandardMaterial({color:0x9b9689,roughness:1});
 const road=new THREE.Mesh(new THREE.PlaneGeometry(8,42),stoneMat);road.rotation.x=-Math.PI/2;road.position.set(2,.026,-9);road.receiveShadow=true;scene.add(road);road.material.map=worldMaterials70.cobble;road.material.color.set(0xffffff);road.material.needsUpdate=true;
-for(let z=-28;z<12;z+=2.1)for(let x=-1.5;x<6;x+=1.8){const stone=new THREE.Mesh(new THREE.BoxGeometry(1.6,.045,1.85),new THREE.MeshStandardMaterial({color:(Math.round(x+z)%3===0?0xafa99b:0x8d8b81)}));stone.position.set(x,.06,z);stone.receiveShadow=true;scene.add(stone)}
+// Alpha 7.1: irregular, instanced cobblestones instead of giant flat road slabs.
+const cobbleGeo71=new THREE.BoxGeometry(.72,.065,.53);
+const cobbleMat71=new THREE.MeshStandardMaterial({color:0xb7afa3,roughness:1,metalness:0,vertexColors:false});
+const cobbleCount71=22*11;
+const cobbles71=new THREE.InstancedMesh(cobbleGeo71,cobbleMat71,cobbleCount71);
+cobbles71.name='TownCobblestoneRoad71';cobbles71.receiveShadow=true;
+const cobbleDummy71=new THREE.Object3D(),cobbleColor71=new THREE.Color();
+let cobbleIndex71=0;
+for(let zi=0;zi<22;zi++)for(let xi=0;xi<11;xi++){
+ const stagger=(zi%2)*.37,noise=Math.sin(zi*37.17+xi*91.73);
+ cobbleDummy71.position.set(-1.65+xi*.72+stagger,.055+(noise+1)*.004,-28+zi*1.81);
+ cobbleDummy71.rotation.set(0,noise*.045,0);
+ cobbleDummy71.scale.set(.88+Math.abs(noise)*.09,1,.85+Math.abs(Math.cos(xi*13+zi))*.1);
+ cobbleDummy71.updateMatrix();cobbles71.setMatrixAt(cobbleIndex71,cobbleDummy71.matrix);
+ cobbleColor71.setHSL(.09,.075,.52+noise*.055);cobbles71.setColorAt(cobbleIndex71,cobbleColor71);cobbleIndex71++;
+}
+cobbles71.instanceMatrix.needsUpdate=true;
+if(cobbles71.instanceColor)cobbles71.instanceColor.needsUpdate=true;
+cobbles71.computeBoundingSphere();scene.add(cobbles71);
 function cylinder(r1,r2,h,color,x,y,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m}
 // Fountain, flags, crates and lanterns.
 cylinder(2.3,2.5,.45,0x807f80,2,.3,4);cylinder(1.95,1.95,.12,0x69b5cb,2,.56,4);cylinder(.48,.7,2,0xaaa69b,2,1.55,4);cylinder(.8,.65,.18,0xd6c6a7,2,2.55,4);
