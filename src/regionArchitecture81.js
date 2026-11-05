@@ -110,6 +110,9 @@ export function installRegionArchitecture81(THREE,scene,loreWorld){
     return {village,temple:models.has('Wall_UnevenBrick_Straight')&&models.has('Floor_Brick'),fort,assets:models.size};
   })();
   const ruins83=installAncientRuins83(THREE,scene,loreWorld);
-  ready.then(()=>ruins83.load()).catch(err=>console.warn('[Astral 8.3] ruins loader',err));
+  ready.then(async()=>{const result=await ruins83.load();if(result.loaded){
+    // Prevent two temples occupying the same coordinates after ancient assets load.
+    const oldTemple=root.getObjectByName('VeiledTemple81');if(oldTemple)oldTemple.visible=false;
+  }}).catch(err=>console.warn('[Astral 8.5] ruins loader',err));
   return {root,ready,ruins83,blocked(x,z,r=.35){return ruins83.blocked(x,z,r)||footprint.some(p=>Math.abs(x-p.x)<p.r+r&&Math.abs(z-p.z)<p.r+r)}};
 }
