@@ -26,7 +26,7 @@ export function installCityExpansion75(THREE,scene){
   [-11,27],[11,27],[-48,33],[48,33],
   [-46,-35],[46,-35],[-20,-49],[20,-49]
  ];
- const loader=new GLTFLoader();const names=['Wall_Plaster_Straight','Wall_Plaster_Door_Round','Wall_Plaster_Window_Wide_Round','Roof_RoundTiles_6x6','DoorFrame_Round_Brick','Prop_Chimney'];
+ const loader=new GLTFLoader();const names=['Wall_Plaster_Straight','Wall_Plaster_Door_Round','Wall_Plaster_Window_Wide_Round','Roof_RoundTiles_6x6','DoorFrame_Round_Brick','Prop_Chimney','Prop_Crate','Prop_Wagon','Prop_Vine1','Roof_Dormer_RoundTile','WindowShutters_Wide_Round_Open','Wall_Plaster_WoodGrid'];
  const loaded=Promise.allSettled(names.map(n=>loader.loadAsync('/architecture/medieval/'+n+'.gltf'))).then(results=>{
   const models=new Map();results.forEach((r,i)=>{if(r.status==='fulfilled')models.set(names[i],r.value.scene)});
   if(names.slice(0,4).some(n=>!models.has(n))){console.warn('[Astral 7.5] Expansion assets missing; no partial houses created');return false;}
@@ -40,10 +40,18 @@ export function installCityExpansion75(THREE,scene){
    for(const zz of [-2,0,2]){add(house,'Wall_Plaster_Straight',-3,0,zz,-Math.PI/2);add(house,'Wall_Plaster_Straight',3,0,zz,Math.PI/2);}
    const roof=add(house,'Roof_RoundTiles_6x6',0,3.15,0);if(roof)roof.scale.set(.76,.65,.76);
    if(models.has('DoorFrame_Round_Brick'))add(house,'DoorFrame_Round_Brick',0,0,3.06);
+   if(i%4===0){add(house,'Roof_Dormer_RoundTile',0,3.65,1.1);}
+   if(i%3===0){add(house,'WindowShutters_Wide_Round_Open',-2,0,3.12);add(house,'WindowShutters_Wide_Round_Open',2,0,3.12);}
+   if(i%5===0){add(house,'Prop_Vine1',2.85,0,3.12);}
+   if(i%6===0){add(house,'Wall_Plaster_WoodGrid',0,0,-3.08,Math.PI);}
    if(i%3===0){const chimney=add(house,'Prop_Chimney',1.5,3.4,-1.4);if(chimney)chimney.scale.setScalar(.65)}
    footprints.push({x,z,r:3.1});
+   // Small roadside dressing uses the same downloaded Quaternius GLTF assets.
+   // Keep props close to building edges, leaving the main roads open.
+   if(i%2===0){const crate=add(house,'Prop_Crate',i%4===0?-3.7:3.7,0,1.4);if(crate)crate.scale.setScalar(.8)}
+   if(i%9===0){const wagon=add(house,'Prop_Wagon',0,0,-5.1);if(wagon)wagon.rotation.y=Math.PI/2}
   });
-  console.info('[Astral 7.5] Expanded starter city by',footprints.length,'real glTF houses');return true;
+  console.info('[Astral 8.6] Detailed starter city with',footprints.length,'real glTF houses');return true;
  });
  return {root,ready:loaded,blocked(x,z,radius=.35){return footprints.some(p=>Math.abs(x-p.x)<p.r+radius&&Math.abs(z-p.z)<p.r+radius)}};
 }
