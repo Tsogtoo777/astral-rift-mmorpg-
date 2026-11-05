@@ -9,6 +9,7 @@ import {SpatialHash6212} from './spatial6212.js';
 import {createAdventure6213} from './adventure6213.js';
 import {craftingHtml630,craftStatus630,sellStatus630} from './crafting630.js';
 import {inventoryHtml64,bindInventory64} from './inventory64.js';
+import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
 import { loadOriginalWolf618 } from './wolf618.js';
@@ -746,8 +747,7 @@ const return17=document.createElement('button');return17.id='return17';return17.
 document.querySelector('#panel').appendChild(return17);
 function showJournal17(){
  const progress=questComplete?'Биелсэн':questAccepted?`${Math.min(questKills16,3)}/3 мангас`:'Аваагүй';
- const rows=[['Анхны анчин',totalKills>=1],['10 мангас ялсан',totalKills>=10],['Boss ялсан',bossWins07>=1],['5-р түвшинд хүрсэн',level>=5]];
- openWindow('📜 Даалгавар ба амжилт',`<p><b>Саруулын даалгавар:</b> ${progress}</p><p><b>Нийт ялалт:</b> ${totalKills} · <b>Boss:</b> ${bossWins07} · <b>Level:</b> ${level}</p>${adventure6213.summaryHtml()}<p><button id="openContractsFromJournal6213">📜 Шинэ гэрээ</button></p><h3>🏆 Амжилтууд</h3>${rows.map(([name,done])=>`<p>${done?'✅':'🔒'} ${name}</p>`).join('')}<small>Амжилт бүрийг анх биелүүлэхэд 40 алт өгнө.</small>`);
+ openWindow('📜 Даалгавар ба амжилт',journalUi641({progress,kills:totalKills,bosses:bossWins07,level,summaryHtml:adventure6213.summaryHtml()}));
  document.querySelector('#openContractsFromJournal6213').onclick=showContracts6213;
 }
 function returnTown17(){
@@ -766,7 +766,7 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyJ')show
 // Alpha 1.9 Skill Tree — upgrades persist in the same existing save slot.
 const skillTreeBtn19=document.createElement('button');skillTreeBtn19.id='skillTree19';skillTreeBtn19.textContent='🌟 Skills';panel.appendChild(skillTreeBtn19);
 function showSkillTree19(){
- openWindow('🌟 Skill Tree',`<p>Чөлөөт оноо: <b>${talentPoints19}</b> · Түвшин ${level}</p><small>Түвшин ахих бүрд 1 оноо авна. Нэг чадвар дээд тал нь 5 түвшинтэй.</small>${talentNames19.map((name,i)=>`<p><b>${name}</b> ${talents19[i]}/5<br><small>${['Илдний damage +4','Нумны damage +4','Max HP +12','Skill damage +6'][i]} / түвшин</small> <button data-talent19="${i}" ${talentPoints19<1||talents19[i]>=5?'disabled':''}>+1</button></p>`).join('')}`);
+ openWindow('🌟 Skill Tree',skillUi641({names:talentNames19,levels:talents19,points:talentPoints19,level}));
  win.querySelectorAll('[data-talent19]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.talent19);if(talentPoints19<1||talents19[i]>=5)return;talentPoints19--;talents19[i]++;if(i===2){state.max+=12;state.hp+=12}saveGame();msg('🌟 Ур чадвар нэмэгдлээ');showSkillTree19()});
 }
 skillTreeBtn19.addEventListener('click',showSkillTree19);
