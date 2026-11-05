@@ -13,6 +13,7 @@ import {characterStatsHtml643} from './character643.js';
 import {applyHud644,hudSettingsHtml644} from './hud644.js';
 import {combatFeedback65,combatFeedbackHtml65} from './combatFeedback65.js';
 import {createSwordCombo651} from './swordCombo651.js';
+import {worldPoisHtml68} from './world68.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -185,6 +186,8 @@ const combatOverlay65=document.createElement('div');combatOverlay65.innerHTML=co
 const combatWeapon65=combatOverlay65.querySelector('#arCombatWeapon65'),combatState65=combatOverlay65.querySelector('#arCombatState65'),combatSkills65=combatOverlay65.querySelector('#arCombatSkills65');
 const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button><button id="shopBtn16">🛒 Shop</button>';document.querySelector('#app').appendChild(panel);
 const win=document.createElement('div');win.id='window';document.querySelector('#app').appendChild(win);
+const worldBtn68=document.createElement('button');worldBtn68.id='worldGuide68';worldBtn68.textContent='🗺 World';panel.appendChild(worldBtn68);
+worldBtn68.onclick=()=>openWindow('🗺 World Guide',worldPoisHtml68());
 const settingsBtn644=document.createElement('button');settingsBtn644.id='hudSettings644';settingsBtn644.textContent='⚙ UI';panel.appendChild(settingsBtn644);
 settingsBtn644.onclick=()=>{
  openWindow('⚙ HUD Settings',hudSettingsHtml644(hudSize644));
