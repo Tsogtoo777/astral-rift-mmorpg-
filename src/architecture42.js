@@ -80,6 +80,28 @@ export function installArchitecture42({scene,city24,houses09,onStatus=()=>{}}){
     }
     if(index%3!==2){const chimney=make('Prop_Chimney',g,1.65,3.5,-1.55);if(chimney)chimney.scale.set(.65,.65,.65)}
     if(index%2===1){const vine=make('Prop_Vine1',g,-2.5,1.2,3.14);if(vine)vine.scale.set(.7,.7,.7)}
+    // Alpha 7 facade pass: layered sills, structural lintels and warm window lighting.
+    const timber=new THREE.MeshStandardMaterial({color:0x60432e,roughness:.92});
+    const stone=new THREE.MeshStandardMaterial({color:0x817b70,roughness:1});
+    const glow=new THREE.MeshStandardMaterial({color:0xe9bc82,emissive:0xffa74b,emissiveIntensity:.4,roughness:.8});
+    function trim(w,h,d,x,y,z,mat=timber){
+      const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+      o.position.set(x,y,z);o.castShadow=false;o.receiveShadow=true;g.add(o);
+    }
+    for(const x of [-2,2]){
+      trim(1.3,.14,.25,x,1.28,3.18,stone);
+      trim(1.3,.16,.22,x,2.72,3.17,timber);
+      trim(.13,1.35,.16,x-.62,2.03,3.17);
+      trim(.13,1.35,.16,x+.62,2.03,3.17);
+      trim(.85,.9,.045,x,2.05,3.12,glow);
+    }
+    trim(6.1,.22,.3,0,3.03,3.14);
+    trim(6.1,.32,.38,0,.2,3.13,stone);
+    // Add small roof-end braces without extra shadow-casting lights.
+    for(const x of [-2.7,2.7]){
+      const brace=new THREE.Mesh(new THREE.BoxGeometry(.16,1.15,.18),timber);
+      brace.position.set(x,3.53,3.13);brace.rotation.z=x<0?-.45:.45;g.add(brace);
+    }
     make('Stairs_Exterior_NoFirstStep',g,0,0,3.85);
     sign(g,HOUSE_LABELS[index]);
     houses.push({g,x,z});
