@@ -4,8 +4,8 @@ import {TALK_DURATION_629,wrapAngle629,easeAngle629,facingAngle629,idlePose629,b
 const main=readFileSync('src/main.js','utf8');
 const npc=readFileSync('src/npc622.js','utf8');
 const pkg=JSON.parse(readFileSync('package.json','utf8'));
-assert.equal(pkg.version,'6.2.13-alpha');
-assert.ok(main.includes('ALPHA 6.2.13 · ADVENTURE & LOOT'));
+assert.equal(pkg.version,'6.3.0-alpha');
+assert.ok(main.includes('ALPHA 6.3.0 · CRAFTING & EQUIPMENT'));
 assert.ok(main.includes('const npcFocus629=now<saruulTalkUntil629?'));
 assert.ok(main.includes('saruulTalkUntil629=performance.now()+3800;talk()'));
 assert.ok(main.includes('model.userData.anchorY629=model.position.y'));

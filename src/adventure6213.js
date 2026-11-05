@@ -48,6 +48,15 @@ export function createAdventure6213({storage=undefined,key=STORAGE_KEY6213}={}){
     persist();
     return {drops,potions:potion,progressed,ready:!!q&&state.active&&state.progress>=q.count};
   }
+  // Debit a complete material bundle or none: never partially spend.
+  function spendLoot(costs){
+    if(!costs||typeof costs!=='object')return false;
+    const items=Object.entries(costs);
+    if(!items.length)return false;
+    for(const [id,n] of items)if(!(id in LOOT_NAMES6213)||!Number.isSafeInteger(n)||n<=0||state.loot[id]<n)return false;
+    for(const [id,n] of items)state.loot[id]-=n;
+    persist();return true;
+  }
   function claim(){const q=current();if(!q||!state.active||state.progress<q.count)return {ok:false,reason:'not-ready'};
     const reward={...q.reward};
     state.stage++;state.active=false;state.progress=0;persist();
@@ -59,5 +68,5 @@ export function createAdventure6213({storage=undefined,key=STORAGE_KEY6213}={}){
   }:{done:true,stage:CONTRACTS6213.length,totalStages:CONTRACTS6213.length,active:false,progress:0,ready:false};}
   function lootHtml(){return `<h4>🎒 Анчны олз</h4>${Object.entries(LOOT_NAMES6213).map(([id,label])=>`<p>${label}: <b>${state.loot[id]}</b></p>`).join('')}<small>6 мангас тутамд ❤️ 1 эм авна. Олз хадгалагдана.</small>`}
   function summaryHtml(){const d=describe();return d.done?'<p>✅ Гэрээний 3 бүлэг бүрэн дууссан.</p>':`<p>📜 ${d.stage}/${d.totalStages}: <b>${d.quest.name}</b> — ${!d.active?'Эхлүүлээгүй':d.ready?'Шагнал авахад бэлэн':`${d.progress}/${d.quest.count}`}</p>`}
-  return {start,onKill,claim,current,describe,lootHtml,summaryHtml,snapshot,persist};
+  return {start,onKill,claim,spendLoot,current,describe,lootHtml,summaryHtml,snapshot,persist};
 }
