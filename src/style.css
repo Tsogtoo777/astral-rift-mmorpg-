@@ -247,3 +247,14 @@
 #window .ar641-skill button{min-width:45px;margin:0}
 #window button:focus-visible,#panel button:focus-visible{outline:3px solid #ffe5a5;outline-offset:2px}
 @media(max-height:520px){#window:has(.ar641){top:3%;max-height:94vh}.ar641-stats strong{font-size:16px}.ar641-panel,.ar641-skill{padding:8px}}
+
+
+/* Alpha 6.4.1 Bag improvements */
+.ar64-toolbar{display:grid;gap:8px}
+.ar64-filters{display:flex;gap:5px;overflow-x:auto;padding:2px 0}
+#window .ar64-filter{white-space:nowrap;min-height:36px;padding:7px 10px;margin:0;background:#20394d;border-color:#627b91}
+#window .ar64-filter[aria-pressed="true"]{background:#5d4932;border-color:#e9c67e;color:#ffe9b8}
+#ar64-search{width:100%;min-height:38px;border:1px solid #7c95a8;background:#0e2132;color:#fff;border-radius:9px;padding:7px 12px;font:inherit}
+#ar64-search::placeholder{color:#a9bfce}
+#window .ar64-item[hidden],.ar64-empty[hidden]{display:none!important}
+.ar64-empty{text-align:center;color:#c9d6e0;padding:14px}
