@@ -9,6 +9,7 @@ import {SpatialHash6212} from './spatial6212.js';
 import {createAdventure6213} from './adventure6213.js';
 import {craftingHtml630,craftStatus630,sellStatus630} from './crafting630.js';
 import {inventoryHtml64,bindInventory64} from './inventory64.js';
+import {characterStatsHtml643} from './character643.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -175,6 +176,8 @@ function gainXp(amount){xp+=amount;while(xp>=level*80){xp-=level*80;level++;tale
 
 const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button><button id="shopBtn16">🛒 Shop</button>';document.querySelector('#app').appendChild(panel);
 const win=document.createElement('div');win.id='window';document.querySelector('#app').appendChild(win);
+const statsBtn643=document.createElement('button');statsBtn643.id='character643';statsBtn643.textContent='👤 Stats';panel.appendChild(statsBtn643);
+statsBtn643.onclick=()=>openWindow('👤 Character Stats',characterStatsHtml643({level,xp,hp:state.hp,maxHp:state.max,gold,kills:totalKills,bosses:bossWins07,bonuses:equipment59.bonuses(),sword:swordRank18,bow:bowRank18,armor:armorRank18}));
 function closeWindow(){win.style.display='none'}
 function openWindow(title,content){win.innerHTML='<div id="arDialogHeader61"><strong>ASTRAL RIFT • CHARACTER & WORLD</strong><button type="button" id="closeWindowTop61" aria-label="Цонх хаах">✕</button></div><h2>'+title+'</h2>'+content+'<p><button id="closeWindow">Хаах</button></p>';win.style.display='block';document.querySelector('#closeWindow').onclick=closeWindow;document.querySelector('#closeWindowTop61').onclick=closeWindow}
 function showEquipment59(){
