@@ -258,3 +258,14 @@
 #ar64-search::placeholder{color:#a9bfce}
 #window .ar64-item[hidden],.ar64-empty[hidden]{display:none!important}
 .ar64-empty{text-align:center;color:#c9d6e0;padding:14px}
+
+
+/* Shared RPG dialog controls: Shop, Forge, Equipment, Journal */
+#window h2{font-family:Georgia,serif;letter-spacing:.4px;border-bottom:1px solid #806f56;padding-bottom:9px}
+#window h3{color:#f3d598}
+#window button:not(:disabled){transition:background .15s,border-color .15s,filter .15s}
+#window button:not(:disabled):active{filter:brightness(1.25)}
+#window button:disabled{opacity:.48;cursor:not-allowed}
+#window small{color:#b9cad7;line-height:1.45}
+#window p{line-height:1.5}
+#window .eq59-item,#window .eq59-slot{border-radius:10px}
