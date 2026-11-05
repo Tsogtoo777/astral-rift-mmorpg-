@@ -331,7 +331,8 @@ const enemies=[];let enemySerial19=0;function spawn(x,z){const g=new THREE.Group
  g.scale.setScalar(elite?1.35:fast?.85:1);
  const entity={g,m,hp:max,max,alive:true,cool:0,respawn:0,home:new THREE.Vector3(x,0,z),elite,fast,baseColor:elite?0xd6a344:fast?0x4e9ba9:0x963d42};
  enemies.push(entity);return entity;}}
-spawn(4,-7);spawn(-5,-10);spawn(10,1);spawn(-11,5);spawn(6,11);
+// City center is a safe social zone: do not spawn the five placeholder monsters here.
+// Forest goblin, wolf, and regional enemy spawns below remain active.
 // Alpha 6.1.4: ONE rigged Goblin at the forest edge, beyond the protected city.
 // If the model cannot load, this enemy keeps the original placeholder silhouette.
 const goblinEnemy614=spawn(-23,-24);
