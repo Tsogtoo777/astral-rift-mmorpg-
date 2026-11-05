@@ -12,6 +12,7 @@ import {inventoryHtml64,bindInventory64} from './inventory64.js';
 import {characterStatsHtml643} from './character643.js';
 import {applyHud644,hudSettingsHtml644} from './hud644.js';
 import {combatFeedback65,combatFeedbackHtml65} from './combatFeedback65.js';
+import {createSwordCombo651} from './swordCombo651.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -852,7 +853,8 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyG')show
 const toast=document.querySelector('#toast');let toastUntil=0;function msg(t){toast.textContent=t;toast.style.opacity=1;toastUntil=performance.now()+1400}
 function closest(){if(inside09>=0)return null;let best=null,dist=Infinity;for(const e of enemies){if(!e.alive||(e.boss&&!inDungeon07))continue;const d=e.g.position.distanceTo(player.position);if(d<dist){best=e;dist=d}}return best}
 function lock(){state.target=state.target?.alive?null:closest();msg(state.target?'Дайсан сонголоо':'Бай цуцаллаа')}
-function swap(){state.weapon=1-state.weapon;meshy597?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Илд')}
+function swap(){state.weapon=1-state.weapon;swordCombo651.reset();meshy597?.setWeapon(state.weapon);msg(state.weapon?'Нум':'Илд')}
+const swordCombo651=createSwordCombo651();
 let queuedHitEnemy56=null;
 function activeEnemy56(){return queuedHitEnemy56?.alive?queuedHitEnemy56:state.target?.alive?state.target:closest()}
 function hit(damage=25,range=2.8){if(state.hp<=0)return;if(!combat56.resolving)meshy597?.triggerAttack(state.weapon);damage+=(state.weapon?bowRank18*5+talents19[1]*4:swordRank18*5+talents19[0]*4+equipment59.bonuses().attack);state.attacking=.24;state.cool=.4;const e=activeEnemy56();if(!e)return;if(!combat56.resolving&&segmentBlocked6212(player.position,e.g.position,(x,z)=>blocked09(x,z))){msg('Хана цаана байгаа бай руу онохгүй');return}const dist=e.g.position.distanceTo(player.position);if(dist>effectiveStrikeRange56(e,range,state.weapon)+.12){msg('Дайсан хэт хол байна');return}const to=e.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));if(to.normalize().dot(facing)<-.2&&!state.target){msg('Дайсан ард байна');return}impactFx13(e.g.position,damage);showDamage615(e,damage);e.hp=Math.max(0,e.hp-damage);e.visual615?.hit?.();if(e.alive&&e.hp>0)combat56.react(e,damage);e.m.material.color.setHex(0xff8e65);setTimeout(()=>{if(e.alive)e.m.material.color.setHex(e.baseColor||0x963d42)},130);if(e.hp<=0){e.alive=false;e.g.visible=!!(e.visual614||e.visual615);e.visual614?.die();e.visual615?.die();e.respawn=e.boss?999999:12;state.target=null;if(e.boss){ore18+=8;crystal18+=3;logBattle18('☠ Boss: +8 хүдэр, +3 кристалл');bossWins07++;gold+=250;gainXp(220);inventory.push('Сүүдрийн хамгаалагчийн тэмдэг');saveGame();msg('☠ BOSS яллаа! +250 алт · +220 EXP');}else{ore18+=(e.elite?4:1)+(totalKills%3===0?1:0);if(totalKills%5===4)crystal18++;bounty18++;logBattle18(`⚔️ ${e.kind615==='wolf'?'Wolf':e.kind614==='goblin'?'Goblin':'Дайсан'}: +${e.elite?45:e.fast?15:10} алт, +${e.elite?90:e.fast?45:35} EXP, +хүдэр`);questKills16+=questAccepted&&!questComplete?1:0;totalKills++;gold+=e.elite?45:e.fast?15:10;gainXp(e.elite?90:e.fast?45:35);}if(!e.boss&&questAccepted&&!questComplete&&questKills16>=3){questComplete=true;gold+=100;if(!inventory.includes('Ойн хамгаалагчийн сахиус'))inventory.push('Ойн хамгаалагчийн сахиус');saveGame();msg('Даалгавар биеллээ! +100 алт')}else if(!e.boss){saveGame();if(e.visual614||e.visual615)setTimeout(()=>msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`),650);else msg(`Дайсныг яллаа! +${e.elite?45:e.fast?15:10} алт · +${e.elite?90:e.fast?45:35} EXP`)}}else msg(`-${damage} HP`)}
@@ -864,7 +866,13 @@ function attack(){
     if(to.length()>.01 && to.length()<(weapon?18:4))player.rotation.y=Math.atan2(to.x,to.z);
   }
   // The damage is resolved at the release frame, not when the button is pressed.
-  if(combat56.queue({weapon,target:enemy,damage:weapon?18:28,range:weapon?17:3})){
+  const combo651=weapon===0?swordCombo651.preview(performance.now()):{step:0,multiplier:1,label:'BOW'};
+  if(combat56.queue({weapon,target:enemy,damage:Math.round((weapon?18:28)*combo651.multiplier),range:weapon?17:3})){
+    if(weapon===0){
+      swordCombo651.commit(performance.now());
+      combatState65.textContent=combo651.label;
+      slashFx13(combo651.step===3?1.6:combo651.step===2?1.2:1);
+    }
     meshy597?.triggerAttack(weapon);
     state.cool=weapon?.48:.36;
   }
@@ -1409,7 +1417,7 @@ let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loo
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
  const feedback65=combatFeedback65({cool:state.cool,dodge:state.dodge,skillCool:state.skillCool,weapon:state.weapon,target:!!state.target});
- combatWeapon65.textContent=feedback65.weaponLabel;combatState65.textContent=feedback65.label;combatSkills65.textContent=feedback65.skillReady+' / 3 SKILLS';
+ combatWeapon65.textContent=feedback65.weaponLabel;combatState65.textContent=state.weapon===0&&swordCombo651.current(performance.now())>0?'⚔ COMBO '+swordCombo651.current(performance.now())+'/3':feedback65.label;combatSkills65.textContent=feedback65.skillReady+' / 3 SKILLS';
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
 let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;
 const len=Math.hypot(x,z);
