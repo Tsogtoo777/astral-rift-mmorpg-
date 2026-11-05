@@ -331,7 +331,7 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='KeyE')inte
 // Alpha 7.4: keep all monster spawn homes outside the expanded starter-city buffer.
 // Apply at the common spawn entrypoint so forest, regional, and future respawns
 // share the same safe boundary without touching their combat/loot lifecycle.
-const CITY_MONSTER_SAFE_RADIUS74=40;
+const CITY_MONSTER_SAFE_RADIUS74=54;
 function outsideCitySpawn74(x,z){
   const distance=Math.hypot(x,z);
   if(distance>=CITY_MONSTER_SAFE_RADIUS74)return [x,z];
