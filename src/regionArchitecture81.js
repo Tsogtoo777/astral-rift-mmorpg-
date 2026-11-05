@@ -1,6 +1,7 @@
 // Astral Rift 8.1 — region art pass. Real Quaternius glTF geometry only.
 // The original lore groups remain visible until the replacement assets load.
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {installAncientRuins83} from './ancientRuins83.js';
 export function installRegionArchitecture81(THREE,scene,loreWorld){
   const root=new THREE.Group();root.name='RegionArchitecture81';scene.add(root);
   const loader=new GLTFLoader();
@@ -93,5 +94,7 @@ export function installRegionArchitecture81(THREE,scene,loreWorld){
     const fort=buildFort();
     return {village,temple:models.has('Wall_UnevenBrick_Straight')&&models.has('Floor_Brick'),fort,assets:models.size};
   })();
-  return {root,ready,blocked(x,z,r=.35){return footprint.some(p=>Math.abs(x-p.x)<p.r+r&&Math.abs(z-p.z)<p.r+r)}};
+  const ruins83=installAncientRuins83(THREE,scene,loreWorld);
+  ready.then(()=>ruins83.load()).catch(err=>console.warn('[Astral 8.3] ruins loader',err));
+  return {root,ready,ruins83,blocked(x,z,r=.35){return ruins83.blocked(x,z,r)||footprint.some(p=>Math.abs(x-p.x)<p.r+r&&Math.abs(z-p.z)<p.r+r)}};
 }
