@@ -11,6 +11,7 @@ import {craftingHtml630,craftStatus630,sellStatus630} from './crafting630.js';
 import {inventoryHtml64,bindInventory64} from './inventory64.js';
 import {characterStatsHtml643} from './character643.js';
 import {applyHud644,hudSettingsHtml644} from './hud644.js';
+import {combatFeedback65,combatFeedbackHtml65} from './combatFeedback65.js';
 import {journalUi641,skillUi641} from './ui641.js';
 import { loadGoblin614 } from './goblin614.js';
 import { loadForestWolf615 } from './wolf615.js';
@@ -179,6 +180,8 @@ const hudRoot644=document.querySelector('#app');
 let hudSize644='normal';
 try{hudSize644=localStorage.getItem('astral-hud-size644')||'normal'}catch{}
 hudSize644=applyHud644(hudRoot644,hudSize644);
+const combatOverlay65=document.createElement('div');combatOverlay65.innerHTML=combatFeedbackHtml65();document.querySelector('#app').appendChild(combatOverlay65);
+const combatWeapon65=combatOverlay65.querySelector('#arCombatWeapon65'),combatState65=combatOverlay65.querySelector('#arCombatState65'),combatSkills65=combatOverlay65.querySelector('#arCombatSkills65');
 const panel=document.createElement('div');panel.id='panel';panel.innerHTML='<button id="townBtn">NPC / E</button><button id="bagBtn">🎒 Bag / I</button><button id="shopBtn16">🛒 Shop</button>';document.querySelector('#app').appendChild(panel);
 const win=document.createElement('div');win.id='window';document.querySelector('#app').appendChild(win);
 const settingsBtn644=document.createElement('button');settingsBtn644.id='hudSettings644';settingsBtn644.textContent='⚙ UI';panel.appendChild(settingsBtn644);
@@ -1405,6 +1408,8 @@ let prev=performance.now();let sprintActive613=false,moveSpeed613=5;function loo
  }updateKingdom23(now,dt);update25(now,dt);world40.update(now,dt);parryWindow40=Math.max(0,parryWindow40-dt);
 combat56.update(dt,state.weapon);projectile56.update(dt);
 state.cool=Math.max(0,state.cool-dt);state.attacking=Math.max(0,state.attacking-dt);state.dodge=Math.max(0,state.dodge-dt);state.skillCool=state.skillCool.map(v=>Math.max(0,v-dt));updateSkills21();
+ const feedback65=combatFeedback65({cool:state.cool,dodge:state.dodge,skillCool:state.skillCool,weapon:state.weapon,target:!!state.target});
+ combatWeapon65.textContent=feedback65.weaponLabel;combatState65.textContent=feedback65.label;combatSkills65.textContent=feedback65.skillReady+' / 3 SKILLS';
 let x=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+move.x;
 let z=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+move.y;
 const len=Math.hypot(x,z);
