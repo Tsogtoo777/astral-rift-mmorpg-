@@ -3,6 +3,7 @@
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 export function installRegionArchitecture81(THREE,scene,loreWorld){
   const root=new THREE.Group();root.name='RegionArchitecture81';scene.add(root);
+  const legacyGroups=new Map(loreWorld.group.children.map(g=>[g.name,g]));
   const loader=new GLTFLoader();
   const specs=[
     ['Wall_Plaster_Straight','/architecture/medieval/'],
@@ -40,7 +41,7 @@ export function installRegionArchitecture81(THREE,scene,loreWorld){
     footprint.push({x:g.position.x+x,z:g.position.z+z,r:3.1*scale});
   }
   function replaceOld(id){
-    const old=loreWorld.group.children.find(c=>c.name===id);
+    const old=legacyGroups.get(id);
     if(old)old.visible=false;
   }
   function buildVillage(){
