@@ -13,17 +13,35 @@ export function inventoryCards64({inventory=[],loot={},owned=[],equipped={},gold
  ];
  return cards.filter(x=>Number(x.count)>0);
 }
+const filters64=[['all','Бүгд'],['equipment','Тоноглол'],['material','Материал'],['consumable','Эм'],['quest','Бусад']];
 export function inventoryHtml64(data={}){
  const cards=inventoryCards64(data);
- const tiles=cards.map((x,i)=>'<button type="button" class="ar64-item ar64-'+x.rarity+'" data-item64="'+i+'" aria-label="'+esc(x.name)+'"><span class="ar64-icon">'+esc(x.icon)+'</span><span class="ar64-count">'+x.count+'</span><span class="ar64-name">'+esc(x.name)+'</span>'+(x.equipped?'<span class="ar64-equipped">Өмссөн</span>':'')+'</button>').join('');
- return '<section class="ar64-inventory"><div class="ar64-top"><span>🪙 '+Math.max(0,Math.floor(Number(data.gold)||0))+' алт</span><span>'+cards.length+' төрөл</span></div><div class="ar64-grid">'+(tiles||'<p>Одоогоор эд зүйл алга.</p>')+'</div><div class="ar64-detail" id="ar64-detail" aria-live="polite">Эд зүйл дээр дарж дэлгэрэнгүй мэдээлэл харна уу.</div></section>';
+ const tiles=cards.map((x,i)=>'<button type="button" class="ar64-item ar64-'+x.rarity+'" data-item64="'+i+'" data-category64="'+x.category+'" data-name64="'+esc(x.name.toLowerCase())+'" aria-label="'+esc(x.name)+'"><span class="ar64-icon">'+esc(x.icon)+'</span><span class="ar64-count">'+x.count+'</span><span class="ar64-name">'+esc(x.name)+'</span>'+(x.equipped?'<span class="ar64-equipped">Өмссөн</span>':'')+'</button>').join('');
+ const tabs=filters64.map(([id,name])=>'<button type="button" class="ar64-filter" data-filter64="'+id+'" aria-pressed="'+(id==='all')+'">'+name+'</button>').join('');
+ return '<section class="ar64-inventory"><div class="ar64-top"><span>🪙 '+Math.max(0,Math.floor(Number(data.gold)||0))+' алт</span><span>'+cards.length+' төрөл</span></div><div class="ar64-toolbar"><div class="ar64-filters">'+tabs+'</div><input id="ar64-search" type="search" placeholder="🔎 Эд зүйл хайх" aria-label="Эд зүйл хайх" autocomplete="off"></div><div class="ar64-grid">'+(tiles||'<p>Одоогоор эд зүйл алга.</p>')+'</div><p class="ar64-empty" hidden>Илэрц олдсонгүй.</p><div class="ar64-detail" id="ar64-detail" aria-live="polite">Эд зүйл дээр дарж дэлгэрэнгүй мэдээлэл харна уу.</div></section>';
 }
 export function bindInventory64(root,data={}){
  const cards=inventoryCards64(data);
- root.querySelectorAll('[data-item64]').forEach(button=>button.addEventListener('click',()=>{
+ const items=[...root.querySelectorAll('[data-item64]')];
+ let category='all';
+ const search=root.querySelector('#ar64-search');
+ function apply(){
+  const term=(search?.value||'').trim().toLocaleLowerCase();
+  let visible=0;
+  items.forEach((button,i)=>{const item=cards[i];const show=(category==='all'||item.category===category)&&item.name.toLocaleLowerCase().includes(term);button.hidden=!show;if(show)visible++;});
+  const empty=root.querySelector('.ar64-empty');if(empty)empty.hidden=visible!==0;
+ }
+ root.querySelectorAll('[data-filter64]').forEach(button=>button.addEventListener('click',()=>{
+  category=button.dataset.filter64;
+  root.querySelectorAll('[data-filter64]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+  apply();
+ }));
+ search?.addEventListener('input',apply);
+ items.forEach(button=>button.addEventListener('click',()=>{
   const item=cards[Number(button.dataset.item64)];if(!item)return;
-  root.querySelectorAll('[data-item64]').forEach(b=>b.classList.toggle('ar64-selected',b===button));
+  items.forEach(b=>b.classList.toggle('ar64-selected',b===button));
   const detail=root.querySelector('#ar64-detail');
   if(detail)detail.innerHTML='<strong>'+esc(item.icon)+' '+esc(item.name)+'</strong><p>'+esc(item.detail)+'</p><small>Тоо: '+item.count+(item.slot?' · Slot: '+esc(item.slot):'')+(item.equipped?' · Өмссөн':'')+'</small>';
  }));
+ apply();
 }
