@@ -174,8 +174,22 @@ for(let i=0;i<12;i++){const a=i*2.4,r=36+(i%4)*9;const g=new THREE.Group();g.pos
 const leafMat=new THREE.MeshStandardMaterial({color:0x39785c,roughness:1});
 const leafLight=new THREE.MeshStandardMaterial({color:0x6fa76b,roughness:1});
 for(let i=0;i<110;i++){const a=i*2.39996,r=18+(i%23)*2.1;const x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x-2)<8&&z>-29&&z<17)continue;
-  const shrub=artMesh(scene,new THREE.IcosahedronGeometry(.48+(i%4)*.12,0),i%3?leafMat:leafLight,x,.36,z);shrub.scale.y=.65;
-  if(i%3===0){const f=artMesh(scene,new THREE.IcosahedronGeometry(.13,0),bloomMats[i%4],x+.22,.67,z+.1);f.castShadow=false;}}
+  // Alpha 7.2: replace floating polygon gems with layered leafy bushes.
+  const shrub=new THREE.Group();shrub.position.set(x,0,z);scene.add(shrub);
+  const foliage=i%3?leafMat:leafLight;
+  for(let j=0;j<3;j++){
+    const angle=j*Math.PI*2/3+i*.23;
+    const leaf=new THREE.Mesh(new THREE.SphereGeometry(.33+(i%4)*.055,7,5),foliage);
+    leaf.position.set(Math.cos(angle)*.22,.34+j*.065,Math.sin(angle)*.22);
+    leaf.scale.set(1.12,.65,.95);leaf.receiveShadow=true;shrub.add(leaf);
+  }
+  if(i%3===0){
+    for(let k=0;k<3;k++){
+      const angle=k*Math.PI*2/3+i;
+      const flower=new THREE.Mesh(new THREE.SphereGeometry(.075,6,4),bloomMats[(i+k)%4]);
+      flower.position.set(Math.cos(angle)*.25,.66,Math.sin(angle)*.25);shrub.add(flower);
+    }
+  }}
 // Plaza paving ring and floating quest indicator.
 const ring=new THREE.Mesh(new THREE.TorusGeometry(6.95,.14,6,48),new THREE.MeshStandardMaterial({color:0xd7c7a4,metalness:.12}));ring.rotation.x=Math.PI/2;ring.position.set(2,.14,7);scene.add(ring);
 const questGem=artMesh(scene,new THREE.OctahedronGeometry(.31),cyanGlow,1,3.02,7);
